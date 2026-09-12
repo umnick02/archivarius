@@ -19,7 +19,7 @@
     ],
     [
       "Derived confirmation",
-      "Full implementation requires criteria, current evidence and integration checks. V4 has no manual implemented field."
+      "Full implementation requires criteria, current evidence and integration checks. Partial confirmation requires at least one confirmed criterion. The outcome follows contained parts and explicit dependencies; v4 has no manual status."
     ],
     [
       "Changes affect conclusions",
@@ -38,7 +38,9 @@
   "more": "Links and details",
   "affected": "Affected records: {count}",
   "areasNote": "A record may belong to more than one area.",
-  "confirmationNote": "Missing confirmation does not mean missing code. Shared project gaps also affect component conclusions.",
+  "confirmationNote": "The outcome accounts for applicable requirements, contained parts and explicit dependencies. Confirmed criteria describe verified behavior, not a completion percentage. Missing confirmation does not mean missing code.",
+  "criteriaProgress": "Criteria confirmed: {confirmed} of {total}",
+  "confirmedCriteria": "Confirmed behavior",
   "coverageLink": "Explore confirmation gaps",
   "workNote": "Tasks without full confirmation appear here. Missing requirement coverage is available in project confirmation.",
   "emptyWork": "No unconfirmed tasks in this snapshot. This does not confirm complete implementation.",

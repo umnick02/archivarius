@@ -6,6 +6,7 @@ import {
 } from './core.mjs';
 import { analyzeProject, projectArchitecture } from './project.mjs';
 import { verifyProjectEvidence, relativeArtifactPath } from './evidence.mjs';
+import { legacyCompletion } from './implementation.mjs';
 
 export async function readArchitecture(source, { signal } = {}) {
   signal?.throwIfAborted();
@@ -110,6 +111,10 @@ export async function prepareArchitecture(source, { signal } = {}) {
       input,
       project,
       analysis,
+      completion: {
+        nodes: analysis.completion,
+        relations: analysis.completion,
+      },
       evidence,
       graph: {
         nodes: new Map(),
@@ -135,5 +140,16 @@ export async function prepareArchitecture(source, { signal } = {}) {
     for (const edge of model.relations)
       edge.implemented = analysis.completion[edge.key].implemented;
   }
-  return { model, input, project, analysis, evidence, graph, layout };
+  return {
+    model,
+    input,
+    project,
+    analysis,
+    completion: analysis
+      ? { nodes: analysis.completion, relations: analysis.completion }
+      : legacyCompletion(model, graph),
+    evidence,
+    graph,
+    layout,
+  };
 }

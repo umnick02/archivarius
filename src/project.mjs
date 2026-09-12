@@ -285,7 +285,10 @@ export function analyzeProject(model, { verifiedResults = [] } = {}) {
     realization = realizationDigest(model);
   const verified = new Set(verifiedResults),
     freshness = {},
-    completion = {};
+    completion = {},
+    dependencies = new Map(model.records.map((r) => [r.key, new Set()])),
+    coverage = new Map(model.records.map((r) => [r.key, new Set()])),
+    localReasons = new Map();
   const checks = model.records.filter((r) => r.type === 'check'),
     results = model.records.filter((r) => r.type === 'result');
   const historicalFailures = model.history
@@ -356,156 +359,256 @@ export function analyzeProject(model, { verifiedResults = [] } = {}) {
       reasons.push({ code: 'EVIDENCE_MISSING', key: check.key });
     return reasons;
   };
-  for (const check of checks)
-    completion[check.key] = {
-      implemented: false,
-      reasons: checkReasons(check),
-    };
   const criteria = model.records.filter((r) => r.type === 'criterion');
-  for (const criterion of criteria) {
-    const covers = checks.filter((c) => c.covers.includes(criterion.key));
-    const reasons = [
-      ...freshness[criterion.key].reasons,
-      ...covers.flatMap((c) => completion[c.key].reasons),
-    ];
-    if (!covers.length)
-      reasons.push({ code: 'CHECK_MISSING', key: criterion.key });
-    completion[criterion.key] = { implemented: !reasons.length, reasons };
-  }
+  const depend = (key, keys, covered = false) => {
+    for (const target of keys)
+      if (records.has(target)) {
+        dependencies.get(key).add(target);
+        if (covered) coverage.get(key).add(target);
+      }
+  };
+  const targetsFor = (record) => {
+    const targets = new Set([record.key]);
+    let parent = record.parent;
+    while (parent) {
+      targets.add(parent);
+      parent = records.get(parent).parent;
+    }
+    let scope = record.scope;
+    while (scope) {
+      targets.add(scope);
+      scope = records.get(scope).parent;
+    }
+    return targets;
+  };
+  // Membership and declared obligations define proof dependencies. In particular,
+  // an interaction depends on its contract, not on both endpoint implementations.
+  // Otherwise the connected architecture would collapse into one global verdict.
   for (const record of model.records) {
-    if (completion[record.key]) continue;
-    let selected = [];
-    if (record.type === 'requirement')
-      selected = criteria.filter((c) => c.requirement === record.key);
-    if (record.type === 'task')
-      selected = criteria.filter((c) => record.covers.includes(c.key));
-    if (record.type === 'scenario')
-      selected = criteria.filter((c) => record.then.includes(c.key));
+    const key = record.key;
+    const reasons =
+      record.type === 'check'
+        ? checkReasons(record)
+        : [...freshness[key].reasons];
+    localReasons.set(key, reasons);
+    if (
+      record.type === 'source' &&
+      ['assumption', 'question'].includes(record.origin)
+    )
+      reasons.push({ code: 'UNRESOLVED_SOURCE', key });
+    if (record.type === 'requirement') {
+      const selected = criteria.filter((c) => c.requirement === key);
+      depend(
+        key,
+        selected.map((c) => c.key),
+        true,
+      );
+      depend(key, record.sources);
+      if (!selected.length) reasons.push({ code: 'CRITERIA_MISSING', key });
+      if (
+        !record.appliesTo.some((target) =>
+          ['component', 'interaction', 'interface'].includes(
+            records.get(target).type,
+          ),
+        ) &&
+        !model.records.some(
+          (r) =>
+            r.type === 'task' &&
+            r.covers.some((target) => selected.some((c) => c.key === target)),
+        )
+      )
+        reasons.push({ code: 'REQUIREMENT_UNMAPPED', key });
+    }
+    if (record.type === 'criterion') {
+      const covers = checks.filter((c) => c.covers.includes(key));
+      const unit = covers.filter((c) => c.level === 'unit');
+      depend(key, [
+        ...(unit.length ? unit : covers).map((c) => c.key),
+        ...records.get(record.requirement).sources,
+      ]);
+      // Unit evidence may establish a criterion before integration runs. An
+      // actual unresolved failure from any covering check still contradicts it.
+      reasons.push(
+        ...covers.flatMap((c) =>
+          checkReasons(c).filter((r) => r.code === 'CHECK_FAILED'),
+        ),
+      );
+      if (!covers.length) reasons.push({ code: 'CHECK_MISSING', key });
+    }
+    if (record.type === 'decision') depend(key, record.uses);
+    if (record.type === 'task') {
+      depend(key, record.covers, true);
+      depend(key, [...record.needs, ...record.uses]);
+    }
+    if (record.type === 'scenario') {
+      depend(key, record.then, true);
+      depend(key, record.uses);
+      if (
+        !checks.some(
+          (check) =>
+            check.scenarios.includes(key) && !checkReasons(check).length,
+        )
+      )
+        reasons.push({ code: 'SCENARIO_UNCHECKED', key });
+    }
     if (
       ['component', 'scope', 'interaction', 'interface'].includes(record.type)
     ) {
-      const requirements = new Set(
-        applicableRequirements(model, record.key).map((r) => r.key),
+      depend(
+        key,
+        applicableRequirements(model, key).map((r) => r.key),
+        true,
       );
-      selected = criteria.filter((c) => requirements.has(c.requirement));
+      if (!Object.keys(model.bindings).length)
+        reasons.push({ code: 'REALIZATION_UNAVAILABLE', key });
     }
-    const reasons = [...freshness[record.key].reasons];
-    if (
-      record.type === 'interface' &&
-      !model.records.some(
-        (r) => r.type === 'interaction' && r.contract === record.key,
+    if (record.type === 'interface') {
+      depend(key, record.constraints, true);
+      if (
+        !model.records.some(
+          (r) => r.type === 'interaction' && r.contract === key,
+        )
       )
-    )
-      reasons.push({ code: 'INTERFACE_UNUSED', key: record.key });
-    if (
-      record.type === 'scenario' &&
-      !checks.some(
-        (check) =>
-          check.scenarios.includes(record.key) &&
-          !completion[check.key].reasons.length,
-      )
-    )
-      reasons.push({ code: 'SCENARIO_UNCHECKED', key: record.key });
-    if (
-      record.type === 'requirement' &&
-      !record.appliesTo.some((key) =>
-        ['component', 'interaction', 'interface'].includes(
-          records.get(key)?.type,
-        ),
-      ) &&
-      !model.records.some(
-        (r) =>
-          r.type === 'task' &&
-          r.covers.some((key) => selected.some((c) => c.key === key)),
-      )
-    )
-      reasons.push({ code: 'REQUIREMENT_UNMAPPED', key: record.key });
+        reasons.push({ code: 'INTERFACE_UNUSED', key });
+    }
+    if (record.type === 'interaction') depend(key, [record.contract], true);
+    if (record.type === 'component') {
+      const parts = descendants(records, key);
+      depend(
+        key,
+        [...parts].filter((part) => part !== key),
+        true,
+      );
+      depend(
+        key,
+        model.records
+          .filter(
+            (r) =>
+              r.type === 'interaction' &&
+              (parts.has(r.from) || parts.has(r.to)),
+          )
+          .map((r) => r.key),
+        true,
+      );
+    }
+    if (record.type === 'scope') {
+      const scopes = descendants(records, key);
+      const members = model.records.filter(
+        (r) => r.key !== key && (scopes.has(r.scope) || scopes.has(r.key)),
+      );
+      depend(
+        key,
+        members
+          .filter((r) => !['check', 'result'].includes(r.type))
+          .map((r) => r.key),
+        true,
+      );
+      if (!members.some((r) => r.type === 'component'))
+        reasons.push({ code: 'ARCHITECTURE_MISSING', key });
+    }
     if (
       [
-        'scope',
         'component',
+        'scope',
         'interaction',
         'interface',
         'requirement',
-        'task',
-        'scenario',
       ].includes(record.type)
     ) {
-      if (!selected.length)
-        reasons.push({ code: 'CRITERIA_MISSING', key: record.key });
-      reasons.push(...selected.flatMap((c) => completion[c.key].reasons));
-      if (['scope', 'component'].includes(record.type)) {
-        const integrated = checks.filter(
-          (c) =>
-            c.level === 'integration' &&
-            c.targets.includes(record.key) &&
-            selected.every((a) => c.covers.includes(a.key)),
-        );
-        if (!integrated.some((c) => !completion[c.key].reasons.length))
-          reasons.push({ code: 'INTEGRATION_MISSING', key: record.key });
-      }
+      const targets = targetsFor(record);
+      const assigned = model.records.filter(
+        (r) =>
+          ['decision', 'task'].includes(r.type) &&
+          r.affects.some((target) => targets.has(target)),
+      );
+      for (const item of assigned)
+        depend(key, [item.key], item.type === 'task');
     }
     if (record.type === 'result' && !verified.has(record.key))
       reasons.push({ code: 'EVIDENCE_UNAVAILABLE', key: record.key });
     if (record.type === 'result' && record.outcome !== 'pass')
       reasons.push({ code: 'CHECK_FAILED', key: record.key });
-    completion[record.key] = { implemented: !reasons.length, reasons };
   }
-  const uncertain = model.records.filter(
-    (r) => r.type === 'source' && ['assumption', 'question'].includes(r.origin),
-  );
-  let pending = true;
-  while (pending) {
-    pending = false;
-    for (const task of model.records.filter(
-      (record) => record.type === 'task',
-    )) {
-      const item = completion[task.key];
-      for (const key of task.needs)
-        if (
-          completion[key].reasons.length &&
-          !item.reasons.some(
-            (reason) =>
-              reason.code === 'PREREQUISITE_UNCONFIRMED' && reason.key === key,
-          )
-        ) {
-          item.reasons.push({ code: 'PREREQUISITE_UNCONFIRMED', key });
-          pending = true;
-        }
+  const closure = (links, start) => {
+    const found = new Set(),
+      queue = [start];
+    while (queue.length) {
+      const key = queue.pop();
+      if (found.has(key)) continue;
+      found.add(key);
+      queue.push(...links.get(key));
     }
-  }
-  // Full implementation is conservative over the whole declared project until dependency coverage is proven.
-  const globalGaps = model.records
-    .filter((r) =>
+    return found;
+  };
+  const closures = new Map(
+    model.records.map((record) => [
+      record.key,
+      closure(dependencies, record.key),
+    ]),
+  );
+  for (const record of model.records) {
+    // Prerequisite evidence can block completion, but cannot be counted as work
+    // completed on this record. Only its declared criteria and parts contribute.
+    const selected = [...closure(coverage, record.key)].filter(
+      (key) => records.get(key).type === 'criterion',
+    );
+    const reasons = localReasons.get(record.key);
+    if (
       [
         'scope',
         'component',
-        'interaction',
         'interface',
-        'requirement',
-        'decision',
+        'interaction',
         'task',
         'scenario',
-      ].includes(r.type),
+      ].includes(record.type) &&
+      !selected.length
     )
-    .flatMap((r) => completion[r.key].reasons);
-  if (!model.records.some((r) => r.type === 'component'))
-    globalGaps.push({ code: 'ARCHITECTURE_MISSING', key: model.root });
-  if (!Object.keys(model.bindings).length)
-    globalGaps.push({ code: 'REALIZATION_UNAVAILABLE', key: model.root });
-  globalGaps.push(
-    ...uncertain.map((r) => ({ code: 'UNRESOLVED_SOURCE', key: r.key })),
-  );
+      reasons.push({ code: 'CRITERIA_MISSING', key: record.key });
+    if (
+      ['scope', 'component'].includes(record.type) &&
+      !checks.some(
+        (c) =>
+          c.level === 'integration' &&
+          c.targets.includes(record.key) &&
+          selected.every((key) => c.covers.includes(key)) &&
+          !checkReasons(c).length,
+      )
+    )
+      reasons.push({ code: 'INTEGRATION_MISSING', key: record.key });
+    completion[record.key] = {
+      progress: { criteria: selected.sort(), confirmedCriteria: [] },
+    };
+  }
+  for (const task of model.records.filter((r) => r.type === 'task'))
+    for (const key of task.needs)
+      if (
+        [...closures.get(key)].some(
+          (dependency) => localReasons.get(dependency).length,
+        )
+      )
+        localReasons
+          .get(task.key)
+          .push({ code: 'PREREQUISITE_UNCONFIRMED', key });
   for (const record of model.records) {
     const item = completion[record.key];
-    if (
-      ['component', 'scope', 'interaction', 'interface'].includes(record.type)
-    )
-      item.reasons.push(...globalGaps);
+    const reasons = [...closures.get(record.key)].flatMap((key) =>
+      localReasons.get(key),
+    );
     item.reasons = [
-      ...new Map(item.reasons.map((r) => [r.code + ':' + r.key, r])).values(),
+      ...new Map(reasons.map((r) => [r.code + ':' + r.key, r])).values(),
     ];
     item.implemented = !item.reasons.length;
+  }
+  for (const item of Object.values(completion)) {
+    item.progress.confirmedCriteria = item.progress.criteria.filter(
+      (key) => completion[key].implemented,
+    );
+    item.state = item.implemented
+      ? 'confirmed'
+      : item.progress.confirmedCriteria.length
+        ? 'partial'
+        : 'unconfirmed';
   }
   return { contract, realization, freshness, completion };
 }

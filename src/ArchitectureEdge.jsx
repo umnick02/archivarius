@@ -11,9 +11,7 @@ export function ArchitectureEdge({ id, data }) {
   const confirmation =
     copy.mapImplementation.label +
     ': ' +
-    (data.bundle.implemented
-      ? copy.mapImplementation.confirmed
-      : copy.mapImplementation.unconfirmed);
+    copy.mapImplementation[data.bundle.state];
   const color = data.active
     ? '#1f7758'
     : data.muted
@@ -24,6 +22,7 @@ export function ArchitectureEdge({ id, data }) {
       data-relation={id}
       data-muted={String(data.muted && !data.active)}
       data-implemented={String(data.bundle.implemented)}
+      data-implementation-state={data.bundle.state}
       role="button"
       tabIndex={0}
       aria-label={
@@ -80,7 +79,7 @@ export function ArchitectureEdge({ id, data }) {
         pointerEvents="none"
       >
         <ImplementationMark
-          implemented={data.bundle.implemented}
+          state={data.bundle.state}
           x={-mark.size / 2}
           y={-mark.size / 2}
           width={mark.size}

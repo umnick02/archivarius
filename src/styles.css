@@ -217,10 +217,13 @@
 .archivarius .implementation-mark {
   display: inline-block;
   flex-shrink: 0;
-  color: #a56a17;
+  color: #7b8277;
 }
-.archivarius .implementation-mark[data-implemented='true'] {
+.archivarius .implementation-mark[data-implementation-state='confirmed'] {
   color: #28765a;
+}
+.archivarius .implementation-mark[data-implementation-state='partial'] {
+  color: #a56a17;
 }
 .archivarius .node-implementation {
   position: absolute;
@@ -238,11 +241,25 @@
   position: absolute;
   inset: 0 auto 0 0;
   width: 3px;
-  background: repeating-linear-gradient(135deg, #bb853d 0 3px, #fff7e8 3px 6px);
+  background: #a4aa9e;
   pointer-events: none;
 }
-.archivarius .node-card[data-implemented='true']::before {
+.archivarius .node-card[data-implementation-state='confirmed']::before {
   background: #28765a;
+}
+.archivarius .node-card[data-implementation-state='partial']::before {
+  background: repeating-linear-gradient(135deg, #bb853d 0 3px, #fff7e8 3px 6px);
+}
+.archivarius .implementation > p .implementation-mark {
+  width: 17px;
+  height: 17px;
+  vertical-align: -3px;
+}
+.archivarius .implementation[data-implementation-state='partial'] {
+  background: #fbf4e7;
+}
+.archivarius .implementation-progress {
+  font-size: 12px;
 }
 .archivarius .node-card h2 {
   padding-right: calc(var(--mark-size) + 5px);

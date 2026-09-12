@@ -39,6 +39,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
     model,
     project,
     projectCopy,
+    completion,
     graph,
     layout,
     copy,
@@ -122,8 +123,8 @@ export const App = forwardRef(function App({ onReady }, ref) {
     [model, graph],
   );
   const bundles = useMemo(
-    () => projectedEdges(model, graph, layout, expanded),
-    [model, graph, layout, expansionKey],
+    () => projectedEdges(model, graph, layout, expanded, completion.relations),
+    [model, graph, layout, expansionKey, completion],
   );
   const clearClick = useCallback(() => {
     clearTimeout(pendingClick.current);
@@ -546,6 +547,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
       to: e.bundle.to,
       kind: e.bundle.kind,
       implemented: e.bundle.implemented,
+      state: e.bundle.state,
       members: e.bundle.relations.map((r) => r.key),
     })),
     layer,
@@ -810,14 +812,12 @@ export const App = forwardRef(function App({ onReady }, ref) {
             title={copy.implementationUnconfirmed}
           >
             <strong>{copy.mapImplementation.label}</strong>
-            <span>
-              <ImplementationMark implemented />
-              {copy.mapImplementation.confirmed}
-            </span>
-            <span>
-              <ImplementationMark implemented={false} />
-              {copy.mapImplementation.unconfirmed}
-            </span>
+            {['confirmed', 'partial', 'unconfirmed'].map((state) => (
+              <span key={state}>
+                <ImplementationMark state={state} />
+                {copy.mapImplementation[state]}
+              </span>
+            ))}
           </div>
         )}
         <svg width="0" height="0" className="marker-definitions">

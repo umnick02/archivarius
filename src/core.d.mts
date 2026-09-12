@@ -40,14 +40,18 @@ export interface ProjectReason {
   code: string;
   key: string;
 }
+export type ImplementationState = 'confirmed' | 'partial' | 'unconfirmed';
+export interface ProjectCompletion {
+  implemented: boolean;
+  state: ImplementationState;
+  progress: { criteria: string[]; confirmedCriteria: string[] };
+  reasons: ProjectReason[];
+}
 export interface ProjectAnalysis {
   contract: string;
   realization: string;
   freshness: Record<string, { current: boolean; reasons: ProjectReason[] }>;
-  completion: Record<
-    string,
-    { implemented: boolean; reasons: ProjectReason[] }
-  >;
+  completion: Record<string, ProjectCompletion>;
 }
 export interface ProjectContext {
   snapshot: string;

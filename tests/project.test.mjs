@@ -200,6 +200,206 @@ test('confirmation needs current external evidence, complete coverage and integr
   );
 });
 
+test('partial confirmation requires current criterion evidence and still needs integration for the whole component', () => {
+  const model = ready();
+  model.records.push({
+    ...get(model, 'export-check'),
+    key: 'limit-check',
+    level: 'unit',
+    covers: ['within-limit'],
+    targets: ['admission'],
+    scenarios: [],
+  });
+  seal(model);
+  model.records.push({
+    ...receipt(model),
+    key: 'limit-run',
+    check: 'limit-check',
+  });
+  const unverified = analyzeProject(model);
+  assert.equal(unverified.completion.export.state, 'unconfirmed');
+  assert.deepEqual(unverified.completion.export.progress.confirmedCriteria, []);
+  const partial = analyzeProject(model, { verifiedResults: ['limit-run'] });
+  for (const key of ['export', 'project', 'implement-export']) {
+    assert.equal(partial.completion[key].state, 'partial');
+    assert.equal(partial.completion[key].implemented, false);
+    assert.deepEqual(partial.completion[key].progress.confirmedCriteria, [
+      'within-limit',
+    ]);
+    assert.deepEqual(partial.completion[key].progress.criteria, [
+      'result-visible',
+      'within-limit',
+    ]);
+  }
+  assert(
+    partial.completion.export.reasons.some(
+      (r) => r.code === 'INTEGRATION_MISSING',
+    ),
+  );
+  const failed = structuredClone(model);
+  failed.records.push({ ...receipt(failed), key: 'failed', outcome: 'fail' });
+  const contradicted = analyzeProject(failed, {
+    verifiedResults: ['limit-run'],
+  });
+  assert.equal(contradicted.completion.export.state, 'unconfirmed');
+  assert(
+    contradicted.completion['within-limit'].reasons.some(
+      (r) => r.code === 'CHECK_FAILED',
+    ),
+  );
+  model.records.push(receipt(model));
+  assert.equal(
+    analyzeProject(model, { verifiedResults: ['limit-run', 'run'] }).completion
+      .export.state,
+    'confirmed',
+  );
+  get(model, 'writer').summary += ' ';
+  assert.equal(
+    analyzeProject(model, { verifiedResults: ['limit-run', 'run'] }).completion
+      .export.state,
+    'unconfirmed',
+  );
+});
+
+test('completed prerequisites are not counted as implementation progress of the dependent task', () => {
+  const model = ready();
+  model.records.push({
+    ...get(model, 'implement-export'),
+    key: 'prerequisite',
+    covers: ['within-limit'],
+    needs: [],
+    uses: [],
+  });
+  get(model, 'implement-export').covers = ['result-visible'];
+  get(model, 'implement-export').needs = ['prerequisite'];
+  get(model, 'implement-export').uses = [];
+  model.records.push({
+    ...get(model, 'export-check'),
+    key: 'limit-check',
+    level: 'unit',
+    covers: ['within-limit'],
+    targets: ['admission'],
+    scenarios: [],
+  });
+  seal(model);
+  model.records.push({
+    ...receipt(model),
+    key: 'limit-run',
+    check: 'limit-check',
+  });
+  const analysis = analyzeProject(model, { verifiedResults: ['limit-run'] });
+  assert.equal(analysis.completion.prerequisite.state, 'confirmed');
+  assert.equal(analysis.completion['implement-export'].state, 'unconfirmed');
+  assert.deepEqual(analysis.completion['implement-export'].progress, {
+    criteria: ['result-visible'],
+    confirmedCriteria: [],
+  });
+});
+
+test('all declared unit checks are required and full criterion coverage still does not replace integration', () => {
+  const model = ready();
+  for (const key of ['unit-a', 'unit-b'])
+    model.records.push({ ...get(model, 'export-check'), key, level: 'unit' });
+  seal(model);
+  model.records.push({ ...receipt(model), key: 'unit-run-a', check: 'unit-a' });
+  assert.equal(
+    analyzeProject(model, { verifiedResults: ['unit-run-a'] }).completion.export
+      .state,
+    'unconfirmed',
+  );
+  model.records.push({ ...receipt(model), key: 'unit-run-b', check: 'unit-b' });
+  const item = analyzeProject(model, {
+    verifiedResults: ['unit-run-a', 'unit-run-b'],
+  }).completion.export;
+  assert.equal(item.state, 'partial');
+  assert.deepEqual(item.progress.confirmedCriteria, item.progress.criteria);
+  assert(item.reasons.some((r) => r.code === 'INTEGRATION_MISSING'));
+});
+
+test('component completion follows contained parts and contracts without propagating unrelated project gaps', () => {
+  const model = ready();
+  model.records.push({
+    ...get(model, 'screen'),
+    key: 'extra',
+    parent: 'export',
+  });
+  model.records.push({
+    ...get(model, 'completed'),
+    key: 'extra-result',
+    from: 'extra',
+  });
+  model.records.push({
+    ...get(model, 'owner-intent'),
+    key: 'open-question',
+    origin: 'question',
+  });
+  seal(model);
+  model.records.push(receipt(model));
+  const analysis = analyzeProject(model, { verifiedResults: ['run'] });
+  assert.equal(analysis.completion.extra.state, 'partial');
+  assert.equal(analysis.completion.export.state, 'partial');
+  assert.equal(analysis.completion.project.state, 'partial');
+  assert.equal(analysis.completion.screen.state, 'confirmed');
+  assert.equal(analysis.completion['extra-result'].state, 'confirmed');
+  assert(
+    !analysis.completion.screen.reasons.some(
+      (r) => r.key === 'extra' || r.key === 'open-question',
+    ),
+  );
+  assert(
+    analysis.completion.export.reasons.some(
+      (r) => r.key === 'extra' && r.code === 'INTEGRATION_MISSING',
+    ),
+  );
+  assert(
+    analysis.completion.project.reasons.some((r) => r.key === 'open-question'),
+  );
+  const relevant = structuredClone(model);
+  relevant.records = relevant.records.filter((r) => r.type !== 'result');
+  get(relevant, 'row-limit').sources.push('open-question');
+  seal(relevant);
+  relevant.records.push(receipt(relevant));
+  const blocked = analyzeProject(relevant, { verifiedResults: ['run'] });
+  assert.equal(blocked.completion.admission.implemented, false);
+  assert(
+    !blocked.completion.admission.progress.confirmedCriteria.includes(
+      'within-limit',
+    ),
+  );
+});
+
+test('unchecked applicable requirements and task prerequisites prevent full confirmation even when existing criteria pass', () => {
+  const model = ready();
+  model.records.push({
+    ...get(example, 'exclude-private'),
+    appliesTo: ['write-contract'],
+  });
+  model.records.push({
+    ...get(model, 'implement-export'),
+    key: 'prerequisite',
+    needs: [],
+    basis: null,
+  });
+  get(model, 'implement-export').needs.push('prerequisite');
+  seal(model);
+  get(model, 'prerequisite').basis = null;
+  model.records.push(receipt(model));
+  const analysis = analyzeProject(model, { verifiedResults: ['run'] });
+  assert.equal(analysis.completion['write-contract'].state, 'partial');
+  assert.equal(analysis.completion.writer.state, 'partial');
+  assert(
+    analysis.completion.writer.reasons.some(
+      (r) => r.key === 'exclude-private' && r.code === 'CRITERIA_MISSING',
+    ),
+  );
+  assert(
+    analysis.completion['implement-export'].reasons.some(
+      (r) => r.key === 'prerequisite' && r.code === 'PREREQUISITE_UNCONFIRMED',
+    ),
+  );
+  assert.equal(analysis.completion.project.implemented, false);
+});
+
 test('LLM context carries exact definitions, inherited constraints and an unforgeable-by-trimming read set', () => {
   const model = clone();
   model.records.push({ ...get(model, 'owner-intent'), key: 'unrelated' });

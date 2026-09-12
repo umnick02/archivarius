@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import { connectBrowser, pause } from './cdp.mjs';
-import { contractDigest } from '../src/project.mjs';
+import { analyzeProject, contractDigest } from '../src/project.mjs';
 import { hashBytes } from '../src/digest.mjs';
 import { executeProjectCheck } from '../src/node.mjs';
 
@@ -485,52 +485,120 @@ try {
     process.execPath,
     'fixture.mjs',
   ];
+  confirmed.records.push({
+    ...confirmed.records.find((record) => record.key === 'export-check'),
+    key: 'unit-check',
+    level: 'unit',
+    covers: ['within-limit'],
+    scenarios: [],
+  });
   const contract = contractDigest(confirmed);
   for (const record of confirmed.records)
     if ('basis' in record) record.basis = { contract };
   confirmed.records.push(
-    await executeProjectCheck(confirmed, 'export-check', {
+    await executeProjectCheck(confirmed, 'unit-check', {
       directory: evidenceDirectory.pathname,
-      resultKey: 'run',
-      evidencePath: 'run.json',
+      resultKey: 'unit-run',
+      evidencePath: 'unit-run.json',
     }),
   );
   await fs.writeFile(
     new URL('project.json', evidenceDirectory),
     JSON.stringify(confirmed),
   );
-  for (const expected of [true, false]) {
-    if (!expected) await fs.rm(new URL('run.json', evidenceDirectory));
+  for (const [stage, expected, verifiedResults] of [
+    [0, 'partial', ['unit-run']],
+    [1, 'confirmed', ['unit-run', 'run']],
+    [2, 'partial', ['unit-run']],
+    [3, 'unconfirmed', []],
+  ]) {
+    if (stage === 1) {
+      confirmed.records.push(
+        await executeProjectCheck(confirmed, 'export-check', {
+          directory: evidenceDirectory.pathname,
+          resultKey: 'run',
+          evidencePath: 'run.json',
+        }),
+      );
+      await fs.writeFile(
+        new URL('project.json', evidenceDirectory),
+        JSON.stringify(confirmed),
+      );
+    }
+    if (stage === 2) await fs.rm(new URL('run.json', evidenceDirectory));
+    if (stage === 3) await fs.rm(new URL('unit-run.json', evidenceDirectory));
     await b.evaluate(async () => {
       await window.consumer.first.load(
         new URL('./implementation-fixture/project.json', document.baseURI),
       );
+      await window.consumer.first.focus('writer');
       window.consumer.first.inspect('writer');
     });
     await pause(150);
     const status = await b.evaluate(() => ({
       nodes: [...document.querySelectorAll('#first [data-node]')].map(
         (node) => ({
-          status: node.dataset.implemented,
-          mark: node.querySelector('.implementation-mark').dataset.implemented,
+          key: node.dataset.node,
+          status: node.dataset.implementationState,
+          mark: node.querySelector('.implementation-mark').dataset
+            .implementationState,
         }),
       ),
       edges: [...document.querySelectorAll('#first [data-relation]')].map(
         (edge) => ({
-          status: edge.dataset.implemented,
-          mark: edge.querySelector('.implementation-mark').dataset.implemented,
+          status: edge.dataset.implementationState,
+          mark: edge.querySelector('.implementation-mark').dataset
+            .implementationState,
         }),
       ),
       card: document.querySelector('#first .implementation').dataset
-        .implemented,
+        .implementationState,
     }));
     assert(status.nodes.length && status.edges.length);
+    const analysis = analyzeProject(confirmed, { verifiedResults });
+    for (const item of status.nodes)
+      assert.equal(item.status, analysis.completion[item.key].state);
     for (const item of [...status.nodes, ...status.edges])
-      assert.deepEqual(item, {
-        status: String(expected),
-        mark: String(expected),
-      });
-    assert.equal(status.card, String(expected));
+      assert.equal(item.mark, item.status);
+    assert.equal(status.card, expected);
+    assert.equal(
+      status.nodes.find((node) => node.key === 'writer').status,
+      expected,
+    );
+    if (stage === 0) {
+      const progress = await b.evaluate(
+        () =>
+          document.querySelector('#first .implementation-progress p')
+            .textContent,
+      );
+      assert.equal(
+        progress,
+        copy.criteriaProgress
+          .replace('{confirmed}', '1')
+          .replace('{total}', '2'),
+      );
+      await click('#first [data-disclosure=writer-confirmed-criteria] summary');
+      await b.capture('consumer-partial-implementation');
+      await click(
+        '#first [data-disclosure=writer-confirmed-criteria] [data-record-link=within-limit]',
+      );
+      assert.equal(
+        await b.evaluate(
+          () =>
+            document.querySelector('#first [data-record-title]').textContent,
+        ),
+        confirmed.records.find((record) => record.key === 'within-limit').title,
+      );
+      await click('#first [data-control=record-back]');
+      assert(
+        await b.evaluate(
+          () =>
+            document.querySelector(
+              '#first [data-disclosure=writer-confirmed-criteria]',
+            ).open,
+        ),
+      );
+    }
   }
   const requirementsOnly = structuredClone(project);
   assert.equal(

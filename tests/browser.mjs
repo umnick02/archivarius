@@ -287,6 +287,7 @@ try {
   );
   assert.equal(shared.members.length, 2);
   assert.equal(shared.implemented, false);
+  assert.equal(shared.state, 'partial');
   assert(
     await b.evaluate(
       () =>

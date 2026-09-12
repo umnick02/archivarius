@@ -4,7 +4,7 @@ import { format, useArchitecture } from './context.jsx';
 import { ImplementationMark } from './ImplementationMark.jsx';
 
 export function ArchitectureNode({ data }) {
-  const { copy, rootColors } = useArchitecture();
+  const { copy, rootColors, completion } = useArchitecture();
   const { zoom } = useViewport();
   const {
     item,
@@ -24,12 +24,9 @@ export function ArchitectureNode({ data }) {
   }, [item.key, handleKey, updateInternals]);
   const w = box.width * zoom,
     h = box.height * zoom;
+  const state = completion.nodes[item.key].state;
   const confirmation =
-    copy.mapImplementation.label +
-    ': ' +
-    (item.implemented
-      ? copy.mapImplementation.confirmed
-      : copy.mapImplementation.unconfirmed);
+    copy.mapImplementation.label + ': ' + copy.mapImplementation[state];
   const pad = Math.min(22, w * 0.065),
     title = expanded
       ? Math.min(17, Math.max(11, h * 0.055))
@@ -65,6 +62,7 @@ export function ArchitectureNode({ data }) {
         data-detail={item.detail}
         data-kind={item.kind}
         data-implemented={String(item.implemented)}
+        data-implementation-state={state}
         data-incoming={interfaces.incoming.length}
         data-outgoing={interfaces.outgoing.length}
         role="button"
@@ -85,7 +83,7 @@ export function ArchitectureNode({ data }) {
         }}
       >
         <span className="node-implementation" title={confirmation}>
-          <ImplementationMark implemented={item.implemented} />
+          <ImplementationMark state={state} />
         </span>
         {expanded ? (
           <div

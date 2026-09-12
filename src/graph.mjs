@@ -1,4 +1,5 @@
 import { checkStructure } from './structure.mjs';
+import { aggregateImplementation } from './implementation.mjs';
 
 function validate(model) {
   const diagnostics = checkStructure(model);
@@ -119,7 +120,7 @@ function describe(model, graph, key) {
   return { incoming, outgoing, internal };
 }
 
-function project(model, graph, expanded) {
+function project(model, graph, expanded, completion) {
   if (graph.errors.length) throw new Error(graph.errors.join('\n'));
   const representative = (key) => {
     const chain = [];
@@ -155,7 +156,16 @@ function project(model, graph, expanded) {
     bundles.get(key).relations.push(relation);
     bundles.get(key).implemented &&= relation.implemented;
   }
-  return [...bundles.values()];
+  return [...bundles.values()].map((bundle) => ({
+    ...bundle,
+    state: aggregateImplementation(
+      bundle.relations.map(
+        (edge) =>
+          completion?.[edge.key]?.state ||
+          (edge.implemented ? 'confirmed' : 'unconfirmed'),
+      ),
+    ),
+  }));
 }
 
 export const ArchitectureGraph = { validate, describe, project };

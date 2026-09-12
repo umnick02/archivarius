@@ -4,18 +4,31 @@ import { renderDocumentation } from './document.mjs';
 import { ProjectInspector, ProjectConfirmation } from './ProjectInspector.jsx';
 import { ProjectOverview } from './ProjectOverview.jsx';
 import { groupInteractions } from './view.mjs';
+import { aggregateImplementation } from './implementation.mjs';
+import { ImplementationMark } from './ImplementationMark.jsx';
 
-function Implementation({ implemented, evidence, explain = true }) {
+function Implementation({ state, evidence, explain = true }) {
   const { copy } = useArchitecture();
+  const implemented = state === 'confirmed';
   return (
-    <div className="implementation" data-implemented={String(implemented)}>
+    <div
+      className="implementation"
+      data-implemented={String(implemented)}
+      data-implementation-state={state}
+    >
       <p>
         <b>
-          {copy.implementationLabel}:{' '}
-          {implemented ? copy.implementationYes : copy.implementationNo}
+          <ImplementationMark state={state} /> {copy.mapImplementation.label}:{' '}
+          {copy.mapImplementation[state]}
         </b>
       </p>
-      {explain && !implemented && <p>{copy.implementationUnconfirmed}</p>}
+      {explain && !implemented && (
+        <p>
+          {state === 'partial'
+            ? copy.implementationPartial
+            : copy.implementationUnconfirmed}
+        </p>
+      )}
       {implemented && evidence && (
         <details>
           <summary>{copy.implementationEvidence}</summary>
@@ -105,8 +118,16 @@ export function Inspector({
   hidden = false,
   showOnMap,
 }) {
-  const { model, input, project, projectCopy, graph, copy, contracts } =
-    useArchitecture();
+  const {
+    model,
+    input,
+    project,
+    projectCopy,
+    graph,
+    copy,
+    contracts,
+    completion,
+  } = useArchitecture();
   const element = useRef(null);
   const previousEntry = useRef(null);
   useLayoutEffect(() => {
@@ -225,7 +246,7 @@ export function Inspector({
             <ProjectConfirmation recordKey={node.key} showRecord={showRecord} />
           ) : (
             <Implementation
-              implemented={node.implemented}
+              state={completion.nodes[node.key].state}
               evidence={node.implementationEvidence}
             />
           )}
@@ -304,8 +325,10 @@ export function Inspector({
           </h2>
           {!project && (
             <Implementation
-              implemented={panel.bundle.relations.every(
-                (edge) => edge.implemented,
+              state={aggregateImplementation(
+                panel.bundle.relations.map(
+                  (edge) => completion.relations[edge.key].state,
+                ),
               )}
             />
           )}
@@ -325,7 +348,7 @@ export function Inspector({
                   />
                 ) : (
                   <Implementation
-                    implemented={edge.implemented}
+                    state={completion.relations[edge.key].state}
                     evidence={edge.implementationEvidence}
                     explain={false}
                   />

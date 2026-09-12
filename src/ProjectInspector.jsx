@@ -1,6 +1,7 @@
 import React from 'react';
 import { useArchitecture, format } from './context.jsx';
 import { recordReferences, digest } from './project.mjs';
+import { ImplementationMark } from './ImplementationMark.jsx';
 import {
   confirmationGroups,
   currentRecord,
@@ -14,7 +15,12 @@ export function ProjectConfirmation({
   showRecord,
   expanded = false,
 }) {
-  const { project, analysis, projectCopy: copy } = useArchitecture();
+  const {
+    project,
+    analysis,
+    projectCopy: copy,
+    copy: mapCopy,
+  } = useArchitecture();
   const record = currentRecord(project, recordKey);
   const applicable = !['source', 'decision'].includes(record.type);
   const item = applicable
@@ -23,13 +29,45 @@ export function ProjectConfirmation({
   const yes = applicable ? item.implemented : item.current;
   const groups = confirmationGroups(project, item.reasons);
   return (
-    <div className="implementation" data-implemented={String(yes)}>
+    <div
+      className="implementation"
+      data-implemented={String(yes)}
+      data-implementation-state={applicable ? item.state : undefined}
+    >
       <p>
         <b>
-          {applicable ? copy.implemented : copy.current}:{' '}
-          {yes ? copy.yes : copy.no}
+          {applicable ? (
+            <>
+              <ImplementationMark state={item.state} />{' '}
+              {mapCopy.mapImplementation.label}:{' '}
+              {mapCopy.mapImplementation[item.state]}
+            </>
+          ) : (
+            <>
+              {copy.current}: {yes ? copy.yes : copy.no}
+            </>
+          )}
         </b>
       </p>
+      {applicable && item.progress.criteria.length > 0 && (
+        <div className="implementation-progress">
+          <p>
+            {format(copy.criteriaProgress, {
+              confirmed: item.progress.confirmedCriteria.length,
+              total: item.progress.criteria.length,
+            })}
+          </p>
+          {item.state === 'partial' && (
+            <details data-disclosure={`${recordKey}-confirmed-criteria`}>
+              <summary>{copy.confirmedCriteria}</summary>
+              <RecordLinks
+                keys={item.progress.confirmedCriteria}
+                showRecord={showRecord}
+              />
+            </details>
+          )}
+        </div>
+      )}
       {!!groups.length && (
         <details
           className="project-reasons"

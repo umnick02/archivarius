@@ -3,7 +3,11 @@ import type {
   ForwardRefExoticComponent,
   RefAttributes,
 } from 'react';
-import type { ArchitectureInput, ArchitectureRelation } from './core.mjs';
+import type {
+  ArchitectureInput,
+  ArchitectureRelation,
+  ImplementationState,
+} from './core.mjs';
 export type {
   ArchitectureModel,
   ArchitectureNode,
@@ -15,6 +19,8 @@ export type {
   ProjectChange,
   ProjectContext,
   ProjectAnalysis,
+  ProjectCompletion,
+  ImplementationState,
 } from './core.mjs';
 export {
   ArchitectureError,
@@ -42,6 +48,7 @@ export interface MapSnapshot {
     to: string;
     kind: ArchitectureRelation['kind'];
     implemented: boolean;
+    state: ImplementationState;
     members: string[];
   }>;
   layer: 'all' | ArchitectureRelation['kind'];

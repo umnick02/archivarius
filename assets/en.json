@@ -39,11 +39,13 @@
   "implementationYes": "Yes",
   "implementationNo": "No",
   "implementationUnconfirmed": "Full implementation has not been confirmed. Some code may already exist.",
+  "implementationPartial": "Some parts or interactions are confirmed. Full implementation has not been confirmed yet.",
   "implementationEvidence": "Verification evidence",
   "mapImplementation": {
-    "label": "Full implementation",
-    "confirmed": "Confirmed",
-    "unconfirmed": "Unconfirmed"
+    "label": "Implementation",
+    "confirmed": "Fully confirmed",
+    "partial": "Partially confirmed",
+    "unconfirmed": "No confirmation"
   },
   "example": "Example",
   "rulesButton": "Map contract",
@@ -104,7 +106,7 @@
     "Scroll to reveal nested components. Drag to move the map.",
     "Double-click a block to explore it. Click once for inputs, outputs and rules.",
     "An arrow shows its original interactions and lets you navigate to their participants.",
-    "The inspector shows Fully implemented: yes / no. No means full implementation has not been confirmed; yes requires verification of the whole described contract.",
+    "A green check means fully confirmed, an amber half circle means partially confirmed, and a gray circle means no confirmation. Marks stay visible on nodes and arrows; open the inspector for details.",
     "Emphasizing a type keeps other interactions visible in gray.",
     "Search jumps to any component. Rules and properties appear in its inspector, not as separate components.",
     "Breadcrumbs, the minimap and the home button return you to context.",

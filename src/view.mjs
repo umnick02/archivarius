@@ -107,8 +107,14 @@ function commonParent(a, b, graph) {
   return null;
 }
 
-export function projectedEdges(model, graph, layout, expanded) {
-  return ArchitectureGraph.project(model, graph, expanded).map((bundle) => {
+export function projectedEdges(model, graph, layout, expanded, completion) {
+  const projected = ArchitectureGraph.project(
+    model,
+    graph,
+    expanded,
+    completion,
+  );
+  return projected.map((bundle) => {
     const owner = commonParent(bundle.from, bundle.to, graph);
     const route = layout.routes.find(
       (r) => r.owner === owner && r.members.includes(bundle.relations[0].key),

@@ -5,6 +5,7 @@ import Ajv from 'ajv/dist/2020.js';
 import { ArchitectureGraph as Graph } from '../src/graph.mjs';
 import { validateArchitecture, parseArchitecture } from '../src/core.mjs';
 import { readArchitecture } from '../src/load.mjs';
+import { legacyCompletion } from '../src/implementation.mjs';
 
 const read = (name) =>
   JSON.parse(fs.readFileSync(new URL('../' + name, import.meta.url), 'utf8'));
@@ -254,6 +255,7 @@ test('every containment cut preserves interaction membership and conservative co
   );
   assert.equal(bundle.relations.length, 2);
   assert.equal(bundle.implemented, false);
+  assert.equal(bundle.state, 'partial');
   confirm(copy.relations.find((e) => e.key === 'ranking-input'));
   assert.equal(
     Graph.project(copy, Graph.validate(copy), new Set(['search'])).find(
@@ -262,6 +264,20 @@ test('every containment cut preserves interaction membership and conservative co
     true,
   );
   assert.equal(node(copy, 'gateway').implemented, false);
+});
+
+test('legacy partial marks preserve separate node and relation identities', () => {
+  const copy = structuredClone(model);
+  const edge = copy.relations.find((r) => r.key === 'query-input');
+  edge.key = 'engine';
+  confirm(edge);
+  const graph = Graph.validate(copy);
+  assert.deepEqual(graph.errors, []);
+  const completion = legacyCompletion(copy, graph);
+  assert.equal(completion.relations.engine.state, 'confirmed');
+  assert.equal(completion.nodes.engine.state, 'partial');
+  assert.equal(completion.nodes.ranking.state, 'unconfirmed');
+  assert.equal(graph.nodes.get('engine').implemented, false);
 });
 
 test('objects are copied, files parsed and cancellation honored without executing data', async () => {

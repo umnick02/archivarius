@@ -8,6 +8,7 @@ import {
 } from 'archivarius';
 import {
   validateArchitecture,
+  analyzeProject,
   type ArchitectureInput,
   type ProjectModel,
   type ProjectRecord,
@@ -43,6 +44,13 @@ validateArchitecture(parsed);
 // @ts-expect-error implementation status is deliberately not a string
 parsed.nodes[0].implemented = 'partial';
 declare const project: ProjectModel;
+const analyzed = analyzeProject(project);
+const implementationState: 'confirmed' | 'partial' | 'unconfirmed' =
+  analyzed.completion[project.root].state;
+analyzed.completion[project.root].progress.confirmedCriteria.map((key) =>
+  key.toUpperCase(),
+);
+void implementationState;
 const context = projectContext(project, [project.root]);
 applyProjectChanges(project, context, { put: [] });
 declare const requirement: Extract<ProjectRecord, { type: 'requirement' }>;
