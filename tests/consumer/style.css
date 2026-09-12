@@ -1,0 +1,31 @@
+body {
+  margin: 11px;
+  background: rgb(12, 34, 56);
+  font-family: monospace;
+}
+#host-header {
+  height: 40px;
+  color: white;
+}
+#maps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+#first,
+#second {
+  height: 760px;
+  min-width: 0;
+}
+#react-map {
+  height: 760px;
+  margin-top: 16px;
+}
+@media (max-width: 600px) {
+  #maps {
+    display: block;
+  }
+  #second {
+    margin-top: 16px;
+  }
+}

@@ -1,0 +1,610 @@
+.archivarius {
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  color: #28362e;
+  background: #f5f7ef;
+  font-synthesis: none;
+}
+.archivarius * {
+  box-sizing: border-box;
+}
+.archivarius,
+.archivarius .map-app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+.archivarius button,
+.archivarius select {
+  font: inherit;
+  color: inherit;
+}
+.archivarius button {
+  cursor: pointer;
+}
+.archivarius button:focus-visible,
+.archivarius select:focus-visible,
+.archivarius [role='button']:focus-visible,
+.archivarius summary:focus-visible {
+  outline: 3px solid #659984;
+  outline-offset: 3px;
+}
+.archivarius button:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+.archivarius header {
+  height: 76px;
+  position: relative;
+  z-index: 50;
+  background: #fcfdf8;
+  border-bottom: 1px solid #dce2d5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 26px;
+  gap: 16px;
+}
+.archivarius .identity,
+.archivarius .header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.archivarius .logo {
+  width: 35px;
+  height: 35px;
+  border: 1px solid #b6c8b5;
+  color: #548363;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+}
+.archivarius .brand {
+  font-weight: 650;
+  font-size: 17px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.archivarius .identity,
+.archivarius .identity > div:last-child {
+  min-width: 0;
+}
+.archivarius .header-right {
+  flex-shrink: 0;
+}
+.archivarius .brand span {
+  color: #a4b4a3;
+  padding: 0 6px;
+  font-weight: 400;
+}
+.archivarius .subtitle {
+  font-size: 11px;
+  margin-top: 5px;
+  color: #7c897a;
+}
+.archivarius .tag {
+  font-size: 11px;
+  color: #71816c;
+}
+.archivarius select,
+.archivarius .quiet {
+  background: #fffef9;
+  border: 1px solid #d7dfd1;
+  border-radius: 7px;
+  padding: 9px 11px;
+  font-size: 12px;
+}
+.archivarius .quiet:hover,
+.archivarius select:hover {
+  background: #edf3e8;
+}
+.archivarius .map-pane {
+  position: absolute;
+  top: 76px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+.archivarius .react-flow {
+  background: #f5f7ef;
+}
+.archivarius .react-flow__node-architecture {
+  padding: 0;
+  background: none;
+  border: 0;
+}
+.archivarius .node-card {
+  width: 100%;
+  height: 100%;
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--accent) 55%, #fff);
+  background: color-mix(in srgb, var(--accent) 6%, #fffefb);
+  overflow: hidden;
+  color: #2c392f;
+  cursor: pointer;
+}
+.archivarius .node-card:hover,
+.archivarius .node-card.highlighted {
+  border-color: var(--accent);
+}
+.archivarius .node-card.external {
+  border-style: dashed;
+}
+.archivarius .card-interfaces {
+  margin-top: var(--gap);
+}
+.archivarius .card-interfaces p {
+  font-size: var(--body);
+}
+.archivarius .card-interfaces .card-rules {
+  font-size: var(--small);
+  color: var(--accent);
+}
+.archivarius [data-control='node-search'] {
+  max-width: 200px;
+}
+.archivarius .interface-list h3,
+.archivarius .node-rules h3 {
+  font-size: 14px;
+  margin: 24px 0 10px;
+}
+.archivarius .interface-list h3 span {
+  font-weight: 400;
+  color: #85917d;
+  padding-left: 5px;
+}
+.archivarius .interface-list details,
+.archivarius .node-rules details,
+.archivarius .node-example,
+.archivarius .internal-relations {
+  border-top: 1px solid #e0e6d9;
+  padding: 10px 0;
+}
+.archivarius .interface-list summary,
+.archivarius .node-rules summary,
+.archivarius .node-example summary,
+.archivarius .internal-relations summary {
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.archivarius .interface-list summary strong {
+  font-weight: 550;
+}
+.archivarius .interface-list summary span {
+  display: block;
+  padding-left: 15px;
+  font-size: 11px;
+  color: #788b75;
+  margin-top: 3px;
+}
+.archivarius .interface-list p,
+.archivarius .node-rules p {
+  font-size: 12px;
+}
+.archivarius .payload {
+  border-left: 2px solid #adbf98;
+  padding-left: 12px;
+}
+.archivarius .node-example {
+  margin-top: 14px;
+}
+.archivarius .node-card.expanded {
+  background: color-mix(in srgb, var(--accent) 3%, #f8faf2);
+}
+.archivarius .card-copy {
+  padding: var(--pad);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.archivarius .node-card h2 {
+  margin: 0;
+  color: var(--accent);
+  font-size: var(--title);
+  font-weight: 620;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.archivarius .node-card .eyebrow {
+  font-size: var(--small);
+  margin-bottom: var(--gap);
+  color: var(--accent);
+  opacity: 0.8;
+}
+.archivarius .node-card p {
+  font-size: var(--body);
+  line-height: 1.4;
+  margin: var(--gap) 0 0;
+}
+.archivarius .node-summary {
+  flex-shrink: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.archivarius .node-footer {
+  margin-top: auto;
+  padding-top: var(--gap);
+  font-size: var(--small);
+  color: var(--accent);
+}
+.archivarius .expanded-heading {
+  padding: 0 var(--pad);
+  overflow: hidden;
+}
+.archivarius .expanded-heading p {
+  font-size: var(--small);
+  margin-top: calc(var(--gap) / 2);
+}
+.archivarius .edge-label {
+  transform-origin: 0 0;
+  position: absolute;
+  pointer-events: all;
+  border: 1px solid #e0e7d8;
+  border-radius: 5px;
+  background: #fcfdf6f5;
+  font-size: 10px;
+  padding: 4px 6px;
+  white-space: nowrap;
+}
+.archivarius .edge-label:hover {
+  background: #fff;
+  border-color: currentColor;
+}
+.archivarius .react-flow__edgelabel-renderer {
+  z-index: 30;
+}
+.archivarius .react-flow__minimap {
+  width: 170px;
+  height: 104px;
+  border: 1px solid #d2ddcc;
+  border-radius: 10px;
+  overflow: hidden;
+  bottom: 25px;
+  left: 8px;
+  box-shadow: none;
+}
+.archivarius .react-flow__attribution {
+  background: transparent;
+  font-size: 9px;
+  opacity: 0.65;
+  margin-left: 25px;
+}
+.archivarius .marker-definitions {
+  position: absolute;
+  pointer-events: none;
+}
+.archivarius [data-control='breadcrumbs'] {
+  position: absolute;
+  top: 94px;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  width: fit-content;
+  max-width: calc(100% - 48px);
+  padding: 8px 10px;
+  background: #fcfdf8ef;
+  border: 1px solid #dce4d6;
+  border-radius: 8px;
+  font-size: 12px;
+  z-index: 30;
+}
+.archivarius [data-control='breadcrumbs'] button {
+  border: 0;
+  background: none;
+  padding: 0;
+}
+.archivarius [data-control='breadcrumbs'] button:hover {
+  color: #397f5c;
+  text-decoration: underline;
+}
+.archivarius [data-control='breadcrumbs'] span {
+  color: #a6b3a0;
+}
+.archivarius .hint {
+  position: absolute;
+  bottom: 31px;
+  left: 215px;
+  font-size: 11px;
+  line-height: 1.85;
+  color: #7c8774;
+  background: #f5f7efe8;
+  pointer-events: none;
+  padding: 3px 7px;
+  border-radius: 5px;
+}
+.archivarius .hint strong {
+  font-weight: 550;
+  color: #58684d;
+}
+.archivarius .map-controls {
+  position: absolute;
+  right: 24px;
+  bottom: 26px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 46px;
+  padding: 4px;
+  border: 1px solid #d3deca;
+  background: #fcfdf8;
+  border-radius: 9px;
+  z-index: 30;
+  box-shadow: 0 2px 9px #38582408;
+}
+.archivarius .map-controls button {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  background: none;
+  border-radius: 5px;
+  font-size: 21px;
+}
+.archivarius .map-controls button:hover {
+  background: #ebf1e6;
+}
+.archivarius .map-controls span {
+  min-width: 48px;
+  text-align: center;
+  font-size: 12px;
+  color: #738069;
+}
+.archivarius .map-controls i {
+  height: 20px;
+  width: 1px;
+  background: #e0e7da;
+  margin: 0 3px;
+}
+.archivarius [data-control='inspector'] {
+  position: absolute;
+  z-index: 40;
+  right: 24px;
+  top: 145px;
+  bottom: 92px;
+  width: 352px;
+  padding: 28px 24px;
+  background: #fffefb;
+  border: 1px solid #d4dfcc;
+  border-radius: 12px;
+  overflow: auto;
+  box-shadow: 0 12px 50px #34462514;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.archivarius [data-control='close'] {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: none;
+  border: 0;
+  font-size: 25px;
+  color: #7c8974;
+}
+.archivarius .eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  font-size: 10px;
+  color: #809074;
+  margin-bottom: 10px;
+}
+.archivarius [data-control='inspector'] h2 {
+  margin: 0 12px 16px 0;
+  font-weight: 600;
+  font-size: 23px;
+  line-height: 1.25;
+}
+.archivarius [data-control='inspector'] p {
+  margin: 12px 0;
+}
+.archivarius [data-control='inspector'] ul {
+  padding-left: 18px;
+}
+.archivarius [data-control='inspector'] li {
+  margin-bottom: 8px;
+}
+.archivarius .note {
+  background: #f2f5eb;
+  border-left: 2px solid #a6bc8c;
+  padding: 10px 13px;
+}
+.archivarius .implementation {
+  background: #f2f5eb;
+  padding: 1px 10px;
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+.archivarius .implementation p + p {
+  color: #63715a;
+  font-size: 12px;
+}
+.archivarius .implementation summary {
+  cursor: pointer;
+}
+.archivarius .implementation[data-implemented='true'] {
+  background: #e5f2e8;
+}
+.archivarius .end {
+  color: #8a947f;
+  font-size: 11px;
+  border-top: 1px solid #e4e9df;
+  padding-top: 14px;
+}
+.archivarius .panel-button,
+.archivarius .panel-relations button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: #f5f8f0;
+  border: 1px solid #dbe4d2;
+  border-radius: 7px;
+  padding: 9px 11px;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 7px 0;
+}
+.archivarius .panel-button:hover,
+.archivarius .panel-relations button:hover {
+  background: #eaf1e2;
+}
+.archivarius .panel-relations section {
+  border-top: 1px solid #e1e7d9;
+  margin-top: 18px;
+  padding-top: 3px;
+}
+.archivarius .contract-list details {
+  border-top: 1px solid #e1e7d9;
+  padding: 11px 0;
+}
+.archivarius .contract-list summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 550;
+}
+.archivarius .contract-list p {
+  color: #63715a;
+  font-size: 12px;
+}
+.archivarius .model-error {
+  margin: 40px;
+  padding: 20px;
+  background: #fff0e8;
+  border: 1px solid #b26b4b;
+}
+@container (max-width: 1190px) {
+  .archivarius .tag {
+    display: none;
+  }
+  .archivarius .header-right {
+    gap: 8px;
+  }
+}
+@container (max-width: 1360px) {
+  .archivarius [data-control='about'] {
+    display: none;
+  }
+}
+@container (max-width: 780px) {
+  .archivarius header {
+    padding: 0 12px;
+    gap: 8px;
+    height: 96px;
+    align-items: flex-start;
+  }
+  .archivarius .identity {
+    padding-top: 12px;
+  }
+  .archivarius .logo,
+  .archivarius .subtitle,
+  .archivarius [data-control='about'] {
+    display: none;
+  }
+  .archivarius .brand {
+    font-size: 15px;
+  }
+  .archivarius .header-right {
+    position: absolute;
+    top: 47px;
+    left: 12px;
+    right: 12px;
+  }
+  .archivarius [data-control='node-search'] {
+    max-width: 130px;
+  }
+  .archivarius .header-right {
+    gap: 5px;
+  }
+  .archivarius [data-control='contracts'] {
+    font-size: 10px;
+    padding: 8px 6px;
+  }
+  .archivarius select,
+  .archivarius .quiet {
+    padding: 7px 10px;
+  }
+  .archivarius .map-pane {
+    top: 96px;
+  }
+  .archivarius [data-control='breadcrumbs'] {
+    top: 109px;
+    left: 12px;
+    right: 12px;
+    max-width: calc(100% - 24px);
+    font-size: 10px;
+    gap: 6px;
+  }
+  .archivarius .hint {
+    display: none;
+  }
+  .archivarius .react-flow__minimap {
+    width: 92px;
+    height: 68px;
+    left: -4px;
+    bottom: 20px;
+  }
+  .archivarius .react-flow__attribution {
+    margin-left: 12px;
+    font-size: 8px;
+  }
+  .archivarius .map-controls {
+    right: 12px;
+    bottom: 18px;
+    gap: 0;
+    height: 42px;
+  }
+  .archivarius .map-controls button {
+    width: 28px;
+    height: 30px;
+  }
+  .archivarius .map-controls span {
+    min-width: 43px;
+    font-size: 10px;
+  }
+  .archivarius .map-controls i {
+    margin: 0 2px;
+  }
+  .archivarius [data-control='inspector'] {
+    top: 165px;
+    right: 12px;
+    bottom: 76px;
+    width: calc(100% - 24px);
+    padding: 26px 20px;
+  }
+  .archivarius [data-control='inspector'] h2 {
+    font-size: 21px;
+  }
+}
+
+.archivarius {
+  position: relative;
+  isolation: isolate;
+  container-type: inline-size;
+}
+.archivarius .map-app {
+  position: relative;
+}
+.archivarius .map-loading {
+  position: absolute;
+  top: 45%;
+  left: 35%;
+  width: 30%;
+}
+.archivarius .model-error {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 100%;
+  overflow: auto;
+}

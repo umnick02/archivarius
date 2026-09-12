@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/umnick02/archivarius/model.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "scope", "entry", "nodes", "relations"],
+  "properties": {
+    "$schema": { "$ref": "#/$defs/text" },
+    "version": { "const": 3 },
+    "scope": { "const": "target" },
+    "title": { "$ref": "#/$defs/text" },
+    "entry": { "$ref": "#/$defs/key" },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/node" }
+    },
+    "relations": { "type": "array", "items": { "$ref": "#/$defs/relation" } }
+  },
+  "$defs": {
+    "text": { "type": "string", "pattern": "\\S" },
+    "key": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "confirmation": {
+      "if": {
+        "properties": { "implemented": { "const": true } },
+        "required": ["implemented"]
+      },
+      "then": { "required": ["implementationEvidence"] }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "text"],
+      "properties": {
+        "title": { "$ref": "#/$defs/text" },
+        "text": { "$ref": "#/$defs/text" }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "title",
+        "summary",
+        "kind",
+        "zone",
+        "rules",
+        "detail",
+        "implemented"
+      ],
+      "properties": {
+        "key": { "$ref": "#/$defs/key" },
+        "title": { "$ref": "#/$defs/text" },
+        "summary": { "$ref": "#/$defs/text" },
+        "kind": { "enum": ["subsystem", "component", "store", "external"] },
+        "zone": {
+          "enum": [
+            "presentation",
+            "application",
+            "infrastructure",
+            "pure",
+            "external"
+          ]
+        },
+        "rules": { "type": "array", "items": { "$ref": "#/$defs/rule" } },
+        "example": { "$ref": "#/$defs/text" },
+        "detail": { "enum": ["mapped", "boundary"] },
+        "detailNote": { "$ref": "#/$defs/text" },
+        "children": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/node" }
+        },
+        "implemented": { "type": "boolean" },
+        "implementationEvidence": { "$ref": "#/$defs/text" }
+      },
+      "allOf": [
+        { "$ref": "#/$defs/confirmation" },
+        {
+          "if": { "properties": { "detail": { "const": "mapped" } } },
+          "then": {
+            "properties": { "kind": { "const": "subsystem" } },
+            "required": ["children"]
+          },
+          "else": {
+            "required": ["detailNote"],
+            "not": { "required": ["children"] }
+          }
+        }
+      ]
+    },
+    "relation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "from",
+        "to",
+        "kind",
+        "channel",
+        "label",
+        "payload",
+        "meaning",
+        "implemented"
+      ],
+      "properties": {
+        "key": { "$ref": "#/$defs/key" },
+        "from": { "$ref": "#/$defs/key" },
+        "to": { "$ref": "#/$defs/key" },
+        "kind": { "enum": ["data", "command", "state"] },
+        "channel": { "$ref": "#/$defs/key" },
+        "label": { "$ref": "#/$defs/text" },
+        "payload": { "$ref": "#/$defs/text" },
+        "meaning": { "$ref": "#/$defs/text" },
+        "implemented": { "type": "boolean" },
+        "implementationEvidence": { "$ref": "#/$defs/text" }
+      },
+      "allOf": [{ "$ref": "#/$defs/confirmation" }]
+    }
+  }
+}

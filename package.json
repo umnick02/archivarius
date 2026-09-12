@@ -1,0 +1,67 @@
+{
+  "name": "archivarius",
+  "version": "0.1.0",
+  "description": "Architecture maps with semantic zoom, explicit interactions and a validated JSON contract",
+  "type": "module",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/umnick02/archivarius.git"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js"
+    },
+    "./core": {
+      "types": "./dist/src/core.d.mts",
+      "import": "./dist/src/core.mjs"
+    },
+    "./style.css": "./dist/style.css",
+    "./model.schema.json": "./dist/assets/model.schema.json",
+    "./assets/*": "./dist/assets/*"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "build": "node tooling/build.mjs",
+    "dev": "vite --config examples/basic/vite.config.mjs",
+    "build:example": "vite build --config examples/basic/vite.config.mjs",
+    "preview": "vite preview --config examples/basic/vite.config.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "node tests/browser.mjs",
+    "test:package": "node tooling/test-package.mjs",
+    "check": "npm run build && npm test && npm run test:package",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "@xyflow/react": "12.11.6",
+    "elkjs": "0.12.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "ajv": "8.20.0",
+    "esbuild": "0.28.2",
+    "postcss": "8.5.28",
+    "prettier": "3.8.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "typescript": "5.9.3",
+    "vite": "8.2.2"
+  }
+}

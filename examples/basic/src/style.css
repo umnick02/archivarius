@@ -1,0 +1,30 @@
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  font-family: system-ui, sans-serif;
+}
+.example-toolbar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 12px;
+  font-size: 13px;
+  background: #fff;
+}
+.example-toolbar span {
+  color: #657060;
+}
+#map {
+  flex: 1;
+  min-height: 400px;
+}
+@media (max-width: 600px) {
+  .example-toolbar span {
+    display: none;
+  }
+}

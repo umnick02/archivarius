@@ -1,0 +1,239 @@
+import React, { useEffect, useRef } from 'react';
+import { relationCount, useArchitecture } from './context.jsx';
+
+function Implementation({ implemented, evidence, explain = true }) {
+  const { copy } = useArchitecture();
+  return (
+    <div className="implementation" data-implemented={String(implemented)}>
+      <p>
+        <b>
+          {copy.implementationLabel}:{' '}
+          {implemented ? copy.implementationYes : copy.implementationNo}
+        </b>
+      </p>
+      {explain && !implemented && <p>{copy.implementationUnconfirmed}</p>}
+      {implemented && evidence && (
+        <details>
+          <summary>{copy.implementationEvidence}</summary>
+          <p>{evidence}</p>
+        </details>
+      )}
+    </div>
+  );
+}
+
+function Interactions({ edges, incoming, showRelation }) {
+  const { graph, copy } = useArchitecture();
+  if (!edges.length) return null;
+  return (
+    <section
+      className="interface-list"
+      data-direction={incoming ? 'incoming' : 'outgoing'}
+    >
+      <h3>
+        {incoming ? copy.receives : copy.sends} <span>{edges.length}</span>
+      </h3>
+      {edges.map((edge) => (
+        <details key={edge.key} data-interface={edge.key}>
+          <summary>
+            <strong>{edge.label}</strong>
+            <span>
+              {incoming ? copy.from : copy.to}{' '}
+              {graph.nodes.get(incoming ? edge.from : edge.to).title}
+            </span>
+          </summary>
+          <p>{edge.payload}</p>
+          <button
+            className="panel-button"
+            onClick={() =>
+              showRelation({
+                from: edge.from,
+                to: edge.to,
+                kind: edge.kind,
+                label: edge.label,
+                relations: [edge],
+              })
+            }
+          >
+            {copy.inspectInteraction}
+          </button>
+        </details>
+      ))}
+    </section>
+  );
+}
+
+export function Inspector({ panel, interfaces, fitNode, showRelation, close }) {
+  const { graph, copy, contracts } = useArchitecture();
+  const element = useRef(null);
+  useEffect(() => {
+    if (element.current) element.current.scrollTop = 0;
+  }, [panel]);
+  if (!panel) return null;
+  const node = panel.type === 'node' ? graph.nodes.get(panel.key) : null;
+  return (
+    <aside
+      data-control="inspector"
+      ref={element}
+      aria-label={copy.inspectorLabel}
+    >
+      <button data-control="close" aria-label={copy.close} onClick={close}>
+        ×
+      </button>
+      {node && (
+        <>
+          <div className="eyebrow" data-control="panel-kind">
+            {copy.nodeKinds[node.kind]} · {copy.zones[node.zone]}
+          </div>
+          <h2>{node.title}</h2>
+          <Implementation
+            implemented={node.implemented}
+            evidence={node.implementationEvidence}
+          />
+          <p>{node.summary}</p>
+          {node.example && (
+            <details className="node-example">
+              <summary>{copy.example}</summary>
+              <p>{node.example}</p>
+            </details>
+          )}
+          {node.children && (
+            <button className="panel-button" onClick={() => fitNode(node.key)}>
+              {copy.fitBlock}
+            </button>
+          )}
+          <Interactions
+            edges={interfaces.incoming}
+            incoming
+            showRelation={showRelation}
+          />
+          <Interactions
+            edges={interfaces.outgoing}
+            showRelation={showRelation}
+          />
+          {interfaces.internal.length > 0 && (
+            <details className="internal-relations">
+              <summary>
+                {copy.internalRelations} · {interfaces.internal.length}
+              </summary>
+              {interfaces.internal.map((edge) => (
+                <button
+                  className="panel-button"
+                  key={edge.key}
+                  onClick={() =>
+                    showRelation({
+                      from: edge.from,
+                      to: edge.to,
+                      kind: edge.kind,
+                      label: edge.label,
+                      relations: [edge],
+                    })
+                  }
+                >
+                  {graph.nodes.get(edge.from).title} →{' '}
+                  {graph.nodes.get(edge.to).title}: {edge.label}
+                </button>
+              ))}
+            </details>
+          )}
+          {node.rules.length > 0 && (
+            <section className="node-rules">
+              <h3>{copy.componentRules}</h3>
+              {node.rules.map((rule) => (
+                <details key={rule.title}>
+                  <summary>{rule.title}</summary>
+                  <p>{rule.text}</p>
+                </details>
+              ))}
+            </section>
+          )}
+          <p className="end">
+            {node.children ? copy.partsNote : node.detailNote}{' '}
+            {copy.interpretationNote}
+          </p>
+        </>
+      )}
+      {panel.type === 'relation' && (
+        <>
+          <div className="eyebrow" data-control="panel-kind">
+            {copy.kinds[panel.bundle.kind]} ·{' '}
+            {relationCount(copy, panel.bundle.relations.length)}
+          </div>
+          <h2>
+            {graph.nodes.get(panel.bundle.from).title} →{' '}
+            {graph.nodes.get(panel.bundle.to).title}
+          </h2>
+          <Implementation
+            implemented={panel.bundle.relations.every(
+              (edge) => edge.implemented,
+            )}
+          />
+          <p>
+            {panel.bundle.relations.length > 1
+              ? copy.aggregateNote
+              : copy.specifiedNote}
+          </p>
+          <div className="panel-relations">
+            {panel.bundle.relations.map((edge) => (
+              <section key={edge.key}>
+                <h3>{edge.label}</h3>
+                <Implementation
+                  implemented={edge.implemented}
+                  evidence={edge.implementationEvidence}
+                  explain={false}
+                />
+                <p className="payload">
+                  <b>{copy.payload}: </b>
+                  {edge.payload}
+                </p>
+                <p>{edge.meaning}</p>
+                {[
+                  [copy.source, edge.from],
+                  [copy.target, edge.to],
+                ].map(([label, key]) => (
+                  <button
+                    key={label}
+                    data-endpoint={key}
+                    onClick={() => fitNode(key)}
+                  >
+                    {label}: {graph.nodes.get(key).title}
+                  </button>
+                ))}
+              </section>
+            ))}
+          </div>
+          <p className="end">{copy.relationNote}</p>
+        </>
+      )}
+      {panel.type === 'contracts' && (
+        <>
+          <div className="eyebrow">{copy.rulesEyebrow}</div>
+          <h2>{copy.rulesTitle}</h2>
+          <p>{copy.rulesIntro}</p>
+          <div className="contract-list">
+            {contracts.map(([title, text]) => (
+              <details key={title}>
+                <summary>{title}</summary>
+                <p>{text}</p>
+              </details>
+            ))}
+          </div>
+          <p className="end">{copy.incompleteNote}</p>
+        </>
+      )}
+      {panel.type === 'about' && (
+        <>
+          <div className="eyebrow">{copy.aboutEyebrow}</div>
+          <h2>{copy.aboutButton}</h2>
+          <ul>
+            {copy.aboutSteps.map((text) => (
+              <li key={text}>{text}</li>
+            ))}
+          </ul>
+          <p className="note">{copy.aboutNote}</p>
+          <p className="end">{copy.technicalNote}</p>
+        </>
+      )}
+    </aside>
+  );
+}
