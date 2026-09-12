@@ -75,6 +75,9 @@ test('documents refuse dangling/invalid fields, traversal, format collisions and
         index: '0',
       });
     },
+    (m) => {
+      record(m, 'doc-routing').data.parameters.path = 'spoofed';
+    },
   ]) {
     const m = model();
     edit(m);

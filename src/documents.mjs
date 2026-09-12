@@ -8,7 +8,16 @@ export function documentReferences(document) {
   const walk = (value, path) => {
     if (!value || typeof value !== 'object') return;
     if ('record' in value && 'field' in value) {
-      found.push({ ...value, path });
+      found.push({
+        record: value.record,
+        field: value.field,
+        index: value.index,
+        as: value.as,
+        path,
+        validShape: Object.keys(value).every((key) =>
+          ['record', 'field', 'index', 'as'].includes(key),
+        ),
+      });
       return;
     }
     for (const [key, part] of Object.entries(value))
@@ -167,9 +176,7 @@ export function validateDocuments(model, issue) {
         record.type === 'document' ||
         value === undefined ||
         (!jsonReference && typeof value !== 'string') ||
-        Object.keys(reference).some(
-          (key) => !['record', 'field', 'index', 'as', 'path'].includes(key),
-        ) ||
+        !reference.validShape ||
         (reference.as !== undefined && reference.as !== 'labels') ||
         ['key', 'type', 'basis', 'reconsideredBecause'].includes(
           reference.field,
