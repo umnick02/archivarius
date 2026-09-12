@@ -364,6 +364,104 @@ try {
   assert.deepEqual(focused.nodeGeometry, cleared.nodeGeometry);
   assert.deepEqual(focused.relations, cleared.relations);
   assert.deepEqual(b.errors, []);
+  const grouped = structuredClone(project);
+  const record = (key) => grouped.records.find((item) => item.key === key);
+  grouped.records.push({
+    ...record('request'),
+    key: 'request-writer',
+    to: 'writer',
+    contract: 'write-contract',
+  });
+  record('rejected').title = record('completed').title;
+  await b.evaluate(async (model) => {
+    await window.consumer.first.load(model);
+    window.consumer.first.inspect('export');
+  }, grouped);
+  await pause(150);
+  const beforeGrouping = await b.evaluate(() =>
+    window.consumer.first.snapshot(),
+  );
+  for (const [direction, keys, endpoint] of [
+    ['incoming', ['request', 'request-writer'], 'to'],
+    ['outgoing', ['completed', 'rejected'], 'from'],
+  ]) {
+    const selector = `#first [data-direction=${direction}]`;
+    assert.equal(
+      await b.evaluate(
+        (selector) =>
+          document.querySelectorAll(selector + ' [data-interface-group]')
+            .length,
+        selector,
+      ),
+      1,
+    );
+    await click(selector + ' [data-interface-group] > summary');
+    assert.deepEqual(
+      await b.evaluate(
+        (selector) =>
+          [...document.querySelectorAll(selector + ' [data-interface]')].map(
+            (element) => element.dataset.interface,
+          ),
+        selector,
+      ),
+      keys,
+    );
+    assert(
+      (
+        await b.evaluate(
+          (selector) =>
+            document.querySelector(selector + ' .interface-count').textContent,
+          selector,
+        )
+      ).includes(String(keys.length)),
+    );
+    for (const key of keys) {
+      const edge = record(key);
+      const member = `${selector} [data-interface=${key}]`;
+      const detail = await b.evaluate((selector) => {
+        const element = document.querySelector(selector);
+        return {
+          title: element.querySelector('h4').textContent,
+          payload: element.querySelector('p').textContent,
+          height: element.getBoundingClientRect().height,
+        };
+      }, member);
+      assert(detail.height > 0);
+      assert(detail.title.includes(record(edge[endpoint]).title));
+      assert.equal(detail.payload, record(edge.contract).payload);
+      await click(member + ' button');
+      assert.equal(
+        await b.evaluate(
+          () =>
+            document.querySelectorAll('#first .panel-relations > section')
+              .length,
+        ),
+        1,
+      );
+      assert(
+        (
+          await b.evaluate(
+            () =>
+              document.querySelector('#first .panel-relations .payload')
+                .textContent,
+          )
+        ).endsWith(record(edge.contract).payload),
+      );
+      await click('#first [data-control=record-back]');
+      assert(
+        await b.evaluate(
+          (selector) =>
+            document.querySelector(selector + ' [data-interface-group]').open,
+          selector,
+        ),
+      );
+    }
+  }
+  const afterGrouping = await b.evaluate(() =>
+    window.consumer.first.snapshot(),
+  );
+  assert.deepEqual(afterGrouping.nodeGeometry, beforeGrouping.nodeGeometry);
+  assert.deepEqual(afterGrouping.relations, beforeGrouping.relations);
   const requirementsOnly = structuredClone(project);
   assert.equal(
     await b.evaluate(async (model) => {

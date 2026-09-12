@@ -254,6 +254,22 @@
 .archivarius .interface-list summary strong {
   font-weight: 550;
 }
+.archivarius .interface-count {
+  font-size: 11px;
+  color: #788b75;
+}
+.archivarius .interface-member {
+  margin: 12px 0 0 15px;
+}
+.archivarius .interface-member + .interface-member {
+  border-top: 1px solid #e0e6d9;
+  padding-top: 12px;
+}
+.archivarius .interface-member h4 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 550;
+}
 .archivarius .interface-list summary span {
   display: block;
   padding-left: 15px;

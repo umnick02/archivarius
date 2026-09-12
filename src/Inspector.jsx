@@ -3,6 +3,7 @@ import { relationCount, useArchitecture } from './context.jsx';
 import { renderDocumentation } from './document.mjs';
 import { ProjectInspector, ProjectConfirmation } from './ProjectInspector.jsx';
 import { ProjectOverview } from './ProjectOverview.jsx';
+import { groupInteractions } from './view.mjs';
 
 function Implementation({ implemented, evidence, explain = true }) {
   const { copy } = useArchitecture();
@@ -36,34 +37,56 @@ function Interactions({ edges, incoming, showRelation }) {
       <h3>
         {incoming ? copy.receives : copy.sends} <span>{edges.length}</span>
       </h3>
-      {edges.map((edge) => (
+      {groupInteractions(edges, incoming).map((group) => (
         <details
-          key={edge.key}
-          data-interface={edge.key}
-          data-disclosure={`interface-${edge.key}`}
+          key={group.key}
+          data-interface-group={group.key}
+          data-disclosure={
+            group.relations.length === 1
+              ? `interface-${group.relations[0].key}`
+              : `interface-group-${group.key}`
+          }
         >
           <summary>
-            <strong>{edge.label}</strong>
+            <strong>{group.label}</strong>
+            {group.relations.length > 1 && (
+              <small className="interface-count">
+                {' '}
+                · {relationCount(copy, group.relations.length)}
+              </small>
+            )}
             <span>
               {incoming ? copy.from : copy.to}{' '}
-              {graph.nodes.get(incoming ? edge.from : edge.to).title}
+              {graph.nodes.get(group.peer).title}
             </span>
           </summary>
-          <p>{edge.payload}</p>
-          <button
-            className="panel-button"
-            onClick={() =>
-              showRelation({
-                from: edge.from,
-                to: edge.to,
-                kind: edge.kind,
-                label: edge.label,
-                relations: [edge],
-              })
-            }
-          >
-            {copy.inspectInteraction}
-          </button>
+          {group.relations.map((edge) => (
+            <div
+              className="interface-member"
+              key={edge.key}
+              data-interface={edge.key}
+            >
+              <h4>
+                {incoming ? copy.target : copy.source}:{' '}
+                {graph.nodes.get(incoming ? edge.to : edge.from).title}
+              </h4>
+              <p>{edge.payload}</p>
+              <button
+                className="panel-button"
+                onClick={() =>
+                  showRelation({
+                    from: edge.from,
+                    to: edge.to,
+                    kind: edge.kind,
+                    label: edge.label,
+                    relations: [edge],
+                  })
+                }
+              >
+                {copy.inspectInteraction}
+              </button>
+            </div>
+          ))}
         </details>
       ))}
     </section>

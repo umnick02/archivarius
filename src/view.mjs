@@ -16,6 +16,24 @@ export const kindColors = {
   state: '#5d8796',
 };
 
+export function groupInteractions(edges, incoming = false) {
+  const groups = new Map();
+  for (const edge of edges) {
+    const peer = incoming ? edge.from : edge.to;
+    const key = JSON.stringify([
+      incoming,
+      peer,
+      edge.label,
+      edge.kind,
+      edge.channel,
+    ]);
+    if (!groups.has(key))
+      groups.set(key, { key, peer, label: edge.label, relations: [] });
+    groups.get(key).relations.push(edge);
+  }
+  return [...groups.values()];
+}
+
 export function expandedAt(layout, zoom, size, previous = new Set()) {
   const expanded = new Set();
   for (const n of Object.values(layout.nodes)) {

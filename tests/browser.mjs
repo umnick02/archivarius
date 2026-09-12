@@ -137,6 +137,38 @@ try {
   assert((await state()).visible.includes('engine'));
   await focus('engine');
   assert((await state()).visible.includes('ranking'));
+  await b.evaluate(() => window.consumer.first.inspect('engine'));
+  await pause(150);
+  assert.equal(
+    await b.evaluate(
+      () =>
+        document.querySelectorAll(
+          '#first [data-direction=incoming] [data-interface-group]',
+        ).length,
+    ),
+    2,
+  );
+  await click('#first [data-direction=incoming] summary');
+  assert.deepEqual(
+    await b.evaluate(() =>
+      [
+        ...document.querySelectorAll(
+          '#first [data-direction=incoming] [data-interface-group]:first-of-type [data-interface]',
+        ),
+      ].map((element) => element.dataset.interface),
+    ),
+    ['query-input', 'ranking-input'],
+  );
+  for (const key of ['query-input', 'ranking-input'])
+    assert.equal(
+      await b.evaluate(
+        (key) =>
+          document.querySelector(`#first [data-interface=${key}] p`)
+            .textContent,
+        key,
+      ),
+      model.relations.find((edge) => edge.key === key).payload,
+    );
   assert.deepEqual((await state()).nodeGeometry, initial.nodeGeometry);
   assert.deepEqual((await state('second')).viewport, other.viewport);
   await focus('ranking');

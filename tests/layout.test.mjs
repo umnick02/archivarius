@@ -3,7 +3,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildLayout, checkLayout } from '../src/layout/layout.mjs';
 import { ArchitectureGraph as Graph } from '../src/graph.mjs';
-import { expandedAt, isVisible, projectedEdges } from '../src/view.mjs';
+import {
+  expandedAt,
+  groupInteractions,
+  isVisible,
+  projectedEdges,
+} from '../src/view.mjs';
 
 const model = JSON.parse(
   fs.readFileSync(
@@ -16,6 +21,53 @@ const layout = await buildLayout(model),
 const intersects = (a, b) =>
   Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x) > 0.001 &&
   Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y) > 0.001;
+
+test('inspector groups shared exchanges without losing contracts or conflating peers and channels', () => {
+  const inputs = model.relations.filter((edge) =>
+    ['query-input', 'ranking-input'].includes(edge.key),
+  );
+  assert.notEqual(inputs[0].payload, inputs[1].payload);
+  for (const incoming of [true, false]) {
+    const edges = incoming
+      ? inputs
+      : inputs.map((edge) => ({ ...edge, from: edge.to, to: edge.from }));
+    const before = structuredClone(edges);
+    const groups = groupInteractions(edges, incoming);
+    assert.equal(groups.length, 1);
+    assert.deepEqual(groups[0].relations, edges);
+    for (const field of [
+      incoming ? 'from' : 'to',
+      'label',
+      'kind',
+      'channel',
+    ]) {
+      const distinct = {
+        ...edges[0],
+        key: 'distinct',
+        [field]: edges[0][field] + '-other',
+      };
+      const result = groupInteractions([...edges, distinct], incoming);
+      assert.equal(result.length, 2, field);
+      assert.deepEqual(
+        result.flatMap((group) => group.relations),
+        [...edges, distinct],
+      );
+    }
+    const anotherContract = {
+      ...edges[0],
+      key: 'another-contract',
+      payload: edges[1].payload,
+    };
+    const sameEndpoints = groupInteractions(
+      [...edges, anotherContract],
+      incoming,
+    );
+    assert.equal(sameEndpoints.length, 1);
+    assert.equal(sameEndpoints[0].relations[2], anotherContract);
+    assert.deepEqual(edges, before);
+  }
+  assert.deepEqual(groupInteractions([]), []);
+});
 
 test('ELK geometry covers the model without overlapping siblings or escaping parents', () => {
   assert.deepEqual(checkLayout(model, layout), []);
