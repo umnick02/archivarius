@@ -197,5 +197,7 @@
     "REALIZATION_UNAVAILABLE": "No accessible realization binding"
   },
   "documentData": "Structured data",
-  "documentTable": "Document table"
+  "documentTable": "Document table",
+  "openRecord": "Open record",
+  "documentIntro": "About this document"
 }

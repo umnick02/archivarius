@@ -5,6 +5,8 @@ import {
   digest,
 } from './project.mjs';
 
+import { renderDocument } from './documents.mjs';
+
 const escape = (value) =>
   String(value)
     .replaceAll('&', '&amp;')
@@ -36,6 +38,17 @@ export function renderProjectDocumentation(model, copy) {
       copy.types[record.type],
       '',
     );
+    if (record.type === 'document') {
+      const content = renderDocument(model, record, {
+        notice: false,
+        headingOffset: 2,
+      });
+      lines.push(
+        record.format === 'json' ? '```json\n' + content + '```' : content,
+        '',
+      );
+      continue;
+    }
     const refs = recordReferences(record);
     for (const [key, value] of Object.entries(record)) {
       if (

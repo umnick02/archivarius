@@ -197,5 +197,7 @@
     "REALIZATION_UNAVAILABLE": "Нет доступной привязки к реализации"
   },
   "documentData": "Структурированные данные",
-  "documentTable": "Таблица документа"
+  "documentTable": "Таблица документа",
+  "openRecord": "Открыть запись",
+  "documentIntro": "О документе"
 }

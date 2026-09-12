@@ -651,7 +651,7 @@ try {
       () =>
         document.querySelectorAll('#first .project-document > details').length,
     ),
-    3,
+    2,
   );
   await click('#first [data-disclosure=document-doc-rules-1] summary');
   assert(

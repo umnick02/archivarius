@@ -83,7 +83,11 @@ export function documentSections(document, keys) {
     .map((index) => ({ index, block: document.blocks[index] }));
 }
 
-export function renderDocument(model, document, { notice = true } = {}) {
+export function renderDocument(
+  model,
+  document,
+  { notice = true, headingOffset = 0 } = {},
+) {
   if (document.format === 'json')
     return JSON.stringify(documentData(model, document), null, 2) + '\n';
   const records = new Map(model.records.map((record) => [record.key, record]));
@@ -96,7 +100,11 @@ export function renderDocument(model, document, { notice = true } = {}) {
   const blocks = document.blocks.map((block) => {
     switch (block.kind) {
       case 'heading':
-        return '#'.repeat(block.level) + ' ' + line(block.content);
+        return (
+          '#'.repeat(Math.min(6, block.level + headingOffset)) +
+          ' ' +
+          line(block.content)
+        );
       case 'paragraph':
         return block.lines.map(line).join('\n');
       case 'quote':

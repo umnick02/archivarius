@@ -89,5 +89,5 @@ export function realizationDigest(model: ProjectModel): string;
 export function renderDocument(
   model: ProjectModel,
   document: Extract<ProjectModel['records'][number], { type: 'document' }>,
-  options?: { notice?: boolean },
+  options?: { notice?: boolean; headingOffset?: number },
 ): string;
