@@ -2,6 +2,7 @@ Archivarius
 
   archivarius validate <model.json> [--json]
   archivarius docs <model.json> --output <architecture.md> [--locale ru|en] [--check]
+  archivarius documents <project.json> --output <directory> [--check] [--json]
   archivarius context <project.json> --focus <key> [--focus <key>]
   archivarius apply <project.json> --context <context.json> --change <change.json>
   archivarius run <project.json> --focus <check-key> --result <new-key> --evidence <relative-path.json>
@@ -10,6 +11,7 @@ Archivarius
 validate checks both the file schema and all graph invariants.
 --json returns machine-readable diagnostics with JSON Pointer paths.
 docs generates Markdown from that same validated model. It never edits the model.
+documents renders document records to their declared Markdown/JSON paths under the output directory.
 --check compares the output with fresh generation and exits unsuccessfully on drift.
 context returns compact JSON records and the read receipt; apply preserves history atomically.
 run explicitly executes the check's command and records its actual outcome.

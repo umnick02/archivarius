@@ -190,6 +190,9 @@
         },
         "title": {
           "$ref": "#/$defs/text"
+        },
+        "label": {
+          "$ref": "#/$defs/text"
         }
       },
       "unevaluatedProperties": false,
@@ -260,6 +263,17 @@
               "$ref": "#/$defs/keys",
               "minItems": 1,
               "x-targets": ["source", "decision"]
+            },
+            "category": {
+              "enum": ["product", "exclusion", "architecture", "experience"]
+            },
+            "companions": {
+              "$ref": "#/$defs/keys",
+              "x-targets": ["requirement"]
+            },
+            "guards": {
+              "$ref": "#/$defs/keys",
+              "x-targets": ["requirement"]
             }
           },
           "required": [
@@ -636,6 +650,237 @@
             "resolves",
             "type"
           ]
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "document"
+            },
+            "scope": {
+              "$ref": "#/$defs/key",
+              "x-targets": ["scope"]
+            },
+            "path": {
+              "type": "string",
+              "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?(?:/|$))[a-zA-Z0-9_./-]+\\.(?:md|json)$"
+            },
+            "stage": {
+              "enum": [
+                "discovery",
+                "requirements",
+                "architecture",
+                "implementation"
+              ]
+            },
+            "format": {
+              "enum": ["markdown", "json"]
+            },
+            "blocks": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/block"
+              }
+            },
+            "data": {
+              "type": "object"
+            },
+            "subjects": {
+              "$ref": "#/$defs/keys",
+              "x-targets": [
+                "scope",
+                "source",
+                "component",
+                "interface",
+                "interaction",
+                "requirement",
+                "criterion",
+                "decision",
+                "scenario",
+                "task",
+                "check",
+                "result"
+              ]
+            }
+          },
+          "required": ["type", "scope", "path", "stage", "format"],
+          "oneOf": [
+            {
+              "properties": {
+                "format": {
+                  "const": "markdown"
+                }
+              },
+              "required": ["blocks"],
+              "not": {
+                "required": ["data"]
+              }
+            },
+            {
+              "properties": {
+                "format": {
+                  "const": "json"
+                }
+              },
+              "required": ["data"],
+              "not": {
+                "required": ["blocks"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "inline": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "record": {
+              "$ref": "#/$defs/key"
+            },
+            "field": {
+              "type": "string",
+              "pattern": "^[a-z][a-zA-Z0-9]*$"
+            },
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": ["record", "field"]
+        }
+      ]
+    },
+    "line": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/inline"
+      }
+    },
+    "block": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "heading"
+            },
+            "level": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 6
+            },
+            "content": {
+              "$ref": "#/$defs/line"
+            }
+          },
+          "required": ["kind", "level", "content"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "enum": ["paragraph", "quote", "comment"]
+            },
+            "lines": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/line"
+              }
+            }
+          },
+          "required": ["kind", "lines"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "list"
+            },
+            "ordered": {
+              "type": "boolean"
+            },
+            "start": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/line"
+                }
+              }
+            }
+          },
+          "required": ["kind", "ordered", "items"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "table"
+            },
+            "header": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/line"
+              }
+            },
+            "rows": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/line"
+                }
+              }
+            }
+          },
+          "required": ["kind", "header", "rows"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "code"
+            },
+            "language": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]*$"
+            },
+            "lines": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": ["kind", "language", "lines"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "anchor"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*$"
+            }
+          },
+          "required": ["kind", "id"]
         }
       ]
     }

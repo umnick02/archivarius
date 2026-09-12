@@ -173,3 +173,5 @@ export async function executeProjectCheck(
   await fs.writeFile(target, bytes, { flag: 'wx' });
   return record;
 }
+
+export { exportProjectDocuments } from './document-files.mjs';

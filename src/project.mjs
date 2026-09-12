@@ -1,3 +1,8 @@
+import {
+  documentReferences,
+  documentSections,
+  validateDocuments,
+} from './documents.mjs';
 import { checkStructure } from './structure.mjs';
 import { ArchitectureGraph } from './graph.mjs';
 import { ArchitectureError } from './errors.mjs';
@@ -6,8 +11,8 @@ import referenceFields from './generated/references.mjs';
 import validateChange from './generated/validate-change.mjs';
 
 export { digest } from './digest.mjs';
-export const recordReferences = (record) =>
-  (referenceFields[record.type] || []).flatMap((field) => {
+export const recordReferences = (record) => [
+  ...(referenceFields[record.type] || []).flatMap((field) => {
     const values =
       record[field.name] === undefined ? [] : [].concat(record[field.name]);
     return values.map((key) => ({
@@ -16,7 +21,14 @@ export const recordReferences = (record) =>
       types: field.types,
       history: field.history,
     }));
-  });
+  }),
+  ...documentReferences(record).map((ref) => ({
+    key: ref.record,
+    field: ref.path,
+    types: Object.keys(referenceFields),
+    history: false,
+  })),
+];
 
 const definition = ({ basis, reconsideredBecause, ...record }) => record;
 export function contractDigest(model) {
@@ -161,6 +173,7 @@ export function validateProject(model) {
         issue('SNAPSHOT_DIGEST', '', '/snapshots/' + i);
     }
   }
+  validateDocuments(model, issue);
   const seen = new Set(),
     topics = new Set();
   for (const [i, record] of model.records.entries()) {
@@ -403,7 +416,7 @@ export function analyzeProject(model, { verifiedResults = [] } = {}) {
         selected.map((c) => c.key),
         true,
       );
-      depend(key, record.sources);
+      depend(key, [...record.sources, ...(record.guards || [])]);
       if (!selected.length) reasons.push({ code: 'CRITERIA_MISSING', key });
       if (
         !record.appliesTo.some((target) =>
@@ -499,7 +512,7 @@ export function analyzeProject(model, { verifiedResults = [] } = {}) {
       depend(
         key,
         members
-          .filter((r) => !['check', 'result'].includes(r.type))
+          .filter((r) => !['check', 'result', 'document'].includes(r.type))
           .map((r) => r.key),
         true,
       );
@@ -616,54 +629,104 @@ export function analyzeProject(model, { verifiedResults = [] } = {}) {
 export function projectContext(model, keys) {
   assertProject(model);
   const records = index(model),
-    selected = new Set(keys),
-    queue = [...keys];
-  for (const key of keys)
-    if (!records.has(key)) throw new ArchitectureError('UNKNOWN_RECORD', [key]);
-  const include = (key) => {
-    if (!selected.has(key) && records.has(key)) {
-      selected.add(key);
+    selected = new Set(),
+    expanded = new Set(),
+    queue = [];
+  const include = (key, expand = true) => {
+    if (!records.has(key)) return;
+    selected.add(key);
+    if (expand && !expanded.has(key)) {
+      expanded.add(key);
       queue.push(key);
     }
   };
   for (const key of keys) {
-    const record = records.get(key),
-      contained = descendants(records, key);
-    if (record.type === 'scope')
+    const record = records.get(key);
+    if (!record) throw new ArchitectureError('UNKNOWN_RECORD', [key]);
+    include(key);
+    if (record.type === 'scope') {
+      const scopes = descendants(records, key);
       for (const other of model.records)
-        if (contained.has(other.scope) || contained.has(other.key))
+        if (scopes.has(other.scope) || scopes.has(other.key))
           include(other.key);
-    if (record.type === 'component')
-      for (const child of contained) include(child);
+    }
+    if (record.type === 'component') {
+      for (const child of descendants(records, key)) include(child);
+      for (const other of model.records)
+        if (
+          ['task', 'decision'].includes(other.type) &&
+          other.affects.some((target) => descendants(records, key).has(target))
+        )
+          include(other.key);
+    }
   }
-  for (const key of keys)
-    for (const requirement of applicableRequirements(model, key))
-      include(requirement.key);
+  const shallow = new Set([
+    'scope',
+    'parent',
+    'appliesTo',
+    'affects',
+    'targets',
+    'from',
+    'to',
+    'subjects',
+  ]);
   while (queue.length) {
     const key = queue.pop(),
       record = records.get(key);
-    for (const ref of recordReferences(record)) include(ref.key);
+    for (const ref of recordReferences(record))
+      include(ref.key, !shallow.has(ref.field));
+    if (
+      ['component', 'interface', 'interaction', 'task'].includes(record.type)
+    ) {
+      const targets = record.type === 'task' ? record.affects : [key];
+      for (const target of targets)
+        for (const requirement of applicableRequirements(model, target))
+          include(requirement.key);
+    }
     for (const other of model.records) {
       if (other.type === 'criterion' && other.requirement === key)
         include(other.key);
-      if (other.type === 'interaction' && [other.from, other.to].includes(key))
-        include(other.key);
       if (
-        ['decision', 'check', 'task'].includes(other.type) &&
-        recordReferences(other).some(
-          (ref) => ref.key === key && !['scope', 'needs'].includes(ref.field),
-        )
+        other.type === 'interaction' &&
+        record.type === 'component' &&
+        [other.from, other.to].includes(key)
       )
         include(other.key);
+      if (
+        other.type === 'check' &&
+        (other.covers.includes(key) || other.scenarios.includes(key))
+      )
+        include(other.key);
+      if (other.type === 'result' && other.check === key) include(other.key);
     }
   }
-  const chosen = model.records.filter((r) => selected.has(r.key));
+  const documents = model.records
+    .filter((record) => record.type === 'document')
+    .flatMap((document) => {
+      const sections = documentSections(document, new Set(keys));
+      if (!sections.length) return [];
+      for (const { block } of sections)
+        for (const ref of documentReferences({ blocks: [block] }))
+          include(ref.record, false);
+      return [
+        {
+          key: document.key,
+          path: document.path,
+          digest: digest(document),
+          sections,
+        },
+      ];
+    });
+  const chosen = model.records.filter((record) => selected.has(record.key));
   return {
     snapshot: digest(model),
     contract: contractDigest(model),
     keys: [...keys],
-    reads: Object.fromEntries(chosen.map((r) => [r.key, digest(r)])),
+    reads: Object.fromEntries(
+      chosen.map((record) => [record.key, digest(record)]),
+    ),
     records: structuredClone(chosen),
+    documents: structuredClone(documents),
     omitted: model.records.length - chosen.length,
   };
 }
@@ -708,7 +771,12 @@ export function applyProjectChanges(model, context, change) {
       throw new ArchitectureError('DUPLICATE_RECORD', [record.key]);
     changedKeys.add(record.key);
     const old = records.get(record.key);
-    if (old && !context.reads[old.key])
+    if (
+      old &&
+      Object.keys(projectContext(model, [old.key]).reads).some(
+        (key) => !context.reads[key],
+      )
+    )
       throw new ArchitectureError('CONTEXT_INCOMPLETE', [old.key]);
     if (old?.type === 'result' && digest(old) !== digest(record))
       throw new ArchitectureError('RESULT_IMMUTABLE', [old.key]);
@@ -738,7 +806,10 @@ export function applyProjectChanges(model, context, change) {
       !record ||
       !('basis' in record) ||
       record.type === 'result' ||
-      !context.reads[key]
+      !context.reads[key] ||
+      Object.keys(projectContext(model, [key]).reads).some(
+        (read) => !context.reads[read],
+      )
     )
       throw new ArchitectureError('REVIEW_REQUIRED', [key]);
     archive(record);

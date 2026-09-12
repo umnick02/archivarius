@@ -1,0 +1,54 @@
+[
+  {
+    "key": "doc-rules",
+    "type": "document",
+    "scope": "project",
+    "title": "Export rules",
+    "path": "docs/requirements.md",
+    "stage": "requirements",
+    "format": "markdown",
+    "blocks": [
+      { "kind": "heading", "level": 1, "content": ["Export rules"] },
+      {
+        "kind": "heading",
+        "level": 2,
+        "content": [{ "record": "row-limit", "field": "title" }]
+      },
+      {
+        "kind": "paragraph",
+        "lines": [[{ "record": "row-limit", "field": "rule" }]]
+      },
+      {
+        "kind": "list",
+        "ordered": false,
+        "items": [[[{ "record": "within-limit", "field": "assertion" }]]]
+      },
+      { "kind": "heading", "level": 2, "content": ["Other context"] },
+      {
+        "kind": "table",
+        "header": [["Choice"], ["Reason"]],
+        "rows": [
+          [
+            [{ "record": "streaming", "field": "choice" }],
+            [{ "record": "streaming", "field": "because" }]
+          ]
+        ]
+      },
+      {
+        "kind": "code",
+        "language": "text",
+        "lines": ["A literal ``` sequence stays inside its code fence."]
+      }
+    ]
+  },
+  {
+    "key": "doc-routing",
+    "type": "document",
+    "scope": "project",
+    "title": "Export routing",
+    "path": "docs/routing.json",
+    "stage": "requirements",
+    "format": "json",
+    "data": { "parameters": { "record": "row-limit", "field": "parameters" } }
+  }
+]

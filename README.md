@@ -174,6 +174,20 @@ archivarius docs project.json --output project.md
 archivarius docs project.json --output project.md --check
 ```
 
+Для полного пакета документации используйте записи `document` с относительными
+путями и структурированными блоками. Требования, критерии, решения и задачи
+вставляются ссылками на их поля; таблицы и пояснения принадлежат документу.
+Markdown и JSON-индексы становятся воспроизводимыми представлениями:
+
+```sh
+archivarius documents project.json --output .
+archivarius documents project.json --output . --check
+```
+
+API: `renderDocument` из `archivarius/core`, `exportProjectDocuments` из
+`archivarius/node`. В UI раздел «Документация» раскрывает содержание по секциям.
+Подробности структуры и правил редактирования — в [контракте](assets/contract.md).
+
 Экспорт доступен и в UI через «Как читать карту». Его определения, ссылки и
 записанные основания берутся из загруженного JSON. Он не заменяет живую проверку
 файлов командой `verify` и не редактируется как второй источник.

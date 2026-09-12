@@ -1,6 +1,7 @@
 import { applicableRequirements, recordReferences } from './project.mjs';
 
 export const primaryFields = {
+  document: ['stage', 'path'],
   scope: ['purpose'],
   source: ['statement', 'origin'],
   component: ['summary'],
@@ -25,6 +26,7 @@ export const viewTypes = {
   rules: ['requirement', 'criterion', 'decision', 'scenario', 'source'],
   work: ['task'],
   confirmation: ['check', 'result'],
+  documents: ['document'],
 };
 export const currentRecord = (project, key) =>
   project.records.find((r) => r.key === key) ||

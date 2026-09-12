@@ -37,3 +37,9 @@ export function executeProjectCheck(
     timeout?: number;
   },
 ): Promise<Extract<ProjectRecord, { type: 'result' }>>;
+
+export function exportProjectDocuments(
+  model: ProjectModel,
+  directory: string,
+  options?: { check?: boolean; source?: string },
+): Promise<{ files: string[]; changed: string[] }>;

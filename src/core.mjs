@@ -87,3 +87,5 @@ export function parseArchitecture(text) {
     );
   return model;
 }
+
+export { renderDocument } from './documents.mjs';

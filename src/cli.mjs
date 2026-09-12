@@ -4,6 +4,7 @@ import path from 'node:path';
 import { parseArgs } from 'node:util';
 import {
   readArchitectureFile,
+  exportProjectDocuments,
   generateDocumentation,
   verifyProjectFiles,
   updateProjectFile,
@@ -44,6 +45,7 @@ async function main() {
     const allowed = {
       validate: ['json'],
       docs: ['output', 'locale', 'check'],
+      documents: ['output', 'check', 'json'],
       context: ['focus', 'json'],
       apply: ['context', 'change', 'json'],
       verify: ['json'],
@@ -53,14 +55,21 @@ async function main() {
       values.help ||
       Object.keys(values).some((key) => !allowed[command]?.includes(key)) ||
       positionals.length !== 2 ||
-      !['validate', 'docs', 'context', 'apply', 'verify', 'run'].includes(
-        command,
-      ) ||
+      ![
+        'validate',
+        'docs',
+        'documents',
+        'context',
+        'apply',
+        'verify',
+        'run',
+      ].includes(command) ||
       (command === 'context' && !values.focus?.length) ||
       (command === 'apply' && (!values.context || !values.change)) ||
       (command === 'run' &&
         (values.focus?.length !== 1 || !values.result || !values.evidence)) ||
       (command === 'docs' && (!values.output || values.json)) ||
+      (command === 'documents' && !values.output) ||
       (command === 'validate' &&
         (values.output !== undefined ||
           values.locale !== undefined ||
@@ -83,6 +92,15 @@ async function main() {
     const model = await readArchitectureFile(input);
     const print = (value) =>
       process.stdout.write(JSON.stringify(value, null, 2) + '\n');
+    if (command === 'documents') {
+      print(
+        await exportProjectDocuments(model, values.output, {
+          check: values.check,
+          source: input,
+        }),
+      );
+      return;
+    }
     if (command === 'context') {
       print(projectContext(model, values.focus));
       return;

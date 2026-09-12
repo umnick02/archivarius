@@ -54,6 +54,12 @@ export interface ProjectAnalysis {
   completion: Record<string, ProjectCompletion>;
 }
 export interface ProjectContext {
+  documents: Array<{
+    key: string;
+    path: string;
+    digest: string;
+    sections: Array<{ index: number; block: unknown }>;
+  }>;
   snapshot: string;
   contract: string;
   keys: string[];
@@ -79,3 +85,9 @@ export function applyProjectChanges(
 ): ProjectModel;
 export function contractDigest(model: ProjectModel): string;
 export function realizationDigest(model: ProjectModel): string;
+
+export function renderDocument(
+  model: ProjectModel,
+  document: Extract<ProjectModel['records'][number], { type: 'document' }>,
+  options?: { notice?: boolean },
+): string;

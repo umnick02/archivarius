@@ -52,13 +52,15 @@
     "rules": "Requirements and decisions",
     "work": "Remaining work",
     "confirmation": "What confirms it",
-    "all": "All records"
+    "all": "All records",
+    "documents": "Documentation"
   },
   "viewDescriptions": {
     "architecture": "Subsystems, responsibilities and interactions",
     "rules": "Rules, criteria, sources and chosen decisions",
     "work": "Tasks and required outcomes",
-    "confirmation": "Gaps, checks and their results"
+    "confirmation": "Gaps, checks and their results",
+    "documents": "Sections, tables and context from the shared model"
   },
   "all": "All records",
   "empty": "No records in this selection.",
@@ -92,7 +94,8 @@
     "scenario": "Scenario",
     "task": "Task",
     "check": "Check",
-    "result": "Check result"
+    "result": "Check result",
+    "document": "Document"
   },
   "fields": {
     "purpose": "Purpose",
@@ -147,7 +150,11 @@
     "basis": "Contract basis",
     "realization": "Verified realization",
     "evidence": "Check artifacts",
-    "reconsideredBecause": "Reconsideration outcome"
+    "reconsideredBecause": "Reconsideration outcome",
+    "label": "Reference label",
+    "stage": "Stage",
+    "path": "Output file",
+    "category": "Rule category"
   },
   "values": {
     "owner": "Owner instruction",
@@ -188,5 +195,7 @@
     "UNRESOLVED_SOURCE": "An open question or assumption remains",
     "REQUIREMENT_UNMAPPED": "Requirement has no assigned realization",
     "REALIZATION_UNAVAILABLE": "No accessible realization binding"
-  }
+  },
+  "documentData": "Structured data",
+  "documentTable": "Document table"
 }

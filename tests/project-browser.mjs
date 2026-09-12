@@ -66,7 +66,7 @@ try {
     await b.evaluate(
       () => document.querySelectorAll('#first [data-project-view]').length,
     ),
-    5,
+    6,
   );
   assert.equal(
     await b.evaluate(() => document.activeElement.dataset.control),
@@ -632,6 +632,47 @@ try {
     ),
     requirementsOnly.records.length,
   );
+  const withDocuments = structuredClone(project);
+  withDocuments.records.push(
+    ...JSON.parse(
+      await fs.readFile(
+        new URL('./fixtures/documents.json', import.meta.url),
+        'utf8',
+      ),
+    ),
+  );
+  await b.evaluate(async (model) => {
+    await window.consumer.first.load(model);
+    window.consumer.first.inspect('doc-rules');
+  }, withDocuments);
+  await pause();
+  assert.equal(
+    await b.evaluate(
+      () =>
+        document.querySelectorAll('#first .project-document > details').length,
+    ),
+    3,
+  );
+  await click('#first [data-disclosure=document-doc-rules-1] summary');
+  assert(
+    await b.evaluate(() =>
+      document
+        .querySelector('#first .project-document')
+        .textContent.includes('maxRows'),
+    ),
+  );
+  await click(
+    '#first [data-disclosure=document-doc-rules-1] [data-record-link=within-limit]',
+  );
+  assert.equal(
+    await b.evaluate(
+      () =>
+        document.querySelector('#first [data-record-title]').dataset
+          .recordTitle,
+    ),
+    'within-limit',
+  );
+  await b.capture('consumer-structured-documents');
   assert.deepEqual(b.errors, []);
   console.log(
     'PASS: project views, uncovered requirements, trace links, fixed map geometry, mobile controls and plain-text rendering.',

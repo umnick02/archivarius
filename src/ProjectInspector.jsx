@@ -1,4 +1,5 @@
 import React from 'react';
+import { ProjectDocument } from './ProjectDocument.jsx';
 import { useArchitecture, format } from './context.jsx';
 import { recordReferences, digest } from './project.mjs';
 import { ImplementationMark } from './ImplementationMark.jsx';
@@ -22,7 +23,7 @@ export function ProjectConfirmation({
     copy: mapCopy,
   } = useArchitecture();
   const record = currentRecord(project, recordKey);
-  const applicable = !['source', 'decision'].includes(record.type);
+  const applicable = !['source', 'decision', 'document'].includes(record.type);
   const item = applicable
     ? analysis.completion[recordKey]
     : analysis.freshness[recordKey];
@@ -246,7 +247,7 @@ export function ProjectInspector({
   const primary = primaryFields[record.type] || [];
   const secondary = Object.keys(record).filter(
     (field) =>
-      !['key', 'type', 'title'].includes(field) &&
+      !['key', 'type', 'title', 'blocks', 'data'].includes(field) &&
       !technicalFields.has(field) &&
       !primary.includes(field) &&
       present(field),
@@ -268,7 +269,11 @@ export function ProjectInspector({
           {interactions}
         </>
       )}
-      <ProjectConfirmation recordKey={record.key} showRecord={showRecord} />
+      {record.type === 'document' ? (
+        <ProjectDocument document={record} showRecord={showRecord} />
+      ) : (
+        <ProjectConfirmation recordKey={record.key} showRecord={showRecord} />
+      )}
       {secondary.length > 0 && (
         <details className="record-secondary" data-disclosure="secondary">
           <summary>{copy.more}</summary>
