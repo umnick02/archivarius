@@ -102,6 +102,28 @@ try {
     ).includes('1000'),
   );
   await b.capture('project-requirement');
+  if (
+    !(await b.evaluate(
+      () => document.querySelector('#first .project-reasons').open,
+    ))
+  )
+    await click('#first .project-reasons > summary');
+  assert.equal(
+    await b.evaluate(
+      () => document.querySelectorAll('#first .reason-group').length,
+    ),
+    2,
+  );
+  await click('#first .reason-group > summary');
+  await click('#first .reason-group .record-link');
+  assert.equal(
+    await b.evaluate(
+      () =>
+        document.querySelector('#first [data-record-title]').dataset
+          .recordTitle,
+    ),
+    'export-check',
+  );
   const before = await b.evaluate(() => window.consumer.first.snapshot());
   await b.evaluate(() => window.consumer.first.inspect('streaming'));
   const after = await b.evaluate(() => window.consumer.first.snapshot());

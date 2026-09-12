@@ -34,6 +34,11 @@ export function ProjectConfirmation({ recordKey, showRecord }) {
     ? analysis.completion[recordKey]
     : analysis.freshness[recordKey];
   const yes = applicable ? item.implemented : item.current;
+  const reasons = new Map();
+  for (const reason of item.reasons) {
+    if (!reasons.has(reason.code)) reasons.set(reason.code, []);
+    reasons.get(reason.code).push(reason.key);
+  }
   return (
     <div className="implementation" data-implemented={String(yes)}>
       <p>
@@ -45,19 +50,31 @@ export function ProjectConfirmation({ recordKey, showRecord }) {
       {!!item.reasons.length && (
         <details className="project-reasons">
           <summary>
-            {copy.reasons} · {item.reasons.length}
+            {copy.reasons} · {reasons.size}
           </summary>
           <ul>
-            {item.reasons.map((reason) => (
-              <li key={reason.code + reason.key}>
-                <span>{copy.reasonsByCode[reason.code] || reason.code}</span>{' '}
-                <button
-                  className="record-link"
-                  onClick={() => showRecord(reason.key)}
-                >
-                  {project.records.find((r) => r.key === reason.key)?.title ||
-                    reason.key}
-                </button>
+            {[...reasons].map(([code, keys]) => (
+              <li key={code}>
+                <details className="reason-group">
+                  <summary>
+                    {copy.reasonsByCode[code] || code} · {keys.length}
+                  </summary>
+                  <ul>
+                    {keys.map((key) => (
+                      <li key={key}>
+                        <button
+                          className="record-link"
+                          onClick={() => showRecord(key)}
+                        >
+                          {project.records.find((r) => r.key === key)?.title ||
+                            project.history.find((h) => h.record.key === key)
+                              ?.record.title ||
+                            key}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
               </li>
             ))}
           </ul>
