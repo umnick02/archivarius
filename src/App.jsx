@@ -33,8 +33,16 @@ const duration = () =>
   matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 280;
 
 export const App = forwardRef(function App({ onReady }, ref) {
-  const { model, graph, layout, copy, rootColors, instanceId } =
-    useArchitecture();
+  const {
+    model,
+    project,
+    projectCopy,
+    graph,
+    layout,
+    copy,
+    rootColors,
+    instanceId,
+  } = useArchitecture();
   const flow = useReactFlow(),
     viewport = useViewport();
   const maxZoom = useMemo(
@@ -50,7 +58,9 @@ export const App = forwardRef(function App({ onReady }, ref) {
   const [size, setSize] = useState({ width: 1440, height: 924 });
   const [flowReady, setFlowReady] = useState(false);
   const [layer, setLayer] = useState('all'),
-    [panel, setPanel] = useState(null),
+    [panel, setPanel] = useState(
+      project && !graph.nodes.size ? { type: 'project' } : null,
+    ),
     [selected, setSelected] = useState(null),
     [focus, setFocus] = useState(null);
   const root = useRef(null),
@@ -131,7 +141,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
   );
   const home = useCallback(() => {
     clearClick();
-    setPanel(null);
+    setPanel(project && !graph.nodes.size ? { type: 'project' } : null);
     setSelected(null);
     explicitFocus.current = null;
     pointer.current = null;
@@ -153,7 +163,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
       },
       { duration: duration() },
     );
-  }, [flow, layout, clearClick]);
+  }, [flow, layout, clearClick, project, graph]);
   const showNode = useCallback(
     (key) => {
       clearClick();
@@ -167,6 +177,13 @@ export const App = forwardRef(function App({ onReady }, ref) {
       clearClick();
       setSelected(null);
       setPanel({ type: 'relation', bundle });
+    },
+    [clearClick],
+  );
+  const showRecord = useCallback(
+    (key) => {
+      clearClick();
+      setPanel({ type: 'record', key });
     },
     [clearClick],
   );
@@ -363,9 +380,19 @@ export const App = forwardRef(function App({ onReady }, ref) {
     () => ({
       home,
       focus: fitNode,
+      inspect: (key) => {
+        if (project) {
+          if (!project.records.some((r) => r.key === key))
+            throw new Error('UNKNOWN_RECORD:' + key);
+          showRecord(key);
+        } else {
+          if (!graph.nodes.has(key)) throw new Error('UNKNOWN_NODE:' + key);
+          showNode(key);
+        }
+      },
       snapshot: () => structuredClone(snapshot.current()),
     }),
-    [home, fitNode],
+    [home, fitNode, project, graph, showRecord, showNode],
   );
   useImperativeHandle(ref, () => api, [api]);
   useEffect(() => {
@@ -422,6 +449,18 @@ export const App = forwardRef(function App({ onReady }, ref) {
           </div>
         </div>
         <div className="header-right">
+          {project && (
+            <button
+              className="quiet"
+              data-control="project"
+              onClick={() => {
+                clearClick();
+                setPanel({ type: 'project' });
+              }}
+            >
+              {projectCopy.button}
+            </button>
+          )}
           <select
             data-control="node-search"
             aria-label={copy.findNode}
@@ -622,6 +661,8 @@ export const App = forwardRef(function App({ onReady }, ref) {
         interfaces={panel?.type === 'node' ? interfaces.get(panel.key) : null}
         fitNode={fitNode}
         showRelation={showRelation}
+        showRecord={showRecord}
+        overview={() => setPanel({ type: 'project' })}
         close={() => setPanel(null)}
       />
     </div>

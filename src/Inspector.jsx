@@ -1,5 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { relationCount, useArchitecture } from './context.jsx';
+import { renderDocumentation } from './document.mjs';
+import {
+  ProjectInspector,
+  ProjectConfirmation,
+  ProjectLinks,
+} from './ProjectInspector.jsx';
 
 function Implementation({ implemented, evidence, explain = true }) {
   const { copy } = useArchitecture();
@@ -63,8 +69,17 @@ function Interactions({ edges, incoming, showRelation }) {
   );
 }
 
-export function Inspector({ panel, interfaces, fitNode, showRelation, close }) {
-  const { graph, copy, contracts } = useArchitecture();
+export function Inspector({
+  panel,
+  interfaces,
+  fitNode,
+  showRelation,
+  showRecord,
+  overview,
+  close,
+}) {
+  const { model, input, project, projectCopy, graph, copy, contracts } =
+    useArchitecture();
   const element = useRef(null);
   useEffect(() => {
     if (element.current) element.current.scrollTop = 0;
@@ -80,17 +95,32 @@ export function Inspector({ panel, interfaces, fitNode, showRelation, close }) {
       <button data-control="close" aria-label={copy.close} onClick={close}>
         ×
       </button>
+      {project && ['project', 'record'].includes(panel.type) && (
+        <ProjectInspector
+          recordKey={panel.key}
+          showRecord={showRecord}
+          fitNode={fitNode}
+          overview={overview}
+        />
+      )}
       {node && (
         <>
           <div className="eyebrow" data-control="panel-kind">
             {copy.nodeKinds[node.kind]} · {copy.zones[node.zone]}
           </div>
           <h2>{node.title}</h2>
-          <Implementation
-            implemented={node.implemented}
-            evidence={node.implementationEvidence}
-          />
+          {project ? (
+            <ProjectConfirmation recordKey={node.key} showRecord={showRecord} />
+          ) : (
+            <Implementation
+              implemented={node.implemented}
+              evidence={node.implementationEvidence}
+            />
+          )}
           <p>{node.summary}</p>
+          {project && (
+            <ProjectLinks recordKey={node.key} showRecord={showRecord} />
+          )}
           {node.example && (
             <details className="node-example">
               <summary>{copy.example}</summary>
@@ -177,16 +207,31 @@ export function Inspector({ panel, interfaces, fitNode, showRelation, close }) {
             {panel.bundle.relations.map((edge) => (
               <section key={edge.key}>
                 <h3>{edge.label}</h3>
-                <Implementation
-                  implemented={edge.implemented}
-                  evidence={edge.implementationEvidence}
-                  explain={false}
-                />
+                {project ? (
+                  <ProjectConfirmation
+                    recordKey={edge.key}
+                    showRecord={showRecord}
+                  />
+                ) : (
+                  <Implementation
+                    implemented={edge.implemented}
+                    evidence={edge.implementationEvidence}
+                    explain={false}
+                  />
+                )}
                 <p className="payload">
                   <b>{copy.payload}: </b>
                   {edge.payload}
                 </p>
                 <p>{edge.meaning}</p>
+                {project && (
+                  <button
+                    className="panel-button"
+                    onClick={() => showRecord(edge.key)}
+                  >
+                    {projectCopy.open}
+                  </button>
+                )}
                 {[
                   [copy.source, edge.from],
                   [copy.target, edge.to],
@@ -211,12 +256,14 @@ export function Inspector({ panel, interfaces, fitNode, showRelation, close }) {
           <h2>{copy.rulesTitle}</h2>
           <p>{copy.rulesIntro}</p>
           <div className="contract-list">
-            {contracts.map(([title, text]) => (
-              <details key={title}>
-                <summary>{title}</summary>
-                <p>{text}</p>
-              </details>
-            ))}
+            {(project ? projectCopy.contracts : contracts).map(
+              ([title, text]) => (
+                <details key={title}>
+                  <summary>{title}</summary>
+                  <p>{text}</p>
+                </details>
+              ),
+            )}
           </div>
           <p className="end">{copy.incompleteNote}</p>
         </>
@@ -225,6 +272,35 @@ export function Inspector({ panel, interfaces, fitNode, showRelation, close }) {
         <>
           <div className="eyebrow">{copy.aboutEyebrow}</div>
           <h2>{copy.aboutButton}</h2>
+          <button
+            className="panel-button"
+            data-control="download-docs"
+            onClick={() => {
+              const url = URL.createObjectURL(
+                new Blob(
+                  [
+                    renderDocumentation(input || model, {
+                      ...copy,
+                      project: projectCopy,
+                    }),
+                  ],
+                  {
+                    type: 'text/markdown;charset=utf-8',
+                  },
+                ),
+              );
+              const anchor = document.createElement('a');
+              anchor.href = url;
+              anchor.download = 'architecture.md';
+              document.body.append(anchor);
+              anchor.click();
+              anchor.remove();
+              setTimeout(() => URL.revokeObjectURL(url), 1000);
+            }}
+          >
+            {copy.downloadDocumentation}
+          </button>
+          <p>{copy.documentationHint}</p>
           <ul>
             {copy.aboutSteps.map((text) => (
               <li key={text}>{text}</li>

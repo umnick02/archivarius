@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import { connectBrowser, pause } from './cdp.mjs';
+import { generateDocumentation } from '../src/node.mjs';
 
 const model = JSON.parse(
   await fs.readFile(
@@ -56,6 +57,26 @@ const checkIds = async () => {
   );
   assert.equal(new Set(ids).size, ids.length);
 };
+const downloads = new URL('../.runtime/downloads/', import.meta.url);
+await fs.mkdir(downloads, { recursive: true });
+const checkDownload = async (data, name = 'first', locale = 'ru') => {
+  const output = new URL('architecture.md', downloads);
+  await fs.rm(output, { force: true });
+  await b.call('Browser.setDownloadBehavior', {
+    behavior: 'allow',
+    downloadPath: downloads.pathname,
+  });
+  await click('#' + name + ' [data-control=about]');
+  await click('#' + name + ' [data-control=download-docs]');
+  let text;
+  for (let i = 0; i < 50; i++) {
+    text = await fs.readFile(output, 'utf8').catch(() => undefined);
+    if (text !== undefined) break;
+    await pause(100);
+  }
+  assert.equal(text, await generateDocumentation(data, { locale }));
+  await click('#' + name + ' [data-control=close]');
+};
 
 try {
   await b.call('Emulation.setDeviceMetricsOverride', {
@@ -88,6 +109,8 @@ try {
     { margin: '11px', color: 'rgb(12, 34, 56)', header: '40px' },
   );
   await checkIds();
+  await checkDownload(model);
+  await checkDownload(model, 'second', 'en');
   assert.equal(
     await b.evaluate(
       () => document.querySelectorAll('#first [data-node]').length,
@@ -288,6 +311,7 @@ try {
       )
     ).includes(replacement.title),
   );
+  await checkDownload(replacement);
 
   await b.evaluate(async (data) => {
     await window.consumer.renderReact(data);

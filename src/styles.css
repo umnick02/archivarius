@@ -80,6 +80,80 @@
 .archivarius .header-right {
   flex-shrink: 0;
 }
+.archivarius .project-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 10px;
+}
+.archivarius .project-filters input,
+.archivarius .project-filters select {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #bdcabb;
+  border-radius: 6px;
+  background: #fff;
+  color: #263a2e;
+}
+.archivarius .project-records .panel-button,
+.archivarius .project-links .panel-button {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+  margin: 8px 0;
+  padding: 12px;
+}
+.archivarius .project-records small,
+.archivarius .project-links small,
+.archivarius .record-count {
+  color: #62725f;
+  font-size: 11px;
+}
+.archivarius .project-records .panel-button span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.archivarius .record-link {
+  display: inline-block;
+  padding: 3px 0;
+  margin: 0 8px 0 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  color: #356c49;
+  background: transparent;
+  border: none;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.archivarius .record-field h3 {
+  margin: 18px 0 6px;
+  font-size: 12px;
+  color: #62725f;
+}
+.archivarius .record-field p {
+  margin: 6px 0;
+}
+.archivarius .record-field dd {
+  margin-left: 16px;
+  overflow-wrap: anywhere;
+}
+.archivarius .record-technical {
+  display: block;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 10px;
+  max-width: 100%;
+}
+.archivarius .record-provenance {
+  margin-top: 24px;
+}
 .archivarius .brand span {
   color: #a4b4a3;
   padding: 0 6px;
@@ -492,11 +566,6 @@
     gap: 8px;
   }
 }
-@container (max-width: 1360px) {
-  .archivarius [data-control='about'] {
-    display: none;
-  }
-}
 @container (max-width: 780px) {
   .archivarius header {
     padding: 0 12px;
@@ -508,8 +577,7 @@
     padding-top: 12px;
   }
   .archivarius .logo,
-  .archivarius .subtitle,
-  .archivarius [data-control='about'] {
+  .archivarius .subtitle {
     display: none;
   }
   .archivarius .brand {
@@ -520,12 +588,17 @@
     top: 47px;
     left: 12px;
     right: 12px;
+    overflow-x: auto;
+    padding-bottom: 4px;
   }
   .archivarius [data-control='node-search'] {
     max-width: 130px;
   }
   .archivarius .header-right {
     gap: 5px;
+  }
+  .archivarius .header-right > * {
+    flex-shrink: 0;
   }
   .archivarius [data-control='contracts'] {
     font-size: 10px;

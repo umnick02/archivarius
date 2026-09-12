@@ -10,7 +10,7 @@ const read = (name) =>
   JSON.parse(fs.readFileSync(new URL('../' + name, import.meta.url), 'utf8'));
 const model = read('examples/basic/public/architecture.json');
 const schema = new Ajv({ strict: false }).compile(
-  read('assets/model.schema.json'),
+  read('assets/legacy.schema.json'),
 );
 const node = (model, key) => Graph.validate(model).nodes.get(key);
 const confirm = (item) =>
@@ -22,7 +22,11 @@ const confirm = (item) =>
 
 test('example meets both file schema and whole-graph contract', () => {
   assert.equal(schema(model), true, JSON.stringify(schema.errors));
-  assert.deepEqual(validateArchitecture(model), { valid: true, errors: [] });
+  assert.deepEqual(validateArchitecture(model), {
+    valid: true,
+    errors: [],
+    diagnostics: [],
+  });
   assert.deepEqual(parseArchitecture(JSON.stringify(model)), model);
   assert.throws(() => parseArchitecture('{'), { code: 'INVALID_JSON' });
 });
@@ -276,4 +280,64 @@ test('objects are copied, files parsed and cancellation honored without executin
   await assert.rejects(readArchitecture(model, { signal: controller.signal }), {
     name: 'AbortError',
   });
+});
+
+test('diagnostics identify structural fields and missing graph endpoints without mutating input', () => {
+  const broken = structuredClone(model);
+  delete broken.nodes[0].summary;
+  const before = structuredClone(broken);
+  const result = validateArchitecture(broken);
+  assert(
+    result.diagnostics.some(
+      (d) => d.path === '/nodes/0/summary' && d.keyword === 'required',
+    ),
+  );
+  assert.deepEqual(broken, before);
+  assert.throws(
+    () => parseArchitecture(JSON.stringify(broken)),
+    (error) => {
+      assert.deepEqual(error.diagnostics, result.diagnostics);
+      return true;
+    },
+  );
+  const missing = structuredClone(model);
+  missing.relations[0].to = 'missing';
+  const issue = validateArchitecture(missing).diagnostics.find(
+    (d) => d.code === 'MISSING_NODE',
+  );
+  assert.equal(issue.path, '/relations/0/to');
+  assert.equal(issue.subject, missing.relations[0].key);
+});
+
+test('strict JSON rejects duplicate properties including escaped names and reports their location', () => {
+  for (const [input, path] of [
+    ['{"version":3,"version":3}', '/version'],
+    ['{"nodes":[{"key":"first","\\u006bey":"second"}]}', '/nodes/0/key'],
+    ['{"a/b~":{"x":1,"x":2}}', '/a~1b~0/x'],
+  ])
+    assert.throws(
+      () => parseArchitecture(input),
+      (error) => {
+        assert.equal(error.code, 'INVALID_JSON');
+        const duplicate = error.diagnostics.find(
+          (d) => d.code === 'DUPLICATE_PROPERTY',
+        );
+        assert.equal(duplicate.path, path);
+        assert.equal(duplicate.params.line, 1);
+        assert(duplicate.params.column > 1);
+        return true;
+      },
+    );
+  for (const input of [
+    '/* comment */{}',
+    '{"x":1,}',
+    '',
+    '[',
+    '{',
+    '{"x":',
+    '{"x": 1 "y":2}',
+    '{"x"}',
+    'undefined',
+  ])
+    assert.throws(() => parseArchitecture(input), { code: 'INVALID_JSON' });
 });

@@ -37,6 +37,10 @@ await fs.copyFile(
   path.join(root, 'examples/basic/public/architecture.json'),
   path.join(consumer, 'public/architecture.json'),
 );
+await fs.copyFile(
+  path.join(root, 'examples/basic/public/project.json'),
+  path.join(consumer, 'public/project.json'),
+);
 const pkg = JSON.parse(
   await fs.readFile(path.join(root, 'package.json'), 'utf8'),
 );
@@ -70,6 +74,31 @@ await fs.rm(path.join(consumer, 'node_modules/archivarius'), {
 await fs.rm(path.join(consumer, 'package-lock.json'), { force: true });
 run('npm', ['install', '--ignore-scripts'], consumer);
 run('node', ['node_modules/typescript/bin/tsc'], consumer);
+const cli = path.join(consumer, 'node_modules/.bin/archivarius');
+assert.equal(
+  JSON.parse(
+    run(cli, ['validate', 'public/architecture.json', '--json'], consumer),
+  ).valid,
+  true,
+);
+run(
+  cli,
+  ['docs', 'public/architecture.json', '--output', 'architecture.md'],
+  consumer,
+);
+run(
+  cli,
+  [
+    'docs',
+    'public/architecture.json',
+    '--output',
+    'architecture.md',
+    '--check',
+  ],
+  consumer,
+);
+assert(pack.files.some((file) => file.path === 'dist/assets/authoring.md'));
+assert(pack.files.some((file) => file.path === 'dist/example.json'));
 run('node', ['node_modules/vite/bin/vite.js', 'build'], consumer);
 const files = await fs.readdir(path.join(consumer, 'dist/assets'));
 assert(files.some((file) => file.startsWith('ru-') && file.endsWith('.json')));

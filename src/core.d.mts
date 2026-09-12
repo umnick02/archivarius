@@ -1,57 +1,77 @@
-export type Implementation =
-  | { implemented: false; implementationEvidence?: string }
-  | { implemented: true; implementationEvidence: string };
+import type { ArchitectureModel } from './generated/model.mjs';
+import type { ProjectModel, ProjectRecord } from './generated/project.mjs';
+import type { ProjectChange } from './generated/change.mjs';
+export type { ProjectModel, ProjectRecord } from './generated/project.mjs';
+export type { ProjectChange } from './generated/change.mjs';
+export type ArchitectureInput = ArchitectureModel | ProjectModel;
+export type {
+  ArchitectureModel,
+  ArchitectureNode,
+  ArchitectureRelation,
+  Implementation,
+} from './generated/model.mjs';
 
-export type ArchitectureNode = Implementation & {
-  key: string;
-  title: string;
-  summary: string;
-  zone: 'presentation' | 'application' | 'infrastructure' | 'pure' | 'external';
-  rules: Array<{ title: string; text: string }>;
-  example?: string;
-} & (
-    | {
-        kind: 'subsystem';
-        detail: 'mapped';
-        children: ArchitectureNode[];
-        detailNote?: string;
-      }
-    | {
-        kind: 'subsystem' | 'component' | 'store' | 'external';
-        detail: 'boundary';
-        detailNote: string;
-        children?: never;
-      }
-  );
-
-export type ArchitectureRelation = Implementation & {
-  key: string;
-  from: string;
-  to: string;
-  kind: 'data' | 'command' | 'state';
-  channel: string;
-  label: string;
-  payload: string;
-  meaning: string;
-};
-
-export interface ArchitectureModel {
-  $schema?: string;
-  version: 3;
-  scope: 'target';
-  title?: string;
-  entry: string;
-  nodes: ArchitectureNode[];
-  relations: ArchitectureRelation[];
+export interface ArchitectureDiagnostic {
+  code: string;
+  path: string;
+  subject?: string;
+  keyword?: string;
+  schemaPath?: string;
+  params?: Record<string, unknown>;
 }
 
 export class ArchitectureError extends Error {
-  constructor(code: string, issues?: string[]);
+  constructor(
+    code: string,
+    issues?: string[],
+    diagnostics?: ArchitectureDiagnostic[],
+  );
   readonly code: string;
   readonly issues: string[];
+  readonly diagnostics: ArchitectureDiagnostic[];
 }
 export function validateArchitecture(model: unknown): {
   valid: boolean;
   errors: string[];
+  diagnostics: ArchitectureDiagnostic[];
 };
-export function parseArchitecture(text: string): ArchitectureModel;
+export function parseArchitecture(text: string): ArchitectureInput;
+export interface ProjectReason {
+  code: string;
+  key: string;
+}
+export interface ProjectAnalysis {
+  contract: string;
+  realization: string;
+  freshness: Record<string, { current: boolean; reasons: ProjectReason[] }>;
+  completion: Record<
+    string,
+    { implemented: boolean; reasons: ProjectReason[] }
+  >;
+}
+export interface ProjectContext {
+  snapshot: string;
+  contract: string;
+  keys: string[];
+  reads: Record<string, string>;
+  records: ProjectRecord[];
+  omitted: number;
+}
+export function validateProject(
+  model: unknown,
+): ReturnType<typeof validateArchitecture>;
+export function analyzeProject(
+  model: ProjectModel,
+  options?: { verifiedResults?: string[] },
+): ProjectAnalysis;
+export function projectContext(
+  model: ProjectModel,
+  keys: string[],
+): ProjectContext;
+export function applyProjectChanges(
+  model: ProjectModel,
+  context: ProjectContext,
+  change: ProjectChange,
+): ProjectModel;
+export function contractDigest(model: ProjectModel): string;
+export function realizationDigest(model: ProjectModel): string;
