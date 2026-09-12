@@ -225,7 +225,7 @@ export function ProjectInspector({
       );
     if (
       typeof value === 'string' &&
-      ['origin', 'kind', 'zone', 'level', 'outcome'].includes(field)
+      ['origin', 'kind', 'zone', 'level', 'outcome', 'stage'].includes(field)
     )
       return <p>{copy.values[value] || value}</p>;
     return (

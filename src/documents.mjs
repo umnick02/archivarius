@@ -163,6 +163,7 @@ export function validateDocuments(model, issue) {
       const jsonReference = reference.path.startsWith('data/');
       if (
         !record ||
+        !Object.hasOwn(record, reference.field) ||
         record.type === 'document' ||
         value === undefined ||
         (!jsonReference && typeof value !== 'string') ||
@@ -174,7 +175,9 @@ export function validateDocuments(model, issue) {
           reference.field,
         ) ||
         (reference.index !== undefined &&
-          !Array.isArray(record[reference.field]))
+          (!Number.isInteger(reference.index) ||
+            reference.index < 0 ||
+            !Array.isArray(record[reference.field])))
       )
         issue('DOCUMENT_REFERENCE', document.key, reference.path);
     }

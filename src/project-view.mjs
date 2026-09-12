@@ -1,7 +1,7 @@
 import { applicableRequirements, recordReferences } from './project.mjs';
 
 export const primaryFields = {
-  document: ['stage', 'path'],
+  document: ['stage'],
   scope: ['purpose'],
   source: ['statement', 'origin'],
   component: ['summary'],
@@ -58,7 +58,9 @@ export function searchEntries(project, record, copy) {
       : field === 'type'
         ? copy.types[value]
         : typeof value === 'string' &&
-            ['origin', 'kind', 'zone', 'level', 'outcome'].includes(field)
+            ['origin', 'kind', 'zone', 'level', 'outcome', 'stage'].includes(
+              field,
+            )
           ? copy.values[value] || value
           : value;
     return flatten(content, [

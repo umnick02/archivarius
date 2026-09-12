@@ -66,6 +66,15 @@ test('documents refuse dangling/invalid fields, traversal, format collisions and
     (m) => (record(m, 'doc-rules').path = 'docs/routing.json'),
     (m) => record(m, 'doc-rules').blocks[5].rows[0].pop(),
     (m) => (record(m, 'doc-routing').data.parameters.field = 'missing'),
+    (m) => {
+      record(m, 'doc-routing').data.parameters.field = 'constructor';
+    },
+    (m) => {
+      Object.assign(record(m, 'doc-routing').data.parameters, {
+        field: 'when',
+        index: '0',
+      });
+    },
   ]) {
     const m = model();
     edit(m);

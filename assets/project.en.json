@@ -175,7 +175,11 @@
     "pure": "Computation",
     "data": "Data",
     "command": "Command",
-    "state": "State"
+    "state": "State",
+    "discovery": "Discovery",
+    "requirements": "Requirements",
+    "architecture": "Architecture",
+    "implementation": "Implementation plan"
   },
   "reasonsByCode": {
     "ARCHITECTURE_MISSING": "Architecture has not been described",

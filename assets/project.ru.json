@@ -175,7 +175,11 @@
     "pure": "Вычисление",
     "data": "Данные",
     "command": "Команда",
-    "state": "Состояние"
+    "state": "Состояние",
+    "discovery": "Исследование идеи",
+    "requirements": "Требования",
+    "architecture": "Архитектура",
+    "implementation": "План реализации"
   },
   "reasonsByCode": {
     "ARCHITECTURE_MISSING": "Архитектура ещё не описана",
