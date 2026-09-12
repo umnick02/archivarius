@@ -132,6 +132,32 @@ try {
     english.rulesButton,
   );
   const initial = await state();
+  assert.equal(
+    await b.evaluate(
+      () =>
+        document.querySelectorAll('#first [data-node] .node-implementation')
+          .length,
+    ),
+    initial.visible.length,
+  );
+  assert(
+    await b.evaluate(() =>
+      [...document.querySelectorAll('#first [data-relation]')].every(
+        (edge) =>
+          edge.dataset.implemented === 'false' &&
+          edge.querySelector('.edge-implementation'),
+      ),
+    ),
+  );
+  assert.equal(
+    await b.evaluate(
+      () =>
+        document.querySelector(
+          '#second [data-control=implementation-legend] strong',
+        ).textContent,
+    ),
+    english.mapImplementation.label,
+  );
   const other = await state('second');
   await focus('search');
   assert((await state()).visible.includes('engine'));
@@ -242,7 +268,10 @@ try {
   for (const item of [
     verified.nodes[0],
     ...verified.relations.filter(
-      (edge) => edge.from === model.entry || edge.to === model.entry,
+      (edge) =>
+        edge.from === model.entry ||
+        edge.to === model.entry ||
+        edge.key === 'query-input',
     ),
   ])
     Object.assign(item, {
@@ -251,6 +280,47 @@ try {
         'Fixture: complete entry path verified at a fixed revision.',
     });
   await load(verified);
+  await focus('search');
+  const mixed = await state();
+  const shared = mixed.relations.find((edge) =>
+    edge.members.includes('query-input'),
+  );
+  assert.equal(shared.members.length, 2);
+  assert.equal(shared.implemented, false);
+  assert(
+    await b.evaluate(
+      () =>
+        [...document.querySelectorAll('#first [data-node]')].some(
+          (node) => node.dataset.implemented === 'true',
+        ) &&
+        [...document.querySelectorAll('#first [data-node]')].some(
+          (node) => node.dataset.implemented === 'false',
+        ),
+    ),
+  );
+  await focus('engine');
+  const detailed = await state();
+  for (const relation of detailed.relations) {
+    const expected = relation.members.every(
+      (key) => verified.relations.find((edge) => edge.key === key).implemented,
+    );
+    assert.equal(relation.implemented, expected);
+  }
+  const rendered = await b.evaluate(() =>
+    [...document.querySelectorAll('#first [data-relation]')].map((edge) => ({
+      key: edge.dataset.relation,
+      implemented: edge.dataset.implemented,
+      mark: edge.querySelector('.implementation-mark').dataset.implemented,
+    })),
+  );
+  for (const edge of rendered) {
+    assert.equal(edge.mark, edge.implemented);
+    if (edge.key.startsWith('query-input--'))
+      assert.equal(edge.implemented, 'true');
+    if (edge.key.startsWith('ranking-input--'))
+      assert.equal(edge.implemented, 'false');
+  }
+  await b.capture('consumer-implementation-mixed');
   await focus(model.entry);
   assert.equal(
     await b.evaluate(

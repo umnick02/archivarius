@@ -1,6 +1,9 @@
 import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import { connectBrowser, pause } from './cdp.mjs';
+import { contractDigest } from '../src/project.mjs';
+import { hashBytes } from '../src/digest.mjs';
+import { executeProjectCheck } from '../src/node.mjs';
 
 const project = JSON.parse(
   await fs.readFile(
@@ -15,6 +18,10 @@ const copy = JSON.parse(
   ),
 );
 const b = await connectBrowser();
+const evidenceDirectory = new URL(
+  '../.runtime/consumer/dist/implementation-fixture/',
+  import.meta.url,
+);
 const click = async (selector) => {
   const point = await b.evaluate((selector) => {
     const element = document.querySelector(selector);
@@ -462,6 +469,69 @@ try {
   );
   assert.deepEqual(afterGrouping.nodeGeometry, beforeGrouping.nodeGeometry);
   assert.deepEqual(afterGrouping.relations, beforeGrouping.relations);
+  const confirmed = structuredClone(project);
+  confirmed.records = confirmed.records.filter(
+    (record) => record.key !== 'exclude-private',
+  );
+  await fs.mkdir(evidenceDirectory, { recursive: true });
+  const checker = await fs.readFile(
+    new URL('fixtures/evidence-check.mjs', import.meta.url),
+  );
+  await fs.writeFile(new URL('fixture.mjs', evidenceDirectory), checker);
+  confirmed.bindings = {
+    fixture: { path: 'fixture.mjs', digest: hashBytes(checker) },
+  };
+  confirmed.records.find((record) => record.key === 'export-check').command = [
+    process.execPath,
+    'fixture.mjs',
+  ];
+  const contract = contractDigest(confirmed);
+  for (const record of confirmed.records)
+    if ('basis' in record) record.basis = { contract };
+  confirmed.records.push(
+    await executeProjectCheck(confirmed, 'export-check', {
+      directory: evidenceDirectory.pathname,
+      resultKey: 'run',
+      evidencePath: 'run.json',
+    }),
+  );
+  await fs.writeFile(
+    new URL('project.json', evidenceDirectory),
+    JSON.stringify(confirmed),
+  );
+  for (const expected of [true, false]) {
+    if (!expected) await fs.rm(new URL('run.json', evidenceDirectory));
+    await b.evaluate(async () => {
+      await window.consumer.first.load(
+        new URL('./implementation-fixture/project.json', document.baseURI),
+      );
+      window.consumer.first.inspect('writer');
+    });
+    await pause(150);
+    const status = await b.evaluate(() => ({
+      nodes: [...document.querySelectorAll('#first [data-node]')].map(
+        (node) => ({
+          status: node.dataset.implemented,
+          mark: node.querySelector('.implementation-mark').dataset.implemented,
+        }),
+      ),
+      edges: [...document.querySelectorAll('#first [data-relation]')].map(
+        (edge) => ({
+          status: edge.dataset.implemented,
+          mark: edge.querySelector('.implementation-mark').dataset.implemented,
+        }),
+      ),
+      card: document.querySelector('#first .implementation').dataset
+        .implemented,
+    }));
+    assert(status.nodes.length && status.edges.length);
+    for (const item of [...status.nodes, ...status.edges])
+      assert.deepEqual(item, {
+        status: String(expected),
+        mark: String(expected),
+      });
+    assert.equal(status.card, String(expected));
+  }
   const requirementsOnly = structuredClone(project);
   assert.equal(
     await b.evaluate(async (model) => {
@@ -500,4 +570,5 @@ try {
   );
 } finally {
   b.close();
+  await fs.rm(evidenceDirectory, { recursive: true, force: true });
 }

@@ -44,6 +44,11 @@
   "implementationNo": "Нет",
   "implementationUnconfirmed": "Полная реализация не подтверждена. Часть кода может существовать.",
   "implementationEvidence": "Основание подтверждения",
+  "mapImplementation": {
+    "label": "Полная реализация",
+    "confirmed": "Подтверждена",
+    "unconfirmed": "Не подтверждена"
+  },
   "example": "Пример работы",
   "rulesButton": "Правила карты",
   "aboutButton": "Как читать карту",

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Handle, useViewport, useUpdateNodeInternals } from '@xyflow/react';
 import { format, useArchitecture } from './context.jsx';
+import { ImplementationMark } from './ImplementationMark.jsx';
 
 export function ArchitectureNode({ data }) {
   const { copy, rootColors } = useArchitecture();
@@ -23,6 +24,12 @@ export function ArchitectureNode({ data }) {
   }, [item.key, handleKey, updateInternals]);
   const w = box.width * zoom,
     h = box.height * zoom;
+  const confirmation =
+    copy.mapImplementation.label +
+    ': ' +
+    (item.implemented
+      ? copy.mapImplementation.confirmed
+      : copy.mapImplementation.unconfirmed);
   const pad = Math.min(22, w * 0.065),
     title = expanded
       ? Math.min(17, Math.max(11, h * 0.055))
@@ -34,6 +41,7 @@ export function ArchitectureNode({ data }) {
     '--small': '10px',
     '--body': '13px',
     '--gap': '10px',
+    '--mark-size': Math.min(18, Math.max(8, w * 0.1), h * 0.3) + 'px',
     width: w,
     height: h,
     transform: `scale(${1 / zoom})`,
@@ -56,12 +64,15 @@ export function ArchitectureNode({ data }) {
         data-expanded={String(expanded)}
         data-detail={item.detail}
         data-kind={item.kind}
+        data-implemented={String(item.implemented)}
         data-incoming={interfaces.incoming.length}
         data-outgoing={interfaces.outgoing.length}
         role="button"
         tabIndex={0}
         aria-label={
           item.title +
+          ' · ' +
+          confirmation +
           ' — ' +
           (item.children ? copy.expandAction : copy.explainAction)
         }
@@ -73,6 +84,9 @@ export function ArchitectureNode({ data }) {
           }
         }}
       >
+        <span className="node-implementation" title={confirmation}>
+          <ImplementationMark implemented={item.implemented} />
+        </span>
         {expanded ? (
           <div
             className="expanded-heading"

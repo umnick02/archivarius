@@ -17,6 +17,7 @@ import {
 import { useArchitecture } from './context.jsx';
 import { ArchitectureNode } from './ArchitectureNode.jsx';
 import { ArchitectureEdge } from './ArchitectureEdge.jsx';
+import { ImplementationMark } from './ImplementationMark.jsx';
 import { Inspector } from './Inspector.jsx';
 import { usePanelNavigation } from './usePanelNavigation.jsx';
 import { ArchitectureGraph } from './graph.mjs';
@@ -802,6 +803,23 @@ export const App = forwardRef(function App({ onReady }, ref) {
             position="bottom-left"
           />
         </ReactFlow>
+        {!!graph.nodes.size && (
+          <div
+            className="implementation-legend"
+            data-control="implementation-legend"
+            title={copy.implementationUnconfirmed}
+          >
+            <strong>{copy.mapImplementation.label}</strong>
+            <span>
+              <ImplementationMark implemented />
+              {copy.mapImplementation.confirmed}
+            </span>
+            <span>
+              <ImplementationMark implemented={false} />
+              {copy.mapImplementation.unconfirmed}
+            </span>
+          </div>
+        )}
         <svg width="0" height="0" className="marker-definitions">
           <defs>
             {Object.entries(kindColors).map(([kind, color]) => (

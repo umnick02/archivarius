@@ -34,6 +34,21 @@ export function groupInteractions(edges, incoming = false) {
   return [...groups.values()];
 }
 
+export function edgeImplementationPoint(edge, zoom) {
+  const size = Math.min(12, Math.max(6, edge.targetWidth * zoom * 0.06));
+  const [dx, dy] = {
+    left: [-1, 0],
+    right: [1, 0],
+    top: [0, -1],
+    bottom: [0, 1],
+  }[edge.target.position];
+  return {
+    x: edge.target.x + (dx * (7 + size / 2)) / zoom,
+    y: edge.target.y + (dy * (7 + size / 2)) / zoom,
+    size,
+  };
+}
+
 export function expandedAt(layout, zoom, size, previous = new Set()) {
   const expanded = new Set();
   for (const n of Object.values(layout.nodes)) {
@@ -158,7 +173,17 @@ export function projectedEdges(model, graph, layout, expanded) {
         }));
       }),
     );
-    return { id, bundle, paths, source, target, label, labelCandidates, owner };
+    return {
+      id,
+      bundle,
+      paths,
+      source,
+      target,
+      targetWidth: layout.nodes[bundle.to].width,
+      label,
+      labelCandidates,
+      owner,
+    };
   });
 }
 
@@ -173,6 +198,15 @@ export function placeEdgeLabels(edges, nodes, viewport, size, layer) {
       height: (n.data.expanded ? n.height * 0.17 : n.height) * zoom + 10,
     }));
   const labels = [];
+  for (const edge of edges) {
+    const point = edgeImplementationPoint(edge, zoom);
+    obstacles.push({
+      x: point.x * zoom + x - point.size / 2 - 2,
+      y: point.y * zoom + y - point.size / 2 - 2,
+      width: point.size + 4,
+      height: point.size + 4,
+    });
+  }
   const overlaps = (a, b) =>
     a.x < b.x + b.width &&
     a.x + a.width > b.x &&

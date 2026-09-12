@@ -40,6 +40,11 @@
   "implementationNo": "No",
   "implementationUnconfirmed": "Full implementation has not been confirmed. Some code may already exist.",
   "implementationEvidence": "Verification evidence",
+  "mapImplementation": {
+    "label": "Full implementation",
+    "confirmed": "Confirmed",
+    "unconfirmed": "Unconfirmed"
+  },
   "example": "Example",
   "rulesButton": "Map contract",
   "aboutButton": "How to read",
