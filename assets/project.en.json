@@ -30,7 +30,34 @@
       "Realization files, checks and results are bound by hashes. Missing or changed artifacts cannot confirm implementation."
     ]
   ],
-  "search": "Find a record",
+  "search": "Search project",
+  "title": "Title",
+  "navigationBack": "Back",
+  "returnToMap": "Map",
+  "returnToCard": "Return to card",
+  "more": "Links and details",
+  "affected": "Affected records: {count}",
+  "areasNote": "A record may belong to more than one area.",
+  "confirmationNote": "Missing confirmation does not mean missing code. Shared project gaps also affect component conclusions.",
+  "coverageLink": "Explore confirmation gaps",
+  "workNote": "Tasks without full confirmation appear here. Missing requirement coverage is available in project confirmation.",
+  "emptyWork": "No unconfirmed tasks in this snapshot. This does not confirm complete implementation.",
+  "external": "Connections outside the selected block",
+  "clearFocus": "Show all connections",
+  "views": {
+    "overview": "Project overview",
+    "architecture": "How it works",
+    "rules": "Requirements and decisions",
+    "work": "Remaining work",
+    "confirmation": "What confirms it",
+    "all": "All records"
+  },
+  "viewDescriptions": {
+    "architecture": "Subsystems, responsibilities and interactions",
+    "rules": "Rules, criteria, sources and chosen decisions",
+    "work": "Tasks and required outcomes",
+    "confirmation": "Gaps, checks and their results"
+  },
   "all": "All records",
   "empty": "No records in this selection.",
   "selection": "Showing {shown} of {total}. Filtering does not change the project outcome.",
@@ -48,7 +75,7 @@
   "attention": "Needs attention",
   "yes": "Yes",
   "no": "No",
-  "implemented": "Fully implemented",
+  "implemented": "Full implementation confirmed",
   "current": "Basis is current",
   "reasons": "Why confirmation is missing",
   "types": {

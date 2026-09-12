@@ -61,7 +61,7 @@ export function ArchitectureEdge({ id, data }) {
           }}
         />
       ))}
-      {data.labelVisible && (
+      {data.labelVisible && (!data.muted || data.active) && (
         <EdgeLabelRenderer>
           <button
             className="edge-label nodrag nopan"

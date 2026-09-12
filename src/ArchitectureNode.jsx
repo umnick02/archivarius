@@ -14,6 +14,7 @@ export function ArchitectureNode({ data }) {
     onEnter,
     onDetails,
     highlighted,
+    muted,
   } = data;
   const updateInternals = useUpdateNodeInternals();
   const handleKey = handles.map((h) => h.id).join('/');
@@ -51,6 +52,7 @@ export function ArchitectureNode({ data }) {
         }
         style={style}
         data-node={item.key}
+        data-muted={String(muted)}
         data-expanded={String(expanded)}
         data-detail={item.detail}
         data-kind={item.kind}

@@ -1,44 +1,27 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useArchitecture, format } from './context.jsx';
+import { recordReferences, digest } from './project.mjs';
 import {
-  recordReferences,
-  applicableRequirements,
-  digest,
-} from './project.mjs';
+  confirmationGroups,
+  currentRecord,
+  primaryFields,
+  relatedGroups,
+  technicalFields,
+} from './project-view.mjs';
 
-const technical = new Set([
-  'basis',
-  'realization',
-  'evidence',
-  'reconsideredBecause',
-]);
-const identity = new Set(['key', 'type', 'title']);
-const implementationTypes = new Set([
-  'scope',
-  'component',
-  'interaction',
-  'interface',
-  'requirement',
-  'criterion',
-  'scenario',
-  'task',
-  'check',
-  'result',
-]);
-
-export function ProjectConfirmation({ recordKey, showRecord }) {
+export function ProjectConfirmation({
+  recordKey,
+  showRecord,
+  expanded = false,
+}) {
   const { project, analysis, projectCopy: copy } = useArchitecture();
-  const record = project.records.find((r) => r.key === recordKey);
-  const applicable = implementationTypes.has(record.type);
+  const record = currentRecord(project, recordKey);
+  const applicable = !['source', 'decision'].includes(record.type);
   const item = applicable
     ? analysis.completion[recordKey]
     : analysis.freshness[recordKey];
   const yes = applicable ? item.implemented : item.current;
-  const reasons = new Map();
-  for (const reason of item.reasons) {
-    if (!reasons.has(reason.code)) reasons.set(reason.code, []);
-    reasons.get(reason.code).push(reason.key);
-  }
+  const groups = confirmationGroups(project, item.reasons);
   return (
     <div className="implementation" data-implemented={String(yes)}>
       <p>
@@ -47,177 +30,147 @@ export function ProjectConfirmation({ recordKey, showRecord }) {
           {yes ? copy.yes : copy.no}
         </b>
       </p>
-      {!!item.reasons.length && (
-        <details className="project-reasons">
+      {!!groups.length && (
+        <details
+          className="project-reasons"
+          data-disclosure={`${recordKey}-reasons`}
+          open={expanded}
+        >
           <summary>
-            {copy.reasons} · {reasons.size}
+            {copy.reasons} · {groups.length}
           </summary>
-          <ul>
-            {[...reasons].map(([code, keys]) => (
-              <li key={code}>
-                <details className="reason-group">
-                  <summary>
-                    {copy.reasonsByCode[code] || code} · {keys.length}
-                  </summary>
-                  <ul>
-                    {keys.map((key) => (
-                      <li key={key}>
-                        <button
-                          className="record-link"
-                          onClick={() => showRecord(key)}
-                        >
-                          {project.records.find((r) => r.key === key)?.title ||
-                            project.history.find((h) => h.record.key === key)
-                              ?.record.title ||
-                            key}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-              </li>
-            ))}
-          </ul>
+          {applicable && <p>{copy.confirmationNote}</p>}
+          {groups.map((group) => (
+            <details
+              className="reason-group"
+              key={group.code}
+              data-reason={group.code}
+              data-disclosure={`${recordKey}-reason-${group.code}`}
+            >
+              <summary>
+                {copy.reasonsByCode[group.code] || group.code}
+                <small>
+                  {format(copy.affected, { count: group.keys.size })}
+                </small>
+              </summary>
+              {group.keys.size === 1 ? (
+                <RecordLinks keys={[...group.keys]} showRecord={showRecord} />
+              ) : (
+                <>
+                  {group.areas.size > 1 && (
+                    <p className="record-count">{copy.areasNote}</p>
+                  )}
+                  {[...group.areas].map(([area, keys]) => (
+                    <details
+                      className="reason-area"
+                      key={area}
+                      data-disclosure={`${recordKey}-reason-${group.code}-${area}`}
+                    >
+                      <summary>
+                        {currentRecord(project, area)?.title || area} ·{' '}
+                        {keys.size}
+                      </summary>
+                      <RecordLinks keys={[...keys]} showRecord={showRecord} />
+                    </details>
+                  ))}
+                </>
+              )}
+            </details>
+          ))}
         </details>
       )}
     </div>
   );
 }
 
+function RecordLinks({ keys, showRecord }) {
+  const { project } = useArchitecture();
+  return (
+    <ul className="record-links">
+      {keys.map((key) => (
+        <li key={key}>
+          <button
+            className="record-link"
+            data-record-link={key}
+            onClick={() => showRecord(key)}
+          >
+            {currentRecord(project, key)?.title || key}
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function ProjectLinks({ recordKey, showRecord }) {
   const { project, projectCopy: copy } = useArchitecture();
-  const requirements = applicableRequirements(project, recordKey);
-  const related = project.records.filter(
-    (r) =>
-      r.key !== recordKey &&
-      recordReferences(r).some(
-        (ref) => ref.key === recordKey && ref.field !== 'scope',
-      ),
-  );
-  const unique = [
-    ...new Map([...requirements, ...related].map((r) => [r.key, r])).values(),
-  ];
+  const groups = relatedGroups(project, recordKey);
   return (
-    !!unique.length && (
+    !!groups.size && (
       <section className="project-links">
         <h3>{copy.related}</h3>
-        {unique.map((record) => (
-          <button
-            className="panel-button"
-            key={record.key}
-            data-record-link={record.key}
-            onClick={() => showRecord(record.key)}
-          >
-            <small>{copy.types[record.type]}</small>
-            <strong>{record.title}</strong>
-          </button>
+        {[...groups].map(([type, records]) => (
+          <details key={type} data-disclosure={`links-${type}`}>
+            <summary>
+              {copy.types[type]} · {records.length}
+            </summary>
+            <RecordLinks
+              keys={records.map((r) => r.key)}
+              showRecord={showRecord}
+            />
+          </details>
         ))}
       </section>
     )
   );
 }
 
-export function ProjectInspector({ recordKey, showRecord, fitNode, overview }) {
-  const { project, analysis, projectCopy: copy } = useArchitecture();
-  const [query, setQuery] = useState(''),
-    [type, setType] = useState('all');
+function StructuredValue({ value }) {
+  if (Array.isArray(value))
+    return (
+      <ul>
+        {value.map((v, i) => (
+          <li key={i}>
+            <StructuredValue value={v} />
+          </li>
+        ))}
+      </ul>
+    );
+  if (value && typeof value === 'object')
+    return (
+      <dl className="record-values">
+        {Object.entries(value).map(([key, part]) => (
+          <div key={key}>
+            <dt>{key}</dt>
+            <dd>
+              <StructuredValue value={part} />
+            </dd>
+          </div>
+        ))}
+      </dl>
+    );
+  return <>{String(value ?? '')}</>;
+}
+
+export function ProjectInspector({
+  recordKey,
+  showRecord,
+  fitNode,
+  interactions,
+}) {
+  const { project, projectCopy: copy } = useArchitecture();
   const record = project.records.find((r) => r.key === recordKey);
   if (!record) {
     const history = project.history.filter((h) => h.record.key === recordKey);
-    if (recordKey && history.length)
-      return (
-        <>
-          <button className="panel-button" onClick={overview}>
-            {copy.back}
-          </button>
-          <h2>{history.at(-1).record.title}</h2>
-          <p>{copy.historical}</p>
-          {history.map((h) => (
-            <pre className="record-technical" key={h.digest}>
-              {JSON.stringify(h.record, null, 2)}
-            </pre>
-          ))}
-        </>
-      );
-    const selected = project.records.filter(
-      (r) =>
-        (type === 'all' ||
-          (type === 'attention'
-            ? analysis.completion[r.key].reasons.length
-            : r.type === type)) &&
-        [r.title, r.rule, r.summary, r.change, r.choice, r.assertion]
-          .filter(Boolean)
-          .some((text) =>
-            text.toLocaleLowerCase().includes(query.toLocaleLowerCase()),
-          ),
-    );
     return (
       <>
-        <div className="eyebrow">{copy.button}</div>
-        <h2>{project.title}</h2>
-        <ProjectConfirmation recordKey={project.root} showRecord={showRecord} />
-        <div className="project-filters">
-          <input
-            data-control="record-search"
-            aria-label={copy.search}
-            placeholder={copy.search}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          <select
-            data-control="record-type"
-            aria-label={copy.all}
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-          >
-            <option value="all">{copy.all}</option>
-            <option value="attention">{copy.attention}</option>
-            {Object.entries(copy.types).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <p className="record-count">
-          {format(copy.selection, {
-            shown: selected.length,
-            total: project.records.length,
-          })}
-        </p>
-        <div className="project-records">
-          {selected.map((r) => (
-            <button
-              className="panel-button"
-              data-record={r.key}
-              key={r.key}
-              onClick={() => showRecord(r.key)}
-            >
-              <small>{copy.types[r.type]}</small>
-              <strong>{r.title}</strong>
-              <span>
-                {r.rule ||
-                  r.summary ||
-                  r.change ||
-                  r.choice ||
-                  r.assertion ||
-                  r.purpose ||
-                  r.statement ||
-                  r.method ||
-                  ''}
-              </span>
-            </button>
-          ))}
-        </div>
-        {!selected.length && <p>{copy.empty}</p>}
-        <details>
-          <summary>{copy.details}</summary>
-          <p>{copy.basisNote}</p>
-          <p>{copy.conservative}</p>
-          <code className="record-technical">
-            {copy.snapshot}: {digest(project)}
-          </code>
-        </details>
+        <h2>{history.at(-1)?.record.title}</h2>
+        <p>{copy.historical}</p>
+        {history.map((h) => (
+          <pre className="record-technical" key={h.digest}>
+            {JSON.stringify(h.record, null, 2)}
+          </pre>
+        ))}
       </>
     );
   }
@@ -225,97 +178,72 @@ export function ProjectInspector({ recordKey, showRecord, fitNode, overview }) {
   const fieldValue = (field, value) => {
     const links = refs.filter((ref) => ref.field === field);
     if (links.length)
-      return links.map((ref) => (
-        <button
-          className="record-link"
-          data-record-link={ref.key}
-          key={ref.key}
-          onClick={() => showRecord(ref.key)}
-        >
-          {project.records.find((r) => r.key === ref.key)?.title ||
-            project.history.find((h) => h.record.key === ref.key)?.record
-              .title ||
-            ref.key}
-        </button>
-      ));
-    if (Array.isArray(value))
       return (
-        <ul>
-          {value.map((part, i) => (
-            <li key={i}>
-              {typeof part === 'object' ? (
-                <pre className="record-technical">
-                  {JSON.stringify(part, null, 2)}
-                </pre>
-              ) : (
-                part
-              )}
-            </li>
-          ))}
-        </ul>
+        <RecordLinks
+          keys={links.map((ref) => ref.key)}
+          showRecord={showRecord}
+        />
       );
-    if (value && typeof value === 'object')
-      return (
-        <dl>
-          {Object.entries(value).map(([key, part]) => (
-            <React.Fragment key={key}>
-              <dt>{key}</dt>
-              <dd>{String(part)}</dd>
-            </React.Fragment>
-          ))}
-        </dl>
-      );
+    if (
+      typeof value === 'string' &&
+      ['origin', 'kind', 'zone', 'level', 'outcome'].includes(field)
+    )
+      return <p>{copy.values[value] || value}</p>;
     return (
-      <p>
-        {['origin', 'kind', 'zone', 'level', 'outcome'].includes(field)
-          ? copy.values[value] || value
-          : String(value)}
-      </p>
+      <div className="field-value">
+        <StructuredValue value={value} />
+      </div>
     );
   };
-  const fields = Object.entries(record).filter(
-    ([field, value]) =>
-      !identity.has(field) &&
-      !technical.has(field) &&
-      !(Array.isArray(value) && !value.length),
+  const present = (field) =>
+    record[field] !== undefined &&
+    !(Array.isArray(record[field]) && !record[field].length);
+  const renderField = (field) =>
+    present(field) && (
+      <section className="record-field" data-field={field} key={field}>
+        <h3>{copy.fields[field] || field}</h3>
+        {fieldValue(field, record[field])}
+      </section>
+    );
+  const primary = primaryFields[record.type] || [];
+  const secondary = Object.keys(record).filter(
+    (field) =>
+      !['key', 'type', 'title'].includes(field) &&
+      !technicalFields.has(field) &&
+      !primary.includes(field) &&
+      present(field),
   );
   return (
     <>
-      <button
-        className="panel-button"
-        data-control="project-back"
-        onClick={overview}
-      >
-        {copy.back}
-      </button>
       <div className="eyebrow">{copy.types[record.type]}</div>
       <h2 data-record-title={record.key}>{record.title}</h2>
-      <ProjectConfirmation recordKey={record.key} showRecord={showRecord} />
+      <div className="record-primary">{primary.map(renderField)}</div>
       {record.type === 'component' && (
-        <button className="panel-button" onClick={() => fitNode(record.key)}>
-          {copy.map}
-        </button>
+        <>
+          <button
+            className="panel-button"
+            data-show-map={record.key}
+            onClick={() => fitNode(record.key)}
+          >
+            {copy.map}
+          </button>
+          {interactions}
+        </>
       )}
-      {fields.map(([field, value]) => (
-        <section className="record-field" key={field}>
-          <h3>{copy.fields[field] || field}</h3>
-          {fieldValue(field, value)}
-        </section>
-      ))}
+      <ProjectConfirmation recordKey={record.key} showRecord={showRecord} />
+      {secondary.length > 0 && (
+        <details className="record-secondary" data-disclosure="secondary">
+          <summary>{copy.more}</summary>
+          {secondary.map(renderField)}
+        </details>
+      )}
       <ProjectLinks recordKey={record.key} showRecord={showRecord} />
-      <details className="record-provenance">
+      <details className="record-provenance" data-disclosure="provenance">
         <summary>{copy.details}</summary>
         <code className="record-technical">
           {record.key} · {digest(record)}
         </code>
-        {[...technical]
-          .filter((key) => record[key] !== undefined)
-          .map((key) => (
-            <section key={key}>
-              <h3>{copy.fields[key]}</h3>
-              {fieldValue(key, record[key])}
-            </section>
-          ))}
+        {[...technicalFields].filter(present).map(renderField)}
         {project.snapshots
           .filter((s) => s.contract === record.basis?.contract)
           .map((s) => (
@@ -324,13 +252,11 @@ export function ProjectInspector({ recordKey, showRecord, fitNode, overview }) {
                 {copy.snapshot} · {s.contract.slice(0, 12)}
               </summary>
               {Object.entries(s.records).map(([key, revision]) => {
-                const current = project.records.find(
-                  (r) => r.key === key && digest(r) === revision,
-                );
-                const historic = project.history.find(
-                  (h) => h.digest === revision,
-                )?.record;
-                const definition = current || historic;
+                const definition =
+                  project.records.find(
+                    (r) => r.key === key && digest(r) === revision,
+                  ) ||
+                  project.history.find((h) => h.digest === revision)?.record;
                 return (
                   <details key={key}>
                     <summary>{definition?.title || key}</summary>

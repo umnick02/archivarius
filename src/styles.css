@@ -28,6 +28,7 @@
   cursor: pointer;
 }
 .archivarius button:focus-visible,
+.archivarius input:focus-visible,
 .archivarius select:focus-visible,
 .archivarius [role='button']:focus-visible,
 .archivarius summary:focus-visible {
@@ -446,23 +447,22 @@
 .archivarius [data-control='inspector'] {
   position: absolute;
   z-index: 40;
-  right: 24px;
-  top: 145px;
-  bottom: 92px;
-  width: 352px;
-  padding: 28px 24px;
+  right: 12px;
+  top: 88px;
+  bottom: 12px;
+  width: calc(var(--inspector-width) - 24px);
+  padding: 16px 24px 24px;
   background: #fffefb;
   border: 1px solid #d4dfcc;
   border-radius: 12px;
   overflow: auto;
   box-shadow: 0 12px 50px #34462514;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.6;
 }
 .archivarius [data-control='close'] {
-  position: absolute;
-  top: 10px;
-  right: 12px;
+  position: static;
+  margin-left: auto;
   background: none;
   border: 0;
   font-size: 25px;
@@ -650,11 +650,11 @@
     margin: 0 2px;
   }
   .archivarius [data-control='inspector'] {
-    top: 165px;
+    top: 148px;
     right: 12px;
-    bottom: 76px;
+    bottom: 12px;
     width: calc(100% - 24px);
-    padding: 26px 20px;
+    padding: 12px 20px 24px;
   }
   .archivarius [data-control='inspector'] h2 {
     font-size: 21px;
@@ -668,6 +668,7 @@
 }
 .archivarius .map-app {
   position: relative;
+  --inspector-width: clamp(360px, 34%, 460px);
 }
 .archivarius .map-loading {
   position: absolute;
@@ -680,4 +681,199 @@
   overflow-wrap: anywhere;
   max-height: 100%;
   overflow: auto;
+}
+
+.archivarius .inspector-navigation {
+  position: sticky;
+  top: -16px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fffefb;
+  min-height: 40px;
+  padding: 0 0 8px;
+  margin-bottom: 12px;
+}
+.archivarius .inspector-navigation [data-control='close'] {
+  width: 32px;
+  height: 32px;
+  line-height: 1;
+  padding: 0;
+}
+.archivarius .inspector-navigation .quiet {
+  font-size: 11px;
+}
+.archivarius [data-control='inspector']:focus {
+  outline: none;
+}
+.archivarius [data-control='inspector']:focus-visible {
+  outline: 2px solid #659984;
+  outline-offset: -2px;
+}
+.archivarius .project-questions .panel-button {
+  padding: 14px;
+}
+.archivarius .project-questions strong,
+.archivarius .project-questions span {
+  display: block;
+}
+.archivarius .project-questions strong {
+  font-size: 15px;
+}
+.archivarius .project-questions span {
+  margin-top: 5px;
+  color: #52634f;
+}
+.archivarius .project-purpose {
+  font-size: 16px;
+}
+.archivarius .project-result {
+  margin: 12px 0;
+}
+.archivarius .project-result > .record-link {
+  margin: 0 0 0 12px;
+}
+.archivarius .record-primary {
+  margin: 0 0 18px;
+}
+.archivarius .record-primary .record-field:first-child h3 {
+  margin-top: 0;
+}
+.archivarius .field-value {
+  overflow-wrap: anywhere;
+}
+.archivarius .record-values {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+.archivarius .record-values > div {
+  min-width: 80px;
+  max-width: 100%;
+  padding: 7px 12px;
+  background: #f2f5eb;
+  border-radius: 6px;
+}
+.archivarius .record-values dt {
+  font-size: 12px;
+  color: #52634f;
+}
+.archivarius .record-values dd {
+  margin: 0;
+  font-weight: 650;
+}
+.archivarius .record-links {
+  list-style: none;
+  margin: 6px 0;
+  padding: 0 !important;
+}
+.archivarius .record-links li {
+  margin: 0;
+}
+.archivarius .record-secondary,
+.archivarius .project-links > details {
+  border-top: 1px solid #dbe4d2;
+  padding: 12px 0;
+}
+.archivarius .record-secondary {
+  margin-top: 18px;
+}
+.archivarius .reason-group {
+  border-top: 1px solid #dbe4d2;
+  padding: 10px 0;
+}
+.archivarius .reason-group summary {
+  font-weight: 550;
+}
+.archivarius .reason-group small {
+  display: block;
+  margin-left: 16px;
+  font-weight: 400;
+}
+.archivarius .reason-area {
+  margin: 10px 0 10px 12px;
+}
+.archivarius summary {
+  cursor: pointer;
+}
+.archivarius .node-card[data-muted='true'] {
+  opacity: 0.35;
+}
+.archivarius .map-context {
+  position: absolute;
+  top: 134px;
+  left: 24px;
+  z-index: 30;
+  max-width: 290px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.archivarius .external-connections {
+  border: 1px solid #d4dfcc;
+  background: #fffefb;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 12px;
+  max-height: 230px;
+  overflow: auto;
+}
+.archivarius .external-connections .record-link {
+  display: block;
+}
+.archivarius .mobile-view-switch {
+  display: none;
+}
+@container (min-width: 781px) {
+  .archivarius [data-panel-open='true'] .map-pane {
+    right: var(--inspector-width);
+  }
+  .archivarius [data-panel-open='true'] .map-controls {
+    right: calc(var(--inspector-width) + 16px);
+  }
+  .archivarius [data-panel-open='true'] [data-control='breadcrumbs'] {
+    max-width: calc(100% - var(--inspector-width) - 48px);
+  }
+  .archivarius [data-panel-open='true'] .hint {
+    right: calc(var(--inspector-width) + 16px);
+  }
+}
+@container (max-width: 780px) {
+  .archivarius .mobile-view-switch {
+    position: absolute;
+    display: flex;
+    gap: 8px;
+    top: 104px;
+    left: 12px;
+    z-index: 35;
+  }
+  .archivarius .mobile-view-switch [aria-pressed='true'] {
+    background: #e5eedf;
+  }
+  .archivarius [data-panel-open='true'] [data-control='breadcrumbs'] {
+    top: 148px;
+  }
+  .archivarius [data-panel-open='true'] .map-context {
+    top: 188px;
+  }
+  .archivarius .map-context {
+    left: 12px;
+    top: 148px;
+    max-width: calc(100% - 24px);
+  }
+  .archivarius [data-mobile-reading='true'] .map-pane,
+  .archivarius [data-mobile-reading='true'] [data-control='breadcrumbs'],
+  .archivarius [data-mobile-reading='true'] .map-context,
+  .archivarius [data-mobile-reading='true'] .map-controls {
+    visibility: hidden;
+  }
+  .archivarius .inspector-navigation {
+    top: -12px;
+  }
+}
+.archivarius [hidden] {
+  display: none !important;
 }

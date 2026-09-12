@@ -1,11 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import { relationCount, useArchitecture } from './context.jsx';
 import { renderDocumentation } from './document.mjs';
-import {
-  ProjectInspector,
-  ProjectConfirmation,
-  ProjectLinks,
-} from './ProjectInspector.jsx';
+import { ProjectInspector, ProjectConfirmation } from './ProjectInspector.jsx';
+import { ProjectOverview } from './ProjectOverview.jsx';
 
 function Implementation({ implemented, evidence, explain = true }) {
   const { copy } = useArchitecture();
@@ -40,7 +37,11 @@ function Interactions({ edges, incoming, showRelation }) {
         {incoming ? copy.receives : copy.sends} <span>{edges.length}</span>
       </h3>
       {edges.map((edge) => (
-        <details key={edge.key} data-interface={edge.key}>
+        <details
+          key={edge.key}
+          data-interface={edge.key}
+          data-disclosure={`interface-${edge.key}`}
+        >
           <summary>
             <strong>{edge.label}</strong>
             <span>
@@ -77,13 +78,28 @@ export function Inspector({
   showRecord,
   overview,
   close,
+  navigation,
+  hidden = false,
+  showOnMap,
 }) {
   const { model, input, project, projectCopy, graph, copy, contracts } =
     useArchitecture();
   const element = useRef(null);
-  useEffect(() => {
-    if (element.current) element.current.scrollTop = 0;
-  }, [panel]);
+  const previousEntry = useRef(null);
+  useLayoutEffect(() => {
+    const target = element.current;
+    if (!target || hidden) return;
+    const changed = previousEntry.current !== panel.entryId;
+    previousEntry.current = panel.entryId;
+    if (changed && panel.disclosures)
+      for (const detail of target.querySelectorAll('details[data-disclosure]'))
+        detail.open = panel.disclosures.includes(detail.dataset.disclosure);
+    (panel.focusSearch
+      ? target.querySelector('[data-control="record-search"]')
+      : target
+    )?.focus({ preventScroll: true });
+    if (changed) target.scrollTop = panel.scroll || 0;
+  }, [panel?.entryId, hidden]);
   if (!panel) return null;
   const node = panel.type === 'node' ? graph.nodes.get(panel.key) : null;
   return (
@@ -91,19 +107,92 @@ export function Inspector({
       data-control="inspector"
       ref={element}
       aria-label={copy.inspectorLabel}
+      tabIndex={-1}
+      hidden={hidden}
     >
-      <button data-control="close" aria-label={copy.close} onClick={close}>
-        ×
-      </button>
-      {project && ['project', 'record'].includes(panel.type) && (
-        <ProjectInspector
-          recordKey={panel.key}
+      <nav className="inspector-navigation" aria-label={copy.inspectorLabel}>
+        {navigation.canBack && (
+          <button
+            className="quiet"
+            data-control="record-back"
+            onClick={navigation.back}
+          >
+            ← {projectCopy.navigationBack}
+          </button>
+        )}
+        {project &&
+          (panel.type !== 'project' ||
+            (panel.view && panel.view !== 'overview')) && (
+            <button
+              className="quiet"
+              data-control="project-back"
+              onClick={overview}
+            >
+              {projectCopy.back}
+            </button>
+          )}
+        <button data-control="close" aria-label={copy.close} onClick={close}>
+          ×
+        </button>
+      </nav>
+      {project && panel.type === 'project' && (
+        <ProjectOverview
+          panel={panel}
+          navigate={navigation.open}
+          update={navigation.replace}
           showRecord={showRecord}
-          fitNode={fitNode}
-          overview={overview}
+          fitNode={showOnMap}
         />
       )}
-      {node && (
+      {project && ['node', 'record'].includes(panel.type) && (
+        <ProjectInspector
+          key={panel.key}
+          recordKey={panel.key}
+          showRecord={showRecord}
+          fitNode={showOnMap}
+          interactions={
+            interfaces && (
+              <>
+                <Interactions
+                  edges={interfaces.incoming}
+                  incoming
+                  showRelation={showRelation}
+                />
+                <Interactions
+                  edges={interfaces.outgoing}
+                  showRelation={showRelation}
+                />
+                {!!interfaces.internal.length && (
+                  <details data-disclosure="internal">
+                    <summary>
+                      {copy.internalRelations} · {interfaces.internal.length}
+                    </summary>
+                    {interfaces.internal.map((edge) => (
+                      <button
+                        className="panel-button"
+                        key={edge.key}
+                        onClick={() =>
+                          showRelation({
+                            from: edge.from,
+                            to: edge.to,
+                            kind: edge.kind,
+                            label: edge.label,
+                            relations: [edge],
+                          })
+                        }
+                      >
+                        {graph.nodes.get(edge.from).title} →{' '}
+                        {graph.nodes.get(edge.to).title}: {edge.label}
+                      </button>
+                    ))}
+                  </details>
+                )}
+              </>
+            )
+          }
+        />
+      )}
+      {node && !project && (
         <>
           <div className="eyebrow" data-control="panel-kind">
             {copy.nodeKinds[node.kind]} · {copy.zones[node.zone]}
@@ -118,9 +207,6 @@ export function Inspector({
             />
           )}
           <p>{node.summary}</p>
-          {project && (
-            <ProjectLinks recordKey={node.key} showRecord={showRecord} />
-          )}
           {node.example && (
             <details className="node-example">
               <summary>{copy.example}</summary>
@@ -193,11 +279,13 @@ export function Inspector({
             {graph.nodes.get(panel.bundle.from).title} →{' '}
             {graph.nodes.get(panel.bundle.to).title}
           </h2>
-          <Implementation
-            implemented={panel.bundle.relations.every(
-              (edge) => edge.implemented,
-            )}
-          />
+          {!project && (
+            <Implementation
+              implemented={panel.bundle.relations.every(
+                (edge) => edge.implemented,
+              )}
+            />
+          )}
           <p>
             {panel.bundle.relations.length > 1
               ? copy.aggregateNote
