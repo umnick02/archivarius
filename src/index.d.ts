@@ -3,20 +3,36 @@ import type {
   ForwardRefExoticComponent,
   RefAttributes,
 } from 'react';
-import type { ArchitectureModel, ArchitectureRelation } from './core.mjs';
+import type {
+  ArchitectureInput,
+  ArchitectureRelation,
+  ImplementationState,
+} from './core.mjs';
 export type {
   ArchitectureModel,
   ArchitectureNode,
   ArchitectureRelation,
   Implementation,
+  ArchitectureInput,
+  ProjectModel,
+  ProjectRecord,
+  ProjectChange,
+  ProjectContext,
+  ProjectAnalysis,
+  ProjectCompletion,
+  ImplementationState,
 } from './core.mjs';
 export {
   ArchitectureError,
   parseArchitecture,
   validateArchitecture,
+  validateProject,
+  analyzeProject,
+  projectContext,
+  applyProjectChanges,
 } from './core.mjs';
 
-export type ArchitectureSource = string | URL | Blob | ArchitectureModel;
+export type ArchitectureSource = string | URL | Blob | ArchitectureInput;
 export interface MapSnapshot {
   viewport: { x: number; y: number; zoom: number };
   expanded: string[];
@@ -32,15 +48,24 @@ export interface MapSnapshot {
     to: string;
     kind: ArchitectureRelation['kind'];
     implemented: boolean;
+    state: ImplementationState;
     members: string[];
   }>;
   layer: 'all' | ArchitectureRelation['kind'];
   layoutPasses: number;
-  panel: 'node' | 'relation' | 'contracts' | 'about' | null;
+  panel:
+    | 'node'
+    | 'relation'
+    | 'contracts'
+    | 'about'
+    | 'project'
+    | 'record'
+    | null;
 }
 export interface MapNavigation {
   home(): Promise<boolean>;
   focus(key: string): Promise<boolean>;
+  inspect(key: string): void;
   snapshot(): MapSnapshot;
 }
 export interface ArchitectureMapProps {

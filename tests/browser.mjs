@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import { connectBrowser, pause } from './cdp.mjs';
+import { generateDocumentation } from '../src/node.mjs';
 
 const model = JSON.parse(
   await fs.readFile(
@@ -56,6 +57,26 @@ const checkIds = async () => {
   );
   assert.equal(new Set(ids).size, ids.length);
 };
+const downloads = new URL('../.runtime/downloads/', import.meta.url);
+await fs.mkdir(downloads, { recursive: true });
+const checkDownload = async (data, name = 'first', locale = 'ru') => {
+  const output = new URL('architecture.md', downloads);
+  await fs.rm(output, { force: true });
+  await b.call('Browser.setDownloadBehavior', {
+    behavior: 'allow',
+    downloadPath: downloads.pathname,
+  });
+  await click('#' + name + ' [data-control=about]');
+  await click('#' + name + ' [data-control=download-docs]');
+  let text;
+  for (let i = 0; i < 50; i++) {
+    text = await fs.readFile(output, 'utf8').catch(() => undefined);
+    if (text !== undefined) break;
+    await pause(100);
+  }
+  assert.equal(text, await generateDocumentation(data, { locale }));
+  await click('#' + name + ' [data-control=close]');
+};
 
 try {
   await b.call('Emulation.setDeviceMetricsOverride', {
@@ -88,6 +109,8 @@ try {
     { margin: '11px', color: 'rgb(12, 34, 56)', header: '40px' },
   );
   await checkIds();
+  await checkDownload(model);
+  await checkDownload(model, 'second', 'en');
   assert.equal(
     await b.evaluate(
       () => document.querySelectorAll('#first [data-node]').length,
@@ -109,11 +132,69 @@ try {
     english.rulesButton,
   );
   const initial = await state();
+  assert.equal(
+    await b.evaluate(
+      () =>
+        document.querySelectorAll('#first [data-node] .node-implementation')
+          .length,
+    ),
+    initial.visible.length,
+  );
+  assert(
+    await b.evaluate(() =>
+      [...document.querySelectorAll('#first [data-relation]')].every(
+        (edge) =>
+          edge.dataset.implemented === 'false' &&
+          edge.querySelector('.edge-implementation'),
+      ),
+    ),
+  );
+  assert.equal(
+    await b.evaluate(
+      () =>
+        document.querySelector(
+          '#second [data-control=implementation-legend] strong',
+        ).textContent,
+    ),
+    english.mapImplementation.label,
+  );
   const other = await state('second');
   await focus('search');
   assert((await state()).visible.includes('engine'));
   await focus('engine');
   assert((await state()).visible.includes('ranking'));
+  await b.evaluate(() => window.consumer.first.inspect('engine'));
+  await pause(150);
+  assert.equal(
+    await b.evaluate(
+      () =>
+        document.querySelectorAll(
+          '#first [data-direction=incoming] [data-interface-group]',
+        ).length,
+    ),
+    2,
+  );
+  await click('#first [data-direction=incoming] summary');
+  assert.deepEqual(
+    await b.evaluate(() =>
+      [
+        ...document.querySelectorAll(
+          '#first [data-direction=incoming] [data-interface-group]:first-of-type [data-interface]',
+        ),
+      ].map((element) => element.dataset.interface),
+    ),
+    ['query-input', 'ranking-input'],
+  );
+  for (const key of ['query-input', 'ranking-input'])
+    assert.equal(
+      await b.evaluate(
+        (key) =>
+          document.querySelector(`#first [data-interface=${key}] p`)
+            .textContent,
+        key,
+      ),
+      model.relations.find((edge) => edge.key === key).payload,
+    );
   assert.deepEqual((await state()).nodeGeometry, initial.nodeGeometry);
   assert.deepEqual((await state('second')).viewport, other.viewport);
   await focus('ranking');
@@ -187,7 +268,10 @@ try {
   for (const item of [
     verified.nodes[0],
     ...verified.relations.filter(
-      (edge) => edge.from === model.entry || edge.to === model.entry,
+      (edge) =>
+        edge.from === model.entry ||
+        edge.to === model.entry ||
+        edge.key === 'query-input',
     ),
   ])
     Object.assign(item, {
@@ -196,6 +280,48 @@ try {
         'Fixture: complete entry path verified at a fixed revision.',
     });
   await load(verified);
+  await focus('search');
+  const mixed = await state();
+  const shared = mixed.relations.find((edge) =>
+    edge.members.includes('query-input'),
+  );
+  assert.equal(shared.members.length, 2);
+  assert.equal(shared.implemented, false);
+  assert.equal(shared.state, 'partial');
+  assert(
+    await b.evaluate(
+      () =>
+        [...document.querySelectorAll('#first [data-node]')].some(
+          (node) => node.dataset.implemented === 'true',
+        ) &&
+        [...document.querySelectorAll('#first [data-node]')].some(
+          (node) => node.dataset.implemented === 'false',
+        ),
+    ),
+  );
+  await focus('engine');
+  const detailed = await state();
+  for (const relation of detailed.relations) {
+    const expected = relation.members.every(
+      (key) => verified.relations.find((edge) => edge.key === key).implemented,
+    );
+    assert.equal(relation.implemented, expected);
+  }
+  const rendered = await b.evaluate(() =>
+    [...document.querySelectorAll('#first [data-relation]')].map((edge) => ({
+      key: edge.dataset.relation,
+      implemented: edge.dataset.implemented,
+      mark: edge.querySelector('.implementation-mark').dataset.implemented,
+    })),
+  );
+  for (const edge of rendered) {
+    assert.equal(edge.mark, edge.implemented);
+    if (edge.key.startsWith('query-input--'))
+      assert.equal(edge.implemented, 'true');
+    if (edge.key.startsWith('ranking-input--'))
+      assert.equal(edge.implemented, 'false');
+  }
+  await b.capture('consumer-implementation-mixed');
   await focus(model.entry);
   assert.equal(
     await b.evaluate(
@@ -288,6 +414,7 @@ try {
       )
     ).includes(replacement.title),
   );
+  await checkDownload(replacement);
 
   await b.evaluate(async (data) => {
     await window.consumer.renderReact(data);

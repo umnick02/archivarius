@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { transform } from 'esbuild';
 import postcss from 'postcss';
+import './generate-contract.mjs';
 
 const root = new URL('../', import.meta.url);
 const read = (name) => fs.readFile(new URL(name, root), 'utf8');
@@ -10,6 +11,10 @@ await fs.mkdir(new URL('dist/', root), { recursive: true });
 await fs.cp(new URL('assets/', root), new URL('dist/assets/', root), {
   recursive: true,
 });
+await fs.copyFile(
+  new URL('examples/basic/public/project.json', root),
+  new URL('dist/example.json', root),
+);
 for (const entry of await fs.readdir(new URL('src/', root), {
   recursive: true,
   withFileTypes: true,
@@ -33,6 +38,7 @@ for (const entry of await fs.readdir(new URL('src/', root), {
   code = code.replace(/(from\s+['"][^'"]+)\.jsx(['"])/g, '$1.js$2');
   await fs.writeFile(output, code);
 }
+await fs.chmod(new URL('dist/src/cli.mjs', root), 0o755);
 
 const css = postcss.parse(
   await read('node_modules/@xyflow/react/dist/style.css'),

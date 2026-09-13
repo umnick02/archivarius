@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ProjectChange",
+  "type": "object",
+  "additionalProperties": false,
+  "minProperties": 1,
+  "properties": {
+    "put": {
+      "type": "array",
+      "items": {
+        "$ref": "model.schema.json#/$defs/record"
+      }
+    },
+    "remove": {
+      "$ref": "model.schema.json#/$defs/keys"
+    },
+    "review": {
+      "$ref": "model.schema.json#/$defs/keys"
+    },
+    "reason": {
+      "$ref": "model.schema.json#/$defs/text"
+    },
+    "bindings": {
+      "$ref": "model.schema.json#/properties/bindings"
+    },
+    "title": {
+      "$ref": "model.schema.json#/properties/title"
+    },
+    "root": {
+      "$ref": "model.schema.json#/properties/root"
+    },
+    "entry": {
+      "$ref": "model.schema.json#/properties/entry"
+    }
+  }
+}

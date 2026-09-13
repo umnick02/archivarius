@@ -1,28 +1,91 @@
 import { ArchitectureGraph } from './graph.mjs';
-
-export class ArchitectureError extends Error {
-  constructor(code, issues = []) {
-    super([code, ...issues].join('\n'));
-    this.name = 'ArchitectureError';
-    this.code = code;
-    this.issues = issues;
-  }
-}
+import { visit } from 'jsonc-parser';
+import { ArchitectureError } from './errors.mjs';
+import { validateProject } from './project.mjs';
+export { ArchitectureError } from './errors.mjs';
+export {
+  validateProject,
+  analyzeProject,
+  projectContext,
+  applyProjectChanges,
+  contractDigest,
+  realizationDigest,
+} from './project.mjs';
 
 export function validateArchitecture(model) {
-  const { errors } = ArchitectureGraph.validate(model);
-  return { valid: errors.length === 0, errors };
+  if (model?.version === 4) return validateProject(model);
+  const { errors, diagnostics } = ArchitectureGraph.validate(model);
+  return { valid: errors.length === 0, errors, diagnostics };
 }
 
-export function parseArchitecture(text) {
+export function parseJSON(text) {
+  if (typeof text !== 'string') throw new ArchitectureError('INVALID_JSON');
+  const diagnostics = [],
+    objects = [];
+  visit(
+    text,
+    {
+      onObjectBegin: () => {
+        objects.push(new Set());
+      },
+      onObjectEnd: () => {
+        objects.pop();
+      },
+      onObjectProperty(property, offset, length, line, column, path) {
+        const keys = objects.at(-1);
+        if (keys.has(property))
+          diagnostics.push({
+            code: 'DUPLICATE_PROPERTY',
+            path:
+              '/' +
+              [...path(), property]
+                .map((part) =>
+                  String(part).replaceAll('~', '~0').replaceAll('/', '~1'),
+                )
+                .join('/'),
+            params: { line: line + 1, column: column + 1 },
+          });
+        keys.add(property);
+      },
+      onError(error, offset, length, line, column) {
+        diagnostics.push({
+          code: 'INVALID_JSON',
+          path: '',
+          params: { error, line: line + 1, column: column + 1 },
+        });
+      },
+    },
+    {
+      disallowComments: true,
+      allowTrailingComma: false,
+      allowEmptyContent: false,
+    },
+  );
+  if (diagnostics.length)
+    throw new ArchitectureError(
+      'INVALID_JSON',
+      diagnostics.map((issue) => issue.code + ':' + (issue.path || '/')),
+      diagnostics,
+    );
   let model;
   try {
     model = JSON.parse(text);
   } catch {
     throw new ArchitectureError('INVALID_JSON');
   }
-  const result = validateArchitecture(model);
-  if (!result.valid)
-    throw new ArchitectureError('INVALID_MODEL', result.errors);
   return model;
 }
+
+export function parseArchitecture(text) {
+  const model = parseJSON(text);
+  const result = validateArchitecture(model);
+  if (!result.valid)
+    throw new ArchitectureError(
+      'INVALID_MODEL',
+      result.errors,
+      result.diagnostics,
+    );
+  return model;
+}
+
+export { renderDocument } from './documents.mjs';

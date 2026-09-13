@@ -17,7 +17,9 @@ import {
 import { useArchitecture } from './context.jsx';
 import { ArchitectureNode } from './ArchitectureNode.jsx';
 import { ArchitectureEdge } from './ArchitectureEdge.jsx';
+import { ImplementationMark } from './ImplementationMark.jsx';
 import { Inspector } from './Inspector.jsx';
+import { usePanelNavigation } from './usePanelNavigation.jsx';
 import { ArchitectureGraph } from './graph.mjs';
 import {
   kindColors,
@@ -33,8 +35,17 @@ const duration = () =>
   matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 280;
 
 export const App = forwardRef(function App({ onReady }, ref) {
-  const { model, graph, layout, copy, rootColors, instanceId } =
-    useArchitecture();
+  const {
+    model,
+    project,
+    projectCopy,
+    completion,
+    graph,
+    layout,
+    copy,
+    rootColors,
+    instanceId,
+  } = useArchitecture();
   const flow = useReactFlow(),
     viewport = useViewport();
   const maxZoom = useMemo(
@@ -50,9 +61,12 @@ export const App = forwardRef(function App({ onReady }, ref) {
   const [size, setSize] = useState({ width: 1440, height: 924 });
   const [flowReady, setFlowReady] = useState(false);
   const [layer, setLayer] = useState('all'),
-    [panel, setPanel] = useState(null),
     [selected, setSelected] = useState(null),
     [focus, setFocus] = useState(null);
+  const [mobileMap, setMobileMap] = useState(false);
+  const [contextEnabled, setContextEnabled] = useState(true);
+  const selectedRef = useRef(selected);
+  selectedRef.current = selected;
   const root = useRef(null),
     initialized = useRef(false),
     readyCallback = useRef(onReady),
@@ -60,7 +74,33 @@ export const App = forwardRef(function App({ onReady }, ref) {
     pointer = useRef(null),
     pendingClick = useRef(null),
     previousExpanded = useRef(new Set()),
-    explicitFocus = useRef(null);
+    explicitFocus = useRef(null),
+    atHome = useRef(true),
+    fitting = useRef(0);
+  const navigation = usePanelNavigation(
+    root,
+    project && !graph.nodes.size ? { type: 'project' } : null,
+    () => ({
+      viewport: flow.getViewport(),
+      selected,
+      focus,
+      atHome: atHome.current,
+      contextEnabled,
+    }),
+    (scene) => {
+      setSelected(scene.selected);
+      setFocus(scene.focus);
+      explicitFocus.current = scene.focus;
+      atHome.current = scene.atHome;
+      setContextEnabled(scene.contextEnabled);
+      flow.setViewport(scene.viewport);
+    },
+  );
+  const { panel } = navigation;
+  useEffect(() => setMobileMap(false), [panel?.entryId]);
+  useEffect(() => {
+    if (mobileMap) pane.current?.focus({ preventScroll: true });
+  }, [mobileMap]);
   const expanded = useMemo(() => {
     const next = expandedAt(
       layout,
@@ -83,22 +123,46 @@ export const App = forwardRef(function App({ onReady }, ref) {
     [model, graph],
   );
   const bundles = useMemo(
-    () => projectedEdges(model, graph, layout, expanded),
-    [model, graph, layout, expansionKey],
+    () => projectedEdges(model, graph, layout, expanded, completion.relations),
+    [model, graph, layout, expansionKey, completion],
   );
   const clearClick = useCallback(() => {
     clearTimeout(pendingClick.current);
   }, []);
-  useEffect(() => clearClick, [clearClick]);
+  const changeZoom = useCallback(
+    (direction) => {
+      atHome.current = false;
+      setContextEnabled(true);
+      return direction > 0
+        ? flow.zoomIn({ duration: duration() })
+        : flow.zoomOut({ duration: duration() });
+    },
+    [flow],
+  );
+  useEffect(
+    () => () => {
+      clearClick();
+      fitting.current++;
+    },
+    [clearClick],
+  );
   const fitNode = useCallback(
-    (key) => {
+    async (key, keepPanel = false) => {
       clearClick();
       if (!graph.nodes.has(key)) throw new Error('UNKNOWN_NODE:' + key);
       const leaf = !graph.nodes.get(key).children;
-      setPanel(leaf ? { type: 'node', key } : null);
+      const ticket = ++fitting.current;
+      atHome.current = false;
+      setContextEnabled(true);
+      if (!keepPanel)
+        leaf ? navigation.open({ type: 'node', key }) : navigation.close();
       setSelected(key);
       explicitFocus.current = key;
       setFocus(key);
+      await new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
+      );
+      if (ticket !== fitting.current) return false;
       const box = layout.nodes[key],
         n = leaf
           ? box.parent
@@ -112,30 +176,49 @@ export const App = forwardRef(function App({ onReady }, ref) {
       const zoom = Math.min(
         maxZoom,
         Math.min(
-          (size.width - (size.width < 780 ? 48 : leaf ? 460 : 130)) / n.width,
+          Math.max(60, size.width - 48) / n.width,
           (size.height - 170) / n.height,
         ) * 0.92,
       );
       return flow.setViewport(
         {
-          x:
-            (size.width - (leaf && size.width >= 780 ? 376 : 0)) / 2 -
-            (n.x + n.width / 2) * zoom,
+          x: size.width / 2 - (n.x + n.width / 2) * zoom,
           y: size.height / 2 + 12 - (n.y + n.height / 2) * zoom,
           zoom,
         },
         { duration: duration() },
       );
     },
-    [flow, graph, layout, maxZoom, clearClick],
+    [
+      flow,
+      graph,
+      layout,
+      maxZoom,
+      clearClick,
+      navigation.open,
+      navigation.close,
+    ],
   );
-  const home = useCallback(() => {
+  const home = useCallback(async () => {
     clearClick();
-    setPanel(null);
+    const ticket = ++fitting.current;
+    atHome.current = true;
+    navigation.reset(
+      project &&
+        (!graph.nodes.size ||
+          (!initialized.current && root.current.clientWidth <= 780))
+        ? { type: 'project' }
+        : null,
+    );
     setSelected(null);
+    setContextEnabled(true);
     explicitFocus.current = null;
     pointer.current = null;
     setFocus(null);
+    await new Promise((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(resolve)),
+    );
+    if (ticket !== fitting.current) return false;
     const size = {
       width: pane.current.clientWidth,
       height: pane.current.clientHeight,
@@ -153,23 +236,71 @@ export const App = forwardRef(function App({ onReady }, ref) {
       },
       { duration: duration() },
     );
-  }, [flow, layout, clearClick]);
+  }, [flow, layout, clearClick, project, graph, navigation.reset]);
   const showNode = useCallback(
     (key) => {
       clearClick();
+      navigation.open({ type: 'node', key });
       setSelected(key);
-      setPanel({ type: 'node', key });
+      setContextEnabled(true);
     },
-    [clearClick],
+    [clearClick, navigation.open],
   );
   const showRelation = useCallback(
     (bundle) => {
       clearClick();
+      navigation.open({ type: 'relation', bundle });
       setSelected(null);
-      setPanel({ type: 'relation', bundle });
     },
-    [clearClick],
+    [clearClick, navigation.open],
   );
+  const showRecord = useCallback(
+    (key) => {
+      clearClick();
+      navigation.open({ type: 'record', key });
+      if (graph.nodes.has(key)) {
+        setSelected(key);
+        setContextEnabled(true);
+      }
+    },
+    [clearClick, navigation.open, graph],
+  );
+  const showOnMap = useCallback(
+    async (key) => {
+      await fitNode(key, true);
+      setMobileMap(true);
+      pane.current?.focus({ preventScroll: true });
+    },
+    [fitNode],
+  );
+  let zoomScope = focus;
+  while (zoomScope && !expanded.has(zoomScope))
+    zoomScope = graph.parents.get(zoomScope);
+  const activeKey = contextEnabled ? selected || zoomScope : null;
+  const inside = useCallback(
+    (key, container) => {
+      while (key) {
+        if (key === container) return true;
+        key = graph.parents.get(key);
+      }
+      return false;
+    },
+    [graph],
+  );
+  const connected = useMemo(() => {
+    if (!activeKey) return null;
+    const result = new Set([activeKey]);
+    for (const edge of bundles)
+      if (
+        edge.bundle.relations.some(
+          (r) => inside(r.from, activeKey) || inside(r.to, activeKey),
+        )
+      ) {
+        result.add(edge.bundle.from);
+        result.add(edge.bundle.to);
+      }
+    return result;
+  }, [activeKey, bundles, inside]);
   const nodes = useMemo(
     () =>
       Object.values(layout.nodes).map((box) => {
@@ -212,6 +343,11 @@ export const App = forwardRef(function App({ onReady }, ref) {
             onEnter: fitNode,
             onDetails: showNode,
             highlighted: selected === box.key,
+            muted:
+              !!connected &&
+              !connected.has(box.key) &&
+              !inside(box.key, activeKey) &&
+              !inside(activeKey, box.key),
           },
           style: { width: box.width, height: box.height },
           zIndex: box.depth,
@@ -226,6 +362,9 @@ export const App = forwardRef(function App({ onReady }, ref) {
       fitNode,
       showNode,
       selected,
+      connected,
+      activeKey,
+      inside,
     ],
   );
   const edges = useMemo(
@@ -242,7 +381,12 @@ export const App = forwardRef(function App({ onReady }, ref) {
         data: {
           ...edge,
           onOpen: showRelation,
-          muted: layer !== 'all' && edge.bundle.kind !== layer,
+          muted:
+            (layer !== 'all' && edge.bundle.kind !== layer) ||
+            (!!activeKey &&
+              !edge.bundle.relations.some(
+                (r) => inside(r.from, activeKey) || inside(r.to, activeKey),
+              )),
           active:
             panel?.type === 'relation' &&
             edge.bundle.relations.some((e) =>
@@ -260,6 +404,8 @@ export const App = forwardRef(function App({ onReady }, ref) {
       panel,
       showRelation,
       layer,
+      activeKey,
+      inside,
     ],
   );
   const path = useMemo(() => {
@@ -278,15 +424,48 @@ export const App = forwardRef(function App({ onReady }, ref) {
   }, [graph, path, fitNode, home]);
 
   useEffect(() => {
-    const observer = new ResizeObserver(([entry]) =>
-      setSize({
+    let previous;
+    const observer = new ResizeObserver(([entry]) => {
+      const next = {
         width: entry.contentRect.width,
         height: entry.contentRect.height,
-      }),
-    );
+      };
+      if (previous && initialized.current) {
+        const current = flow.getViewport();
+        const adjusted = {
+          ...current,
+          x: current.x + (next.width - previous.width) / 2,
+          y: current.y + (next.height - previous.height) / 2,
+        };
+        const selectedBox = layout.nodes[selectedRef.current];
+        if (atHome.current) {
+          const bounds = layout.bounds;
+          adjusted.zoom = Math.min(
+            (next.width - 70) / bounds.width,
+            (next.height - 180) / bounds.height,
+          );
+          adjusted.x = (next.width - bounds.width * adjusted.zoom) / 2;
+          adjusted.y = (next.height - bounds.height * adjusted.zoom) / 2 + 10;
+        } else if (selectedBox && next.width < previous.width) {
+          const left = selectedBox.x * current.zoom + adjusted.x;
+          const width = selectedBox.width * current.zoom;
+          adjusted.x +=
+            width > next.width - 48
+              ? next.width / 2 - left - width / 2
+              : left < 24
+                ? 24 - left
+                : left + width > next.width - 24
+                  ? next.width - 24 - left - width
+                  : 0;
+        }
+        flow.setViewport(adjusted);
+      }
+      previous = next;
+      setSize(next);
+    });
     observer.observe(pane.current);
     return () => observer.disconnect();
-  }, []);
+  }, [flow, layout]);
   useEffect(() => {
     if (explicitFocus.current) return;
     const rect = pane.current.getBoundingClientRect();
@@ -318,25 +497,40 @@ export const App = forwardRef(function App({ onReady }, ref) {
   ]);
   useEffect(() => {
     function keydown(e) {
-      if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
       if (e.key === 'Escape') {
         e.preventDefault();
-        panel ? setPanel(null) : up();
-      } else if (e.key === 'Home') {
+        panel ? navigation.close() : up();
+      } else if (e.key === 'F6') {
+        e.preventDefault();
+        const inspector = root.current.querySelector(
+          '[data-control="inspector"]',
+        );
+        if (root.current.clientWidth <= 780 && panel)
+          setMobileMap((value) => !value);
+        else if (
+          inspector &&
+          !inspector.hidden &&
+          !inspector.contains(document.activeElement)
+        )
+          inspector.focus();
+        else pane.current.focus();
+      } else if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName))
+        return;
+      else if (e.key === 'Home') {
         e.preventDefault();
         home();
       } else if (e.key === '+' || e.key === '=') {
         e.preventDefault();
-        flow.zoomIn({ duration: duration() });
+        changeZoom(1);
       } else if (e.key === '-') {
         e.preventDefault();
-        flow.zoomOut({ duration: duration() });
+        changeZoom(-1);
       }
     }
     const element = root.current;
     element.addEventListener('keydown', keydown);
     return () => element.removeEventListener('keydown', keydown);
-  }, [flow, home, panel, up]);
+  }, [flow, home, panel, up, navigation.close, changeZoom]);
   const snapshot = useRef(null);
   snapshot.current = () => ({
     viewport: flow.getViewport(),
@@ -353,6 +547,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
       to: e.bundle.to,
       kind: e.bundle.kind,
       implemented: e.bundle.implemented,
+      state: e.bundle.state,
       members: e.bundle.relations.map((r) => r.key),
     })),
     layer,
@@ -363,9 +558,19 @@ export const App = forwardRef(function App({ onReady }, ref) {
     () => ({
       home,
       focus: fitNode,
+      inspect: (key) => {
+        if (project) {
+          if (!project.records.some((r) => r.key === key))
+            throw new Error('UNKNOWN_RECORD:' + key);
+          showRecord(key);
+        } else {
+          if (!graph.nodes.has(key)) throw new Error('UNKNOWN_NODE:' + key);
+          showNode(key);
+        }
+      },
       snapshot: () => structuredClone(snapshot.current()),
     }),
-    [home, fitNode],
+    [home, fitNode, project, graph, showRecord, showNode],
   );
   useImperativeHandle(ref, () => api, [api]);
   useEffect(() => {
@@ -397,6 +602,14 @@ export const App = forwardRef(function App({ onReady }, ref) {
     (size.width - 70) / layout.bounds.width,
     (size.height - 180) / layout.bounds.height,
   );
+  const outside = activeKey
+    ? [
+        ...new Set([
+          ...(interfaces.get(activeKey)?.incoming || []).map((r) => r.from),
+          ...(interfaces.get(activeKey)?.outgoing || []).map((r) => r.to),
+        ]),
+      ].filter((key) => !inside(key, activeKey))
+    : [];
   return (
     <div
       className="map-app"
@@ -406,6 +619,8 @@ export const App = forwardRef(function App({ onReady }, ref) {
       aria-label={model.title || copy.title}
       data-engine="react-flow"
       data-layout="elkjs"
+      data-panel-open={String(!!panel)}
+      data-mobile-reading={String(!!panel && !mobileMap)}
       onPointerDownCapture={(e) => {
         if (!e.target.closest('button,input,select,textarea,summary,a'))
           root.current.focus({ preventScroll: true });
@@ -422,21 +637,49 @@ export const App = forwardRef(function App({ onReady }, ref) {
           </div>
         </div>
         <div className="header-right">
-          <select
-            data-control="node-search"
-            aria-label={copy.findNode}
-            value=""
-            onChange={(e) => fitNode(e.target.value)}
-          >
-            <option value="" disabled>
-              {copy.findNode}
-            </option>
-            {[...graph.nodes.values()].map((node) => (
-              <option key={node.key} value={node.key}>
-                {node.title}
+          {project && (
+            <button
+              className="quiet"
+              data-control="project"
+              onClick={() => {
+                clearClick();
+                navigation.open({ type: 'project' });
+              }}
+            >
+              {projectCopy.button}
+            </button>
+          )}
+          {project ? (
+            <button
+              className="quiet"
+              data-control="project-search"
+              onClick={() =>
+                navigation.open({
+                  type: 'project',
+                  view: 'all',
+                  focusSearch: true,
+                })
+              }
+            >
+              {projectCopy.search}
+            </button>
+          ) : (
+            <select
+              data-control="node-search"
+              aria-label={copy.findNode}
+              value=""
+              onChange={(e) => fitNode(e.target.value)}
+            >
+              <option value="" disabled>
+                {copy.findNode}
               </option>
-            ))}
-          </select>
+              {[...graph.nodes.values()].map((node) => (
+                <option key={node.key} value={node.key}>
+                  {node.title}
+                </option>
+              ))}
+            </select>
+          )}
           <select
             data-control="layer"
             aria-label={copy.layerLabel}
@@ -444,7 +687,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
             onChange={(e) => {
               clearClick();
               setLayer(e.target.value);
-              setPanel(null);
+              navigation.close();
             }}
           >
             {Object.entries(copy.layers).map(([key, label]) => (
@@ -458,7 +701,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
             data-control="contracts"
             onClick={() => {
               clearClick();
-              setPanel({ type: 'contracts' });
+              navigation.open({ type: 'contracts' });
             }}
           >
             {copy.rulesButton}
@@ -466,19 +709,46 @@ export const App = forwardRef(function App({ onReady }, ref) {
           <button
             className="quiet"
             data-control="about"
-            onClick={() => setPanel({ type: 'about' })}
+            onClick={() => navigation.open({ type: 'about' })}
           >
             {copy.aboutButton}
           </button>
         </div>
       </header>
+      {panel && (
+        <div className="mobile-view-switch">
+          <button
+            className="quiet"
+            data-control="mobile-map"
+            aria-pressed={mobileMap}
+            onClick={() => {
+              setMobileMap(true);
+              pane.current?.focus({ preventScroll: true });
+            }}
+          >
+            {projectCopy.returnToMap}
+          </button>
+          <button
+            className="quiet"
+            data-control="mobile-card"
+            aria-pressed={!mobileMap}
+            onClick={() => setMobileMap(false)}
+          >
+            {projectCopy.returnToCard}
+          </button>
+        </div>
+      )}
       <div
         className="map-pane"
         ref={pane}
+        tabIndex={-1}
+        aria-label={copy.wholeArchitecture}
         onPointerMoveCapture={(e) => {
           pointer.current = { x: e.clientX, y: e.clientY };
         }}
         onWheelCapture={(e) => {
+          atHome.current = false;
+          setContextEnabled(true);
           pointer.current = { x: e.clientX, y: e.clientY };
           explicitFocus.current = null;
           clearClick();
@@ -506,7 +776,10 @@ export const App = forwardRef(function App({ onReady }, ref) {
           onInit={() => setFlowReady(true)}
           onMoveStart={(event) => {
             clearClick();
-            if (event) explicitFocus.current = null;
+            if (event) {
+              explicitFocus.current = null;
+              atHome.current = false;
+            }
           }}
           onNodeClick={(_, n) => {
             clearClick();
@@ -532,6 +805,21 @@ export const App = forwardRef(function App({ onReady }, ref) {
             position="bottom-left"
           />
         </ReactFlow>
+        {!!graph.nodes.size && (
+          <div
+            className="implementation-legend"
+            data-control="implementation-legend"
+            title={copy.implementationUnconfirmed}
+          >
+            <strong>{copy.mapImplementation.label}</strong>
+            {['confirmed', 'partial', 'unconfirmed'].map((state) => (
+              <span key={state}>
+                <ImplementationMark state={state} />
+                {copy.mapImplementation[state]}
+              </span>
+            ))}
+          </div>
+        )}
         <svg width="0" height="0" className="marker-definitions">
           <defs>
             {Object.entries(kindColors).map(([kind, color]) => (
@@ -568,6 +856,37 @@ export const App = forwardRef(function App({ onReady }, ref) {
           </React.Fragment>
         ))}
       </nav>
+      {activeKey && (
+        <div className="map-context">
+          <button
+            className="quiet"
+            data-control="clear-focus"
+            onClick={() => {
+              setSelected(null);
+              setContextEnabled(false);
+            }}
+          >
+            {projectCopy.clearFocus}
+          </button>
+          {!!outside.length && (
+            <details className="external-connections">
+              <summary>
+                {projectCopy.external} · {outside.length}
+              </summary>
+              {outside.map((key) => (
+                <button
+                  className="record-link"
+                  data-external-node={key}
+                  key={key}
+                  onClick={() => fitNode(key)}
+                >
+                  {graph.nodes.get(key).title}
+                </button>
+              ))}
+            </details>
+          )}
+        </div>
+      )}
       <div className="hint">
         <strong>{copy.hints.zoom}</strong> · {copy.hints.pan}
         <br />
@@ -594,7 +913,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
         <button
           data-control="minus"
           aria-label={copy.zoomOut}
-          onClick={() => flow.zoomOut({ duration: duration() })}
+          onClick={() => changeZoom(-1)}
         >
           −
         </button>
@@ -604,7 +923,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
         <button
           data-control="plus"
           aria-label={copy.zoomIn}
-          onClick={() => flow.zoomIn({ duration: duration() })}
+          onClick={() => changeZoom(1)}
         >
           +
         </button>
@@ -619,10 +938,15 @@ export const App = forwardRef(function App({ onReady }, ref) {
       </div>
       <Inspector
         panel={panel}
-        interfaces={panel?.type === 'node' ? interfaces.get(panel.key) : null}
+        interfaces={panel?.key ? interfaces.get(panel.key) : null}
         fitNode={fitNode}
+        showOnMap={showOnMap}
         showRelation={showRelation}
-        close={() => setPanel(null)}
+        showRecord={showRecord}
+        overview={() => navigation.open({ type: 'project' })}
+        close={navigation.close}
+        navigation={navigation}
+        hidden={mobileMap && root.current?.clientWidth <= 780}
       />
     </div>
   );

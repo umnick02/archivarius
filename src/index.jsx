@@ -8,6 +8,10 @@ export {
   ArchitectureError,
   parseArchitecture,
   validateArchitecture,
+  validateProject,
+  analyzeProject,
+  projectContext,
+  applyProjectChanges,
 } from './core.mjs';
 
 const mounts = new WeakSet();
@@ -66,6 +70,10 @@ export function mountArchitectureMap(container, options) {
     focus(key) {
       if (!api) throw new ArchitectureError('MAP_NOT_READY');
       return api.focus(key);
+    },
+    inspect(key) {
+      if (!api) throw new ArchitectureError('MAP_NOT_READY');
+      api.inspect(key);
     },
     snapshot() {
       if (!api) throw new ArchitectureError('MAP_NOT_READY');

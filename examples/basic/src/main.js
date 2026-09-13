@@ -3,7 +3,7 @@ import 'archivarius/style.css';
 import './style.css';
 
 const map = mountArchitectureMap(document.querySelector('#map'), {
-  source: import.meta.env.BASE_URL + 'architecture.json',
+  source: import.meta.env.BASE_URL + 'project.json',
 });
 map.ready.catch(() => {});
 document.querySelector('#model-file').addEventListener('change', (event) => {

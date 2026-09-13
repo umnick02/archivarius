@@ -23,6 +23,14 @@ test('package retains external data resources and project-independent scripts', 
     if (/\.(?:m?js)$/.test(file)) scripts += await read('dist/src/' + file);
   for (const node of model.nodes) assert(!scripts.includes(node.title));
   assert(!scripts.includes(copy.interpretationNote));
+  const projectCopy = JSON.parse(await read('assets/project.ru.json'));
+  const project = JSON.parse(await read('examples/basic/public/project.json'));
+  assert(!scripts.includes(projectCopy.conservative));
+  assert(
+    !scripts.includes(
+      project.records.find((record) => record.type === 'requirement').rule,
+    ),
+  );
   assert(!scripts.includes('Strategy Lab'));
   assert(!scripts.includes('window.architectureMap'));
   assert(!scripts.includes("document.addEventListener('keydown'"));
@@ -54,4 +62,12 @@ test('locale resources cover the same UI and validation vocabulary', async () =>
     JSON.parse(await read('assets/contracts.json')).length,
     JSON.parse(await read('assets/contracts.en.json')).length,
   );
+  const projectRu = JSON.parse(await read('assets/project.ru.json'));
+  const projectEn = JSON.parse(await read('assets/project.en.json'));
+  for (const key of ['types', 'fields', 'values', 'reasonsByCode'])
+    assert.deepEqual(
+      Object.keys(projectRu[key]).sort(),
+      Object.keys(projectEn[key]).sort(),
+    );
+  assert.equal(projectRu.contracts.length, projectEn.contracts.length);
 });

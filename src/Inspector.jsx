@@ -1,17 +1,34 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import { relationCount, useArchitecture } from './context.jsx';
+import { renderDocumentation } from './document.mjs';
+import { ProjectInspector, ProjectConfirmation } from './ProjectInspector.jsx';
+import { ProjectOverview } from './ProjectOverview.jsx';
+import { groupInteractions } from './view.mjs';
+import { aggregateImplementation } from './implementation.mjs';
+import { ImplementationMark } from './ImplementationMark.jsx';
 
-function Implementation({ implemented, evidence, explain = true }) {
+function Implementation({ state, evidence, explain = true }) {
   const { copy } = useArchitecture();
+  const implemented = state === 'confirmed';
   return (
-    <div className="implementation" data-implemented={String(implemented)}>
+    <div
+      className="implementation"
+      data-implemented={String(implemented)}
+      data-implementation-state={state}
+    >
       <p>
         <b>
-          {copy.implementationLabel}:{' '}
-          {implemented ? copy.implementationYes : copy.implementationNo}
+          <ImplementationMark state={state} /> {copy.mapImplementation.label}:{' '}
+          {copy.mapImplementation[state]}
         </b>
       </p>
-      {explain && !implemented && <p>{copy.implementationUnconfirmed}</p>}
+      {explain && !implemented && (
+        <p>
+          {state === 'partial'
+            ? copy.implementationPartial
+            : copy.implementationUnconfirmed}
+        </p>
+      )}
       {implemented && evidence && (
         <details>
           <summary>{copy.implementationEvidence}</summary>
@@ -33,42 +50,100 @@ function Interactions({ edges, incoming, showRelation }) {
       <h3>
         {incoming ? copy.receives : copy.sends} <span>{edges.length}</span>
       </h3>
-      {edges.map((edge) => (
-        <details key={edge.key} data-interface={edge.key}>
+      {groupInteractions(edges, incoming).map((group) => (
+        <details
+          key={group.key}
+          data-interface-group={group.key}
+          data-disclosure={
+            group.relations.length === 1
+              ? `interface-${group.relations[0].key}`
+              : `interface-group-${group.key}`
+          }
+        >
           <summary>
-            <strong>{edge.label}</strong>
+            <strong>{group.label}</strong>
+            {group.relations.length > 1 && (
+              <small className="interface-count">
+                {' '}
+                · {relationCount(copy, group.relations.length)}
+              </small>
+            )}
             <span>
               {incoming ? copy.from : copy.to}{' '}
-              {graph.nodes.get(incoming ? edge.from : edge.to).title}
+              {graph.nodes.get(group.peer).title}
             </span>
           </summary>
-          <p>{edge.payload}</p>
-          <button
-            className="panel-button"
-            onClick={() =>
-              showRelation({
-                from: edge.from,
-                to: edge.to,
-                kind: edge.kind,
-                label: edge.label,
-                relations: [edge],
-              })
-            }
-          >
-            {copy.inspectInteraction}
-          </button>
+          {group.relations.map((edge) => (
+            <div
+              className="interface-member"
+              key={edge.key}
+              data-interface={edge.key}
+            >
+              <h4>
+                {incoming ? copy.target : copy.source}:{' '}
+                {graph.nodes.get(incoming ? edge.to : edge.from).title}
+              </h4>
+              <p>{edge.payload}</p>
+              <button
+                className="panel-button"
+                onClick={() =>
+                  showRelation({
+                    from: edge.from,
+                    to: edge.to,
+                    kind: edge.kind,
+                    label: edge.label,
+                    relations: [edge],
+                  })
+                }
+              >
+                {copy.inspectInteraction}
+              </button>
+            </div>
+          ))}
         </details>
       ))}
     </section>
   );
 }
 
-export function Inspector({ panel, interfaces, fitNode, showRelation, close }) {
-  const { graph, copy, contracts } = useArchitecture();
+export function Inspector({
+  panel,
+  interfaces,
+  fitNode,
+  showRelation,
+  showRecord,
+  overview,
+  close,
+  navigation,
+  hidden = false,
+  showOnMap,
+}) {
+  const {
+    model,
+    input,
+    project,
+    projectCopy,
+    graph,
+    copy,
+    contracts,
+    completion,
+  } = useArchitecture();
   const element = useRef(null);
-  useEffect(() => {
-    if (element.current) element.current.scrollTop = 0;
-  }, [panel]);
+  const previousEntry = useRef(null);
+  useLayoutEffect(() => {
+    const target = element.current;
+    if (!target || hidden) return;
+    const changed = previousEntry.current !== panel.entryId;
+    previousEntry.current = panel.entryId;
+    if (changed && panel.disclosures)
+      for (const detail of target.querySelectorAll('details[data-disclosure]'))
+        detail.open = panel.disclosures.includes(detail.dataset.disclosure);
+    (panel.focusSearch
+      ? target.querySelector('[data-control="record-search"]')
+      : target
+    )?.focus({ preventScroll: true });
+    if (changed) target.scrollTop = panel.scroll || 0;
+  }, [panel?.entryId, hidden]);
   if (!panel) return null;
   const node = panel.type === 'node' ? graph.nodes.get(panel.key) : null;
   return (
@@ -76,20 +151,105 @@ export function Inspector({ panel, interfaces, fitNode, showRelation, close }) {
       data-control="inspector"
       ref={element}
       aria-label={copy.inspectorLabel}
+      tabIndex={-1}
+      hidden={hidden}
     >
-      <button data-control="close" aria-label={copy.close} onClick={close}>
-        ×
-      </button>
-      {node && (
+      <nav className="inspector-navigation" aria-label={copy.inspectorLabel}>
+        {navigation.canBack && (
+          <button
+            className="quiet"
+            data-control="record-back"
+            onClick={navigation.back}
+          >
+            ← {projectCopy.navigationBack}
+          </button>
+        )}
+        {project &&
+          (panel.type !== 'project' ||
+            (panel.view && panel.view !== 'overview')) && (
+            <button
+              className="quiet"
+              data-control="project-back"
+              onClick={overview}
+            >
+              {projectCopy.back}
+            </button>
+          )}
+        <button data-control="close" aria-label={copy.close} onClick={close}>
+          ×
+        </button>
+      </nav>
+      {project && panel.type === 'project' && (
+        <ProjectOverview
+          panel={panel}
+          navigate={navigation.open}
+          update={navigation.replace}
+          showRecord={showRecord}
+          fitNode={showOnMap}
+        />
+      )}
+      {project && ['node', 'record'].includes(panel.type) && (
+        <ProjectInspector
+          key={panel.key}
+          recordKey={panel.key}
+          showRecord={showRecord}
+          fitNode={showOnMap}
+          interactions={
+            interfaces && (
+              <>
+                <Interactions
+                  edges={interfaces.incoming}
+                  incoming
+                  showRelation={showRelation}
+                />
+                <Interactions
+                  edges={interfaces.outgoing}
+                  showRelation={showRelation}
+                />
+                {!!interfaces.internal.length && (
+                  <details data-disclosure="internal">
+                    <summary>
+                      {copy.internalRelations} · {interfaces.internal.length}
+                    </summary>
+                    {interfaces.internal.map((edge) => (
+                      <button
+                        className="panel-button"
+                        key={edge.key}
+                        onClick={() =>
+                          showRelation({
+                            from: edge.from,
+                            to: edge.to,
+                            kind: edge.kind,
+                            label: edge.label,
+                            relations: [edge],
+                          })
+                        }
+                      >
+                        {graph.nodes.get(edge.from).title} →{' '}
+                        {graph.nodes.get(edge.to).title}: {edge.label}
+                      </button>
+                    ))}
+                  </details>
+                )}
+              </>
+            )
+          }
+        />
+      )}
+      {node && !project && (
         <>
           <div className="eyebrow" data-control="panel-kind">
             {copy.nodeKinds[node.kind]} · {copy.zones[node.zone]}
           </div>
           <h2>{node.title}</h2>
-          <Implementation
-            implemented={node.implemented}
-            evidence={node.implementationEvidence}
-          />
+          {project ? (
+            <ProjectConfirmation recordKey={node.key} showRecord={showRecord} />
+          ) : (
+            <Implementation
+              state={completion.nodes[node.key].state}
+              evidence={node.implementationEvidence}
+            />
+          )}
           <p>{node.summary}</p>
           {node.example && (
             <details className="node-example">
@@ -163,11 +323,15 @@ export function Inspector({ panel, interfaces, fitNode, showRelation, close }) {
             {graph.nodes.get(panel.bundle.from).title} →{' '}
             {graph.nodes.get(panel.bundle.to).title}
           </h2>
-          <Implementation
-            implemented={panel.bundle.relations.every(
-              (edge) => edge.implemented,
-            )}
-          />
+          {!project && (
+            <Implementation
+              state={aggregateImplementation(
+                panel.bundle.relations.map(
+                  (edge) => completion.relations[edge.key].state,
+                ),
+              )}
+            />
+          )}
           <p>
             {panel.bundle.relations.length > 1
               ? copy.aggregateNote
@@ -177,16 +341,31 @@ export function Inspector({ panel, interfaces, fitNode, showRelation, close }) {
             {panel.bundle.relations.map((edge) => (
               <section key={edge.key}>
                 <h3>{edge.label}</h3>
-                <Implementation
-                  implemented={edge.implemented}
-                  evidence={edge.implementationEvidence}
-                  explain={false}
-                />
+                {project ? (
+                  <ProjectConfirmation
+                    recordKey={edge.key}
+                    showRecord={showRecord}
+                  />
+                ) : (
+                  <Implementation
+                    state={completion.relations[edge.key].state}
+                    evidence={edge.implementationEvidence}
+                    explain={false}
+                  />
+                )}
                 <p className="payload">
                   <b>{copy.payload}: </b>
                   {edge.payload}
                 </p>
                 <p>{edge.meaning}</p>
+                {project && (
+                  <button
+                    className="panel-button"
+                    onClick={() => showRecord(edge.key)}
+                  >
+                    {projectCopy.open}
+                  </button>
+                )}
                 {[
                   [copy.source, edge.from],
                   [copy.target, edge.to],
@@ -211,12 +390,14 @@ export function Inspector({ panel, interfaces, fitNode, showRelation, close }) {
           <h2>{copy.rulesTitle}</h2>
           <p>{copy.rulesIntro}</p>
           <div className="contract-list">
-            {contracts.map(([title, text]) => (
-              <details key={title}>
-                <summary>{title}</summary>
-                <p>{text}</p>
-              </details>
-            ))}
+            {(project ? projectCopy.contracts : contracts).map(
+              ([title, text]) => (
+                <details key={title}>
+                  <summary>{title}</summary>
+                  <p>{text}</p>
+                </details>
+              ),
+            )}
           </div>
           <p className="end">{copy.incompleteNote}</p>
         </>
@@ -225,6 +406,35 @@ export function Inspector({ panel, interfaces, fitNode, showRelation, close }) {
         <>
           <div className="eyebrow">{copy.aboutEyebrow}</div>
           <h2>{copy.aboutButton}</h2>
+          <button
+            className="panel-button"
+            data-control="download-docs"
+            onClick={() => {
+              const url = URL.createObjectURL(
+                new Blob(
+                  [
+                    renderDocumentation(input || model, {
+                      ...copy,
+                      project: projectCopy,
+                    }),
+                  ],
+                  {
+                    type: 'text/markdown;charset=utf-8',
+                  },
+                ),
+              );
+              const anchor = document.createElement('a');
+              anchor.href = url;
+              anchor.download = 'architecture.md';
+              document.body.append(anchor);
+              anchor.click();
+              anchor.remove();
+              setTimeout(() => URL.revokeObjectURL(url), 1000);
+            }}
+          >
+            {copy.downloadDocumentation}
+          </button>
+          <p>{copy.documentationHint}</p>
           <ul>
             {copy.aboutSteps.map((text) => (
               <li key={text}>{text}</li>

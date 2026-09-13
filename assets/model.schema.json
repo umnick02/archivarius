@@ -1,122 +1,888 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/umnick02/archivarius/model.schema.json",
+  "title": "ProjectModel",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "scope", "entry", "nodes", "relations"],
+  "required": [
+    "version",
+    "title",
+    "root",
+    "entry",
+    "records",
+    "bindings",
+    "history",
+    "snapshots"
+  ],
   "properties": {
-    "$schema": { "$ref": "#/$defs/text" },
-    "version": { "const": 3 },
-    "scope": { "const": "target" },
-    "title": { "$ref": "#/$defs/text" },
-    "entry": { "$ref": "#/$defs/key" },
-    "nodes": {
-      "type": "array",
-      "minItems": 1,
-      "items": { "$ref": "#/$defs/node" }
+    "$schema": {
+      "type": "string"
     },
-    "relations": { "type": "array", "items": { "$ref": "#/$defs/relation" } }
-  },
-  "$defs": {
-    "text": { "type": "string", "pattern": "\\S" },
-    "key": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
-    "confirmation": {
-      "if": {
-        "properties": { "implemented": { "const": true } },
-        "required": ["implemented"]
-      },
-      "then": { "required": ["implementationEvidence"] }
+    "version": {
+      "const": 4
     },
-    "rule": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["title", "text"],
-      "properties": {
-        "title": { "$ref": "#/$defs/text" },
-        "text": { "$ref": "#/$defs/text" }
-      }
+    "title": {
+      "$ref": "#/$defs/text"
     },
-    "node": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "key",
-        "title",
-        "summary",
-        "kind",
-        "zone",
-        "rules",
-        "detail",
-        "implemented"
-      ],
-      "properties": {
-        "key": { "$ref": "#/$defs/key" },
-        "title": { "$ref": "#/$defs/text" },
-        "summary": { "$ref": "#/$defs/text" },
-        "kind": { "enum": ["subsystem", "component", "store", "external"] },
-        "zone": {
-          "enum": [
-            "presentation",
-            "application",
-            "infrastructure",
-            "pure",
-            "external"
-          ]
-        },
-        "rules": { "type": "array", "items": { "$ref": "#/$defs/rule" } },
-        "example": { "$ref": "#/$defs/text" },
-        "detail": { "enum": ["mapped", "boundary"] },
-        "detailNote": { "$ref": "#/$defs/text" },
-        "children": {
-          "type": "array",
-          "minItems": 1,
-          "items": { "$ref": "#/$defs/node" }
-        },
-        "implemented": { "type": "boolean" },
-        "implementationEvidence": { "$ref": "#/$defs/text" }
-      },
-      "allOf": [
-        { "$ref": "#/$defs/confirmation" },
+    "root": {
+      "$ref": "#/$defs/key"
+    },
+    "entry": {
+      "anyOf": [
         {
-          "if": { "properties": { "detail": { "const": "mapped" } } },
-          "then": {
-            "properties": { "kind": { "const": "subsystem" } },
-            "required": ["children"]
-          },
-          "else": {
-            "required": ["detailNote"],
-            "not": { "required": ["children"] }
-          }
+          "$ref": "#/$defs/key"
+        },
+        {
+          "type": "null"
         }
       ]
     },
-    "relation": {
+    "records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/record"
+      }
+    },
+    "bindings": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/key"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/binding"
+      }
+    },
+    "history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["digest", "record"],
+        "properties": {
+          "digest": {
+            "$ref": "#/$defs/digest"
+          },
+          "record": {
+            "$ref": "#/$defs/record"
+          }
+        }
+      }
+    },
+    "snapshots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "contract",
+          "realization",
+          "records",
+          "bindings",
+          "title",
+          "root",
+          "entry"
+        ],
+        "properties": {
+          "contract": {
+            "$ref": "#/$defs/digest"
+          },
+          "realization": {
+            "$ref": "#/$defs/digest"
+          },
+          "records": {
+            "type": "object",
+            "propertyNames": {
+              "$ref": "#/$defs/key"
+            },
+            "additionalProperties": {
+              "$ref": "#/$defs/digest"
+            }
+          },
+          "bindings": {
+            "type": "object",
+            "propertyNames": {
+              "$ref": "#/$defs/key"
+            },
+            "additionalProperties": {
+              "$ref": "#/$defs/binding"
+            }
+          },
+          "title": {
+            "$ref": "#/$defs/text"
+          },
+          "root": {
+            "$ref": "#/$defs/key"
+          },
+          "entry": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/key"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "key": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "texts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/text"
+      }
+    },
+    "keys": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/key"
+      }
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "basis": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["contract"],
+      "properties": {
+        "contract": {
+          "$ref": "#/$defs/digest"
+        }
+      }
+    },
+    "binding": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "key",
-        "from",
-        "to",
-        "kind",
-        "channel",
-        "label",
-        "payload",
-        "meaning",
-        "implemented"
-      ],
+      "required": ["path", "digest"],
       "properties": {
-        "key": { "$ref": "#/$defs/key" },
-        "from": { "$ref": "#/$defs/key" },
-        "to": { "$ref": "#/$defs/key" },
-        "kind": { "enum": ["data", "command", "state"] },
-        "channel": { "$ref": "#/$defs/key" },
-        "label": { "$ref": "#/$defs/text" },
-        "payload": { "$ref": "#/$defs/text" },
-        "meaning": { "$ref": "#/$defs/text" },
-        "implemented": { "type": "boolean" },
-        "implementationEvidence": { "$ref": "#/$defs/text" }
+        "path": {
+          "$ref": "#/$defs/text"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        }
+      }
+    },
+    "record": {
+      "title": "ProjectRecord",
+      "type": "object",
+      "required": ["key", "type", "title"],
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/key"
+        },
+        "type": {
+          "type": "string"
+        },
+        "title": {
+          "$ref": "#/$defs/text"
+        },
+        "label": {
+          "$ref": "#/$defs/text"
+        }
       },
-      "allOf": [{ "$ref": "#/$defs/confirmation" }]
+      "unevaluatedProperties": false,
+      "oneOf": [
+        {
+          "properties": {
+            "type": {
+              "const": "scope"
+            },
+            "purpose": {
+              "$ref": "#/$defs/text"
+            },
+            "parent": {
+              "$ref": "#/$defs/key",
+              "x-targets": ["scope"]
+            }
+          },
+          "required": ["purpose", "type"]
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "source"
+            },
+            "scope": {
+              "$ref": "#/$defs/key",
+              "x-targets": ["scope"]
+            },
+            "origin": {
+              "enum": ["owner", "observation", "assumption", "question"]
+            },
+            "statement": {
+              "$ref": "#/$defs/text"
+            }
+          },
+          "required": ["scope", "origin", "statement", "type"]
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "requirement"
+            },
+            "scope": {
+              "$ref": "#/$defs/key",
+              "x-targets": ["scope"]
+            },
+            "rule": {
+              "$ref": "#/$defs/text"
+            },
+            "when": {
+              "$ref": "#/$defs/texts"
+            },
+            "exceptions": {
+              "$ref": "#/$defs/texts"
+            },
+            "parameters": {
+              "type": "object",
+              "additionalProperties": {
+                "type": ["string", "number", "boolean"]
+              }
+            },
+            "appliesTo": {
+              "$ref": "#/$defs/keys",
+              "minItems": 1,
+              "x-targets": ["scope", "component", "interaction", "interface"]
+            },
+            "sources": {
+              "$ref": "#/$defs/keys",
+              "minItems": 1,
+              "x-targets": ["source", "decision"]
+            },
+            "category": {
+              "enum": ["product", "exclusion", "architecture", "experience"]
+            },
+            "companions": {
+              "$ref": "#/$defs/keys",
+              "x-targets": ["requirement"]
+            },
+            "guards": {
+              "$ref": "#/$defs/keys",
+              "x-targets": ["requirement"]
+            }
+          },
+          "required": [
+            "scope",
+            "rule",
+            "when",
+            "exceptions",
+            "appliesTo",
+            "sources",
+            "type"
+          ]
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "criterion"
+            },
+            "scope": {
+              "$ref": "#/$defs/key",
+              "x-targets": ["scope"]
+            },
+            "requirement": {
+              "$ref": "#/$defs/key",
+              "x-targets": ["requirement"]
+            },
+            "assertion": {
+              "$ref": "#/$defs/text"
+            }
+          },
+          "required": ["scope", "requirement", "assertion", "type"]
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "decision"
+            },
+            "scope": {
+              "$ref": "#/$defs/key",
+              "x-targets": ["scope"]
+            },
+            "topic": {
+              "$ref": "#/$defs/key"
+            },
+            "choice": {
+              "$ref": "#/$defs/text"
+            },
+            "alternatives": {
+              "$ref": "#/$defs/texts"
+            },
+            "because": {
+              "$ref": "#/$defs/text"
+            },
+            "consequences": {
+              "$ref": "#/$defs/texts"
+            },
+            "affects": {
+              "$ref": "#/$defs/keys",
+              "minItems": 1,
+              "x-targets": ["scope", "component", "interface", "requirement"]
+            },
+            "uses": {
+              "$ref": "#/$defs/keys",
+              "minItems": 1,
+              "x-targets": ["source", "requirement", "criterion", "decision"]
+            },
+            "basis": {
+              "$ref": "#/$defs/basis"
+            },
+            "reconsideredBecause": {
+              "$ref": "#/$defs/text"
+            },
+            "supersedes": {
+              "$ref": "#/$defs/key",
+              "x-targets": ["decision"],
+              "x-history": true
+            }
+          },
+          "required": [
+            "scope",
+            "topic",
+            "choice",
+            "alternatives",
+            "because",
+            "consequences",
+            "affects",
+            "uses",
+            "basis",
+            "type"
+          ]
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "component"
+            },
+            "scope": {
+              "$ref": "#/$defs/key",
+              "x-targets": ["scope"]
+            },
+            "parent": {
+              "$ref": "#/$defs/key",
+              "x-targets": ["component"]
+            },
+            "kind": {
+              "enum": ["subsystem", "component", "store", "external"]
+            },
+            "zone": {
+              "enum": [
+                "presentation",
+                "application",
+                "infrastructure",
+                "pure",
+                "external"
+              ]
+            },
+            "summary": {
+              "$ref": "#/$defs/text"
+            },
+            "boundary": {
+              "$ref": "#/$defs/text"
+            }
+          },
+          "required": ["scope", "kind", "zone", "summary", "type"]
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "interface"
+            },
+            "scope": {
+              "$ref": "#/$defs/key",
+              "x-targets": ["scope"]
+            },
+            "payload": {
+              "$ref": "#/$defs/text"
+            },
+            "meaning": {
+              "$ref": "#/$defs/text"
+            },
+            "constraints": {
+              "$ref": "#/$defs/keys",
+              "x-targets": ["requirement"]
+            }
+          },
+          "required": ["scope", "payload", "meaning", "constraints", "type"]
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "interaction"
+            },
+            "scope": {
+              "$ref": "#/$defs/key",
+              "x-targets": ["scope"]
+            },
+            "from": {
+              "$ref": "#/$defs/key",
+              "x-targets": ["component"]
+            },
+            "to": {
+              "$ref": "#/$defs/key",
+              "x-targets": ["component"]
+            },
+            "kind": {
+              "enum": ["data", "command", "state"]
+            },
+            "channel": {
+              "$ref": "#/$defs/key"
+            },
+            "contract": {
+              "$ref": "#/$defs/key",
+              "x-targets": ["interface"]
+            }
+          },
+          "required": [
+            "scope",
+            "from",
+            "to",
+            "kind",
+            "channel",
+            "contract",
+            "type"
+          ]
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "scenario"
+            },
+            "scope": {
+              "$ref": "#/$defs/key",
+              "x-targets": ["scope"]
+            },
+            "actor": {
+              "$ref": "#/$defs/text"
+            },
+            "given": {
+              "$ref": "#/$defs/texts"
+            },
+            "steps": {
+              "$ref": "#/$defs/texts",
+              "minItems": 1
+            },
+            "uses": {
+              "$ref": "#/$defs/keys",
+              "minItems": 1,
+              "x-targets": ["requirement", "interface"]
+            },
+            "then": {
+              "$ref": "#/$defs/keys",
+              "minItems": 1,
+              "x-targets": ["criterion"]
+            },
+            "failures": {
+              "$ref": "#/$defs/texts"
+            }
+          },
+          "required": [
+            "scope",
+            "actor",
+            "given",
+            "steps",
+            "uses",
+            "then",
+            "failures",
+            "type"
+          ]
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "task"
+            },
+            "scope": {
+              "$ref": "#/$defs/key",
+              "x-targets": ["scope"]
+            },
+            "change": {
+              "$ref": "#/$defs/text"
+            },
+            "affects": {
+              "$ref": "#/$defs/keys",
+              "minItems": 1,
+              "x-targets": ["component", "interface", "interaction"]
+            },
+            "covers": {
+              "$ref": "#/$defs/keys",
+              "minItems": 1,
+              "x-targets": ["criterion"]
+            },
+            "needs": {
+              "$ref": "#/$defs/keys",
+              "x-targets": ["task"]
+            },
+            "uses": {
+              "$ref": "#/$defs/keys",
+              "x-targets": ["source", "requirement", "decision", "scenario"]
+            },
+            "basis": {
+              "$ref": "#/$defs/basis"
+            },
+            "reconsideredBecause": {
+              "$ref": "#/$defs/text"
+            }
+          },
+          "required": [
+            "scope",
+            "change",
+            "affects",
+            "covers",
+            "needs",
+            "uses",
+            "basis",
+            "type"
+          ]
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "check"
+            },
+            "scope": {
+              "$ref": "#/$defs/key",
+              "x-targets": ["scope"]
+            },
+            "method": {
+              "$ref": "#/$defs/text"
+            },
+            "covers": {
+              "$ref": "#/$defs/keys",
+              "minItems": 1,
+              "x-targets": ["criterion"]
+            },
+            "scenarios": {
+              "$ref": "#/$defs/keys",
+              "x-targets": ["scenario"]
+            },
+            "targets": {
+              "$ref": "#/$defs/keys",
+              "minItems": 1,
+              "x-targets": ["component", "interaction", "scope", "interface"]
+            },
+            "level": {
+              "enum": ["unit", "integration"]
+            },
+            "basis": {
+              "$ref": "#/$defs/basis"
+            },
+            "reconsideredBecause": {
+              "$ref": "#/$defs/text"
+            },
+            "command": {
+              "$ref": "#/$defs/texts",
+              "minItems": 1
+            }
+          },
+          "required": [
+            "scope",
+            "method",
+            "covers",
+            "scenarios",
+            "targets",
+            "level",
+            "basis",
+            "type"
+          ]
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "result"
+            },
+            "scope": {
+              "$ref": "#/$defs/key",
+              "x-targets": ["scope"]
+            },
+            "check": {
+              "$ref": "#/$defs/key",
+              "x-targets": ["check"],
+              "x-history": true
+            },
+            "outcome": {
+              "enum": ["pass", "fail"]
+            },
+            "basis": {
+              "$ref": "#/$defs/basis"
+            },
+            "realization": {
+              "$ref": "#/$defs/digest"
+            },
+            "evidence": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/binding"
+              }
+            },
+            "resolves": {
+              "$ref": "#/$defs/keys",
+              "x-targets": ["result"],
+              "x-history": true
+            },
+            "resolution": {
+              "$ref": "#/$defs/text"
+            }
+          },
+          "required": [
+            "scope",
+            "check",
+            "outcome",
+            "basis",
+            "realization",
+            "evidence",
+            "resolves",
+            "type"
+          ]
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "document"
+            },
+            "scope": {
+              "$ref": "#/$defs/key",
+              "x-targets": ["scope"]
+            },
+            "path": {
+              "type": "string",
+              "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?(?:/|$))[a-zA-Z0-9_./-]+\\.(?:md|json)$"
+            },
+            "stage": {
+              "enum": [
+                "discovery",
+                "requirements",
+                "architecture",
+                "implementation"
+              ]
+            },
+            "format": {
+              "enum": ["markdown", "json"]
+            },
+            "blocks": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/block"
+              }
+            },
+            "data": {
+              "type": "object"
+            },
+            "subjects": {
+              "$ref": "#/$defs/keys",
+              "x-targets": [
+                "scope",
+                "source",
+                "component",
+                "interface",
+                "interaction",
+                "requirement",
+                "criterion",
+                "decision",
+                "scenario",
+                "task",
+                "check",
+                "result"
+              ]
+            }
+          },
+          "required": ["type", "scope", "path", "stage", "format"],
+          "oneOf": [
+            {
+              "properties": {
+                "format": {
+                  "const": "markdown"
+                }
+              },
+              "required": ["blocks"],
+              "not": {
+                "required": ["data"]
+              }
+            },
+            {
+              "properties": {
+                "format": {
+                  "const": "json"
+                }
+              },
+              "required": ["data"],
+              "not": {
+                "required": ["blocks"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "inline": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "record": {
+              "$ref": "#/$defs/key"
+            },
+            "field": {
+              "type": "string",
+              "pattern": "^[a-z][a-zA-Z0-9]*$"
+            },
+            "index": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": ["record", "field"]
+        }
+      ]
+    },
+    "line": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/inline"
+      }
+    },
+    "block": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "heading"
+            },
+            "level": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 6
+            },
+            "content": {
+              "$ref": "#/$defs/line"
+            }
+          },
+          "required": ["kind", "level", "content"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "enum": ["paragraph", "quote", "comment"]
+            },
+            "lines": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/line"
+              }
+            }
+          },
+          "required": ["kind", "lines"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "list"
+            },
+            "ordered": {
+              "type": "boolean"
+            },
+            "start": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/line"
+                }
+              }
+            }
+          },
+          "required": ["kind", "ordered", "items"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "table"
+            },
+            "header": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/line"
+              }
+            },
+            "rows": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/line"
+                }
+              }
+            }
+          },
+          "required": ["kind", "header", "rows"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "code"
+            },
+            "language": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]*$"
+            },
+            "lines": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": ["kind", "language", "lines"]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "anchor"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*$"
+            }
+          },
+          "required": ["kind", "id"]
+        }
+      ]
     }
   }
 }
