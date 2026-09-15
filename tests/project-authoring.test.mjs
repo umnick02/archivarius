@@ -5,6 +5,9 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import {
   projectContext,
+  validateProject,
+  dependencyDigest,
+  digest,
   projectRead,
   applyProjectChanges,
   analyzeProject,
@@ -212,4 +215,32 @@ test('scoped check reviews never make results portable to a different full contr
   assert.equal(analysis.freshness['export-check'].current, true);
   assert.equal(analysis.freshness['recorded-run'].current, false);
   assert.equal(analysis.completion['export-check'].implemented, false);
+});
+
+test('scoped bases must match the preserved source snapshot, including after unrelated edits', () => {
+  const m = review(structuredClone(example));
+  const missing = structuredClone(m);
+  get(missing, 'implement-export').basis.contract = 'f'.repeat(64);
+  assert(
+    validateProject(missing).diagnostics.some(
+      (d) => d.code === 'BASIS_SNAPSHOT_MISSING',
+    ),
+  );
+  const stale = edit(m, 'row-limit', 'rule');
+  assert.equal(validateProject(stale).valid, true);
+  const forged = structuredClone(stale);
+  const oldTask = get(forged, 'implement-export');
+  forged.history.push({
+    digest: digest(oldTask),
+    record: structuredClone(oldTask),
+  });
+  get(forged, 'implement-export').basis.dependencies = dependencyDigest(
+    forged,
+    'implement-export',
+  );
+  assert(
+    validateProject(forged).diagnostics.some(
+      (d) => d.code === 'BASIS_DEPENDENCIES_MISMATCH',
+    ),
+  );
 });

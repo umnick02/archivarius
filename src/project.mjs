@@ -66,12 +66,16 @@ export function applicableRequirements(model, key) {
   if (!item) return [];
   const targets = descendants(records, key);
   let scope = item.type === 'scope' ? item.key : item.scope;
-  while (scope) {
+  const seenScopes = new Set();
+  while (scope && !seenScopes.has(scope)) {
+    seenScopes.add(scope);
     targets.add(scope);
     scope = records.get(scope)?.parent;
   }
   let parent = item.parent;
-  while (parent) {
+  const seenParents = new Set();
+  while (parent && !seenParents.has(parent)) {
+    seenParents.add(parent);
     targets.add(parent);
     parent = records.get(parent)?.parent;
   }
@@ -112,7 +116,9 @@ function reviewSelection(model, keys) {
     if (['task', 'check', 'decision'].includes(record.type)) {
       // Explicit covers/uses define local scope; ancestor-scope rules always apply.
       let scope = record.scope;
-      while (scope) {
+      const seenScopes = new Set();
+      while (scope && !seenScopes.has(scope)) {
+        seenScopes.add(scope);
         for (const other of model.records)
           if (other.type === 'requirement' && other.appliesTo.includes(scope))
             queue.push([other.key, true]);
@@ -263,6 +269,7 @@ export function validateProject(model) {
     ...archived,
     ...model.records.map((r) => [digest(r), r]),
   ]);
+  const snapshots = new Map();
   for (const [i, snapshot] of model.snapshots.entries()) {
     const selected = Object.entries(snapshot.records).map(([key, revision]) => {
       const record = revisions.get(revision);
@@ -278,6 +285,7 @@ export function validateProject(model) {
         snapshot.realization !== realizationDigest(projected)
       )
         issue('SNAPSHOT_DIGEST', '', '/snapshots/' + i);
+      else snapshots.set(snapshot.contract, projected);
     }
   }
   validateDocuments(model, issue);
@@ -383,6 +391,23 @@ export function validateProject(model) {
   if (!diagnostics.length && hasArchitecture) {
     const graph = ArchitectureGraph.validate(projectArchitecture(model));
     diagnostics.push(...graph.diagnostics);
+  }
+  if (!diagnostics.length) {
+    snapshots.set(contractDigest(model), model);
+    for (const record of model.records) {
+      if (record.type === 'result' || !record.basis?.dependencies) continue;
+      const source = snapshots.get(record.basis.contract);
+      if (!source || !source.records.some((r) => r.key === record.key)) {
+        issue('BASIS_SNAPSHOT_MISSING', record.key);
+        continue;
+      }
+      try {
+        if (dependencyDigest(source, record.key) !== record.basis.dependencies)
+          issue('BASIS_DEPENDENCIES_MISMATCH', record.key);
+      } catch {
+        issue('BASIS_SOURCE_INVALID', record.key);
+      }
+    }
   }
   return finish();
 }
@@ -739,6 +764,10 @@ export function analyzeProject(model, { verifiedResults = [] } = {}) {
 
 export function projectContext(model, keys) {
   assertProject(model);
+  return collectProjectContext(model, keys);
+}
+
+function collectProjectContext(model, keys) {
   const records = index(model),
     selected = new Set(),
     expanded = new Set(),
@@ -873,10 +902,11 @@ export function applyProjectChanges(model, context, change) {
       records: Object.values(saved.records).map((hash) => revisions.get(hash)),
     };
   }
-  const expected = projectContext(basis, context.keys);
+  if (basis !== model) assertProject(basis);
+  const expected = collectProjectContext(basis, context.keys);
   if (digest(expected) !== digest(context))
     throw new ArchitectureError('CONTEXT_CHANGED');
-  const current = projectContext(model, context.keys);
+  const current = collectProjectContext(model, context.keys);
   if (
     digest(current.reads) !== digest(context.reads) ||
     digest(current.documents) !== digest(context.documents) ||
@@ -904,7 +934,7 @@ export function applyProjectChanges(model, context, change) {
     const old = records.get(record.key);
     if (
       old &&
-      Object.keys(projectContext(model, [old.key]).reads).some(
+      Object.keys(collectProjectContext(model, [old.key]).reads).some(
         (key) => !context.reads[key],
       )
     )
@@ -938,7 +968,7 @@ export function applyProjectChanges(model, context, change) {
       !('basis' in record) ||
       record.type === 'result' ||
       !context.reads[key] ||
-      Object.keys(projectContext(model, [key]).reads).some(
+      Object.keys(collectProjectContext(model, [key]).reads).some(
         (read) => !context.reads[read],
       )
     )
