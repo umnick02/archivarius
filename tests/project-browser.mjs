@@ -23,6 +23,40 @@ const evidenceDirectory = new URL(
   import.meta.url,
 );
 const click = async (selector) => {
+  // Follow the same disclosure path as a reader before reaching a detailed
+  // field. Never dispatch clicks into hidden content.
+  for (;;) {
+    const point = await b.evaluate((selector) => {
+      const element = document.querySelector(selector);
+      if (!element) throw new Error('CONTROL_MISSING: ' + selector);
+      const closed = [];
+      for (
+        let parent = element.parentElement;
+        parent;
+        parent = parent.parentElement
+      )
+        if (
+          parent.tagName === 'DETAILS' &&
+          !parent.open &&
+          !parent.querySelector(':scope > summary').contains(element)
+        )
+          closed.push(parent);
+      const summary = closed.at(-1)?.querySelector(':scope > summary');
+      if (!summary) return null;
+      summary.scrollIntoView({ block: 'center', inline: 'nearest' });
+      const r = summary.getBoundingClientRect();
+      return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+    }, selector);
+    if (!point) break;
+    for (const type of ['mousePressed', 'mouseReleased'])
+      await b.call('Input.dispatchMouseEvent', {
+        type,
+        ...point,
+        button: 'left',
+        clickCount: 1,
+      });
+    await pause(80);
+  }
   const point = await b.evaluate((selector) => {
     const element = document.querySelector(selector);
     element.scrollIntoView({ block: 'nearest', inline: 'nearest' });
@@ -61,6 +95,35 @@ try {
       new URL('./project.json', document.baseURI),
     );
   });
+  await click('#first [data-control=project]');
+  assert.equal(
+    await b.evaluate(
+      () => document.querySelectorAll('#first [data-relation]').length,
+    ),
+    0,
+  );
+  assert.equal(
+    await b.evaluate(
+      () =>
+        document.querySelector('#first [data-disclosure=overview-details]')
+          .open,
+    ),
+    false,
+  );
+  assert.equal(
+    await b.evaluate(
+      () =>
+        document.querySelector('#first [data-brief-state]').dataset.briefState,
+    ),
+    'unknown',
+  );
+  await click('#first [data-control=connection-scope]');
+  assert(
+    await b.evaluate(
+      () => document.querySelectorAll('#first [data-relation]').length > 0,
+    ),
+  );
+  await click('#first [data-control=connection-scope]');
   await click('#first [data-control=project]');
   assert.equal(
     await b.evaluate(
@@ -127,7 +190,7 @@ try {
             .top,
       )
       .concat(
-        panel.querySelector('.implementation').getBoundingClientRect().top,
+        panel.querySelector('.summary-status').getBoundingClientRect().top,
       );
   });
   assert(order[0] < order[1] && order[1] < order[2]);
@@ -288,6 +351,7 @@ try {
     }),
   );
   await b.capture('project-overview-desktop');
+  await click('#first [data-control=project-search]');
   await click('#first [data-control=record-search]');
   await b.call('Input.insertText', { text: '1000' });
   await pause(100);
@@ -356,10 +420,13 @@ try {
   );
   await b.evaluate(() => window.consumer.first.focus('writer'));
   const focused = await b.evaluate(() => window.consumer.first.snapshot());
-  assert(
-    await b.evaluate(
-      () => document.querySelectorAll('#first [data-muted=true]').length > 0,
+  assert.deepEqual(
+    await b.evaluate(() =>
+      [...document.querySelectorAll('#first [data-relation]')]
+        .map((edge) => edge.dataset.relation.split('--')[0])
+        .sort(),
     ),
+    ['accepted', 'completed'],
   );
   assert(
     await b.evaluate(
@@ -368,6 +435,11 @@ try {
   );
   await click('#first [data-control=clear-focus]');
   const cleared = await b.evaluate(() => window.consumer.first.snapshot());
+  assert(
+    (await b.evaluate(
+      () => document.querySelectorAll('#first [data-relation]').length,
+    )) > 2,
+  );
   assert.deepEqual(focused.nodeGeometry, cleared.nodeGeometry);
   assert.deepEqual(focused.relations, cleared.relations);
   assert.deepEqual(b.errors, []);

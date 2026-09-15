@@ -1,18 +1,18 @@
 import { applicableRequirements, recordReferences } from './project.mjs';
 
 export const primaryFields = {
-  document: ['stage'],
+  document: [],
   scope: ['purpose'],
   source: ['statement', 'origin'],
   component: ['summary'],
   requirement: ['rule', 'parameters', 'when', 'exceptions'],
-  criterion: ['assertion', 'requirement'],
-  decision: ['choice', 'because', 'consequences'],
-  interface: ['payload', 'meaning', 'constraints'],
-  interaction: ['from', 'to', 'contract'],
-  scenario: ['actor', 'given', 'steps', 'then', 'failures'],
-  task: ['change', 'affects', 'covers', 'needs'],
-  check: ['method', 'covers', 'scenarios', 'targets'],
+  criterion: ['assertion'],
+  decision: ['choice', 'because'],
+  interface: ['meaning', 'payload'],
+  interaction: ['from', 'to'],
+  scenario: ['actor', 'given'],
+  task: [],
+  check: ['method'],
   result: ['outcome', 'check', 'resolution', 'resolves'],
 };
 export const technicalFields = new Set([
@@ -33,11 +33,82 @@ export const currentRecord = (project, key) =>
   project.history.findLast((h) => h.record.key === key)?.record;
 
 export function recordSummary(record) {
+  if (record.type === 'task') return record.title;
   return (
     (primaryFields[record.type] || [])
       .map((field) => record[field])
       .find((value) => typeof value === 'string') || ''
   );
+}
+
+// A concise reading projection. Evidence and readiness still come exclusively
+// from the analyzer; a planned task is not a claim that execution may begin.
+export function briefConfirmation(analysis, key) {
+  const item = analysis.completion[key];
+  if (item.reasons.some((r) => r.code === 'CHECK_FAILED')) return 'failed';
+  if (item.implemented) return 'confirmed';
+  if (item.state === 'partial') return 'partial';
+  if (
+    item.reasons.some((r) =>
+      ['BASIS_CHANGED', 'REALIZATION_CHANGED', 'DEPENDENCY_CHANGED'].includes(
+        r.code,
+      ),
+    )
+  )
+    return 'stale';
+  return 'unknown';
+}
+
+export function plannedTasks(project, analysis, key) {
+  const records = new Map(project.records.map((r) => [r.key, r]));
+  const item = records.get(key);
+  if (!item || !['scope', 'component'].includes(item.type)) return [];
+  const within = (child, parent) => {
+    while (child) {
+      if (child === parent) return true;
+      child = records.get(child)?.parent;
+    }
+    return false;
+  };
+  const related = (target) => {
+    const r = records.get(target);
+    if (r?.type === 'interaction') return related(r.from) || related(r.to);
+    if (r?.type === 'interface')
+      return project.records.some(
+        (edge) =>
+          edge.type === 'interaction' &&
+          edge.contract === target &&
+          related(edge.key),
+      );
+    return within(target, key) || within(key, target);
+  };
+  const tasks = project.records.filter(
+    (r) =>
+      r.type === 'task' &&
+      !analysis.completion[r.key].implemented &&
+      (item.type === 'scope' ? within(r.scope, key) : r.affects.some(related)),
+  );
+  // Labels such as "Stage 2" preserve the readable plan sequence. This is
+  // presentation order, not an inferred dependency or executable task queue.
+  tasks.sort((a, b) =>
+    (a.label || a.title).localeCompare(b.label || b.title, undefined, {
+      numeric: true,
+    }),
+  );
+  const ordered = [],
+    seen = new Set();
+  const visit = (task) => {
+    if (seen.has(task.key)) return;
+    seen.add(task.key);
+    for (const key of task.needs) {
+      const prerequisite = records.get(key);
+      if (prerequisite && !analysis.completion[key].implemented)
+        visit(prerequisite);
+    }
+    ordered.push(task);
+  };
+  tasks.forEach(visit);
+  return ordered;
 }
 
 export function searchEntries(project, record, copy) {

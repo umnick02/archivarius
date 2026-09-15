@@ -2,7 +2,12 @@ import fs from 'node:fs/promises';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { analyzeProject } from '../src/project.mjs';
-import { confirmationGroups, searchRecord } from '../src/project-view.mjs';
+import {
+  confirmationGroups,
+  searchRecord,
+  briefConfirmation,
+  plannedTasks,
+} from '../src/project-view.mjs';
 
 const project = JSON.parse(
   await fs.readFile(
@@ -92,4 +97,73 @@ test('historical failures remain navigable with their archived scope', () => {
     { code: 'CHECK_FAILED', key: 'old-run' },
   ]);
   assert(group.areas.get(project.root).has('old-run'));
+});
+
+test('brief readiness distinguishes absent evidence, stale evidence and actual failure', () => {
+  const analysis = analyzeProject(project);
+  assert.equal(briefConfirmation(analysis, project.root), 'unknown');
+  const withReason = (code) => ({
+    completion: {
+      item: {
+        implemented: false,
+        state: 'unconfirmed',
+        reasons: [{ code }],
+      },
+    },
+  });
+  assert.equal(briefConfirmation(withReason('CHECK_FAILED'), 'item'), 'failed');
+  assert.equal(
+    briefConfirmation(withReason('REALIZATION_CHANGED'), 'item'),
+    'stale',
+  );
+  assert.equal(
+    briefConfirmation(withReason('EVIDENCE_UNAVAILABLE'), 'item'),
+    'unknown',
+  );
+  for (const state of ['partial', 'confirmed'])
+    assert.equal(
+      briefConfirmation(
+        {
+          completion: {
+            item: { state, implemented: state === 'confirmed', reasons: [] },
+          },
+        },
+        'item',
+      ),
+      state,
+    );
+});
+
+test('planned work follows component scope and unmet prerequisites without inventing completion', () => {
+  const model = structuredClone(project);
+  const task = model.records.find((r) => r.type === 'task');
+  task.label = 'Stage 10';
+  model.records.push({
+    ...task,
+    key: 'first-stage',
+    label: 'Stage 2',
+    needs: [],
+  });
+  task.needs = ['first-stage'];
+  const analysis = {
+    completion: Object.fromEntries(
+      model.records.map((r) => [r.key, { implemented: false }]),
+    ),
+  };
+  const before = JSON.stringify(model);
+  assert.deepEqual(
+    plannedTasks(model, analysis, task.affects[0]).map((r) => r.key),
+    ['first-stage', task.key],
+  );
+  assert.deepEqual(
+    plannedTasks(model, analysis, project.root).map((r) => r.key),
+    ['first-stage', task.key],
+  );
+  analysis.completion['first-stage'].implemented = true;
+  assert.deepEqual(
+    plannedTasks(model, analysis, project.root).map((r) => r.key),
+    [task.key],
+  );
+  assert.deepEqual(plannedTasks(model, analysis, 'row-limit'), []);
+  assert.equal(JSON.stringify(model), before);
 });

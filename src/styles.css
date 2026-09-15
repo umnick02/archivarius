@@ -822,6 +822,84 @@
 .archivarius .project-purpose {
   font-size: 16px;
 }
+.archivarius .project-summary section {
+  margin: 22px 0;
+}
+.archivarius .project-summary h3 {
+  margin-bottom: 8px;
+}
+.archivarius .summary-status p {
+  margin: 0;
+  padding-left: 12px;
+  border-left: 3px solid #a3ada0;
+}
+.archivarius [data-brief-state='confirmed'] p {
+  border-color: #25805e;
+}
+.archivarius [data-brief-state='partial'] p,
+.archivarius [data-brief-state='stale'] p {
+  border-color: #b38128;
+}
+.archivarius [data-brief-state='failed'] p {
+  border-color: #ae4937;
+}
+.archivarius .plan-next {
+  display: block;
+  text-align: left;
+  padding: 0;
+  white-space: normal;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.archivarius .map-options {
+  position: relative;
+}
+.archivarius [data-control='connection-scope'][aria-pressed='true'] {
+  background: #e5eedf;
+  border-color: #789c84;
+}
+.archivarius .map-options > summary {
+  padding: 9px 12px;
+  font-size: 12px;
+  border: 1px solid #d4dfcc;
+  border-radius: 7px;
+  background: #fffefb;
+}
+.archivarius .map-options > div {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  min-width: 180px;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  background: #fffefb;
+  border: 1px solid #d4dfcc;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px #24352918;
+}
+.archivarius .plan-next small,
+.archivarius .plan-next strong {
+  display: block;
+}
+.archivarius .plan-next small,
+.archivarius .record-label {
+  color: #657060;
+  font-size: 12px;
+}
+.archivarius .summary-plan > details {
+  margin-top: 14px;
+  font-size: 13px;
+}
+.archivarius .map-prompt {
+  padding: 8px 12px;
+  border-radius: 7px;
+  background: #fffefbe8;
+  color: #657060;
+  font-size: 12px;
+  pointer-events: none;
+}
 .archivarius .project-result {
   margin: 12px 0;
 }

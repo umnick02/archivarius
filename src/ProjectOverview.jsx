@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useArchitecture, format } from './context.jsx';
-import { ProjectConfirmation } from './ProjectInspector.jsx';
+import { ProjectConfirmation, ProjectSummary } from './ProjectInspector.jsx';
 import { digest } from './project.mjs';
 import { searchRecord, viewTypes } from './project-view.mjs';
 
@@ -39,7 +39,6 @@ export function ProjectOverview({
         onChange={(e) =>
           update({
             query: e.target.value,
-            view: view === 'overview' ? 'all' : view,
             scroll: 0,
           })
         }
@@ -61,38 +60,56 @@ export function ProjectOverview({
       )}
     </div>
   );
+  const basis = (
+    <details className="record-provenance" data-disclosure="overview-basis">
+      <summary>{copy.details}</summary>
+      <p>{copy.basisNote}</p>
+      <p>{copy.conservative}</p>
+      <code className="record-technical">
+        {copy.snapshot}: {digest(project)}
+      </code>
+    </details>
+  );
   return (
     <>
       <div className="eyebrow">{copy.views[view]}</div>
       <h2>{project.title}</h2>
       {view === 'overview' && <p className="project-purpose">{root.purpose}</p>}
-      {search}
+      {view !== 'overview' && search}
       {view === 'overview' ? (
         <>
-          <nav className="project-questions" aria-label={copy.button}>
-            {Object.keys(viewTypes).map((view) => (
-              <button
-                className="panel-button"
-                data-project-view={view}
-                key={view}
-                onClick={() => choose(view)}
-              >
-                <strong>{copy.views[view]}</strong>
-                <span>{copy.viewDescriptions[view]}</span>
-              </button>
-            ))}
-          </nav>
-          <ProjectConfirmation
-            recordKey={project.root}
-            showRecord={showRecord}
-          />
-          <button
-            className="record-link"
-            data-project-view="all"
-            onClick={() => choose('all')}
+          <ProjectSummary recordKey={project.root} showRecord={showRecord} />
+          <details
+            className="record-secondary"
+            data-disclosure="overview-details"
           >
-            {copy.all}
-          </button>
+            <summary>{copy.brief.details}</summary>
+            <nav className="project-questions" aria-label={copy.button}>
+              {Object.keys(viewTypes).map((view) => (
+                <button
+                  className="panel-button"
+                  data-project-view={view}
+                  key={view}
+                  onClick={() => choose(view)}
+                >
+                  <strong>{copy.views[view]}</strong>
+                  <span>{copy.viewDescriptions[view]}</span>
+                </button>
+              ))}
+            </nav>
+            <ProjectConfirmation
+              recordKey={project.root}
+              showRecord={showRecord}
+            />
+            <button
+              className="record-link"
+              data-project-view="all"
+              onClick={() => choose('all')}
+            >
+              {copy.all}
+            </button>
+            {basis}
+          </details>
         </>
       ) : (
         <>
@@ -152,14 +169,7 @@ export function ProjectOverview({
           )}
         </>
       )}
-      <details className="record-provenance" data-disclosure="overview-basis">
-        <summary>{copy.details}</summary>
-        <p>{copy.basisNote}</p>
-        <p>{copy.conservative}</p>
-        <code className="record-technical">
-          {copy.snapshot}: {digest(project)}
-        </code>
-      </details>
+      {view !== 'overview' && basis}
     </>
   );
 }

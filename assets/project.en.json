@@ -75,7 +75,7 @@
   "historical": "Historical record; references and values belong to its revision.",
   "snapshot": "Snapshot",
   "basisNote": "Confirmation applies to this contract and accessible check artifacts. Reload after data changes.",
-  "conservative": "Until dependency coverage is established, a definition change requires reconsidering the whole project.",
+  "conservative": "Review freshness follows its dependencies; execution results refer to the exact snapshot.",
   "attention": "Needs attention",
   "yes": "Yes",
   "no": "No",
@@ -203,5 +203,22 @@
   "documentData": "Structured data",
   "documentTable": "Document table",
   "openRecord": "Open record",
-  "documentIntro": "About this document"
+  "documentIntro": "About this document",
+  "brief": {
+    "readiness": "Readiness",
+    "plan": "Planned work",
+    "otherTasks": "More planned work · {count}",
+    "details": "Details",
+    "states": {
+      "confirmed": "Completion confirmed",
+      "partial": "Partially confirmed",
+      "unknown": "No completion evidence",
+      "stale": "Needs verification",
+      "failed": "A check has failed"
+    },
+    "nearby": "Selected component connections",
+    "allConnections": "All connections",
+    "mapHint": "Select a component to see its connections",
+    "options": "Map options"
+  }
 }

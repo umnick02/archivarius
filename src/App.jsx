@@ -79,7 +79,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
     fitting = useRef(0);
   const navigation = usePanelNavigation(
     root,
-    project && !graph.nodes.size ? { type: 'project' } : null,
+    project ? { type: 'project' } : null,
     () => ({
       viewport: flow.getViewport(),
       selected,
@@ -132,12 +132,12 @@ export const App = forwardRef(function App({ onReady }, ref) {
   const changeZoom = useCallback(
     (direction) => {
       atHome.current = false;
-      setContextEnabled(true);
+      if (!project) setContextEnabled(true);
       return direction > 0
         ? flow.zoomIn({ duration: duration() })
         : flow.zoomOut({ duration: duration() });
     },
-    [flow],
+    [flow, project],
   );
   useEffect(
     () => () => {
@@ -155,7 +155,9 @@ export const App = forwardRef(function App({ onReady }, ref) {
       atHome.current = false;
       setContextEnabled(true);
       if (!keepPanel)
-        leaf ? navigation.open({ type: 'node', key }) : navigation.close();
+        project || leaf
+          ? navigation.open({ type: 'node', key })
+          : navigation.close();
       setSelected(key);
       explicitFocus.current = key;
       setFocus(key);
@@ -197,19 +199,14 @@ export const App = forwardRef(function App({ onReady }, ref) {
       clearClick,
       navigation.open,
       navigation.close,
+      project,
     ],
   );
   const home = useCallback(async () => {
     clearClick();
     const ticket = ++fitting.current;
     atHome.current = true;
-    navigation.reset(
-      project &&
-        (!graph.nodes.size ||
-          (!initialized.current && root.current.clientWidth <= 780))
-        ? { type: 'project' }
-        : null,
-    );
+    navigation.reset(project ? { type: 'project' } : null);
     setSelected(null);
     setContextEnabled(true);
     explicitFocus.current = null;
@@ -250,9 +247,9 @@ export const App = forwardRef(function App({ onReady }, ref) {
     (bundle) => {
       clearClick();
       navigation.open({ type: 'relation', bundle });
-      setSelected(null);
+      if (!project) setSelected(null);
     },
-    [clearClick, navigation.open],
+    [clearClick, navigation.open, project],
   );
   const showRecord = useCallback(
     (key) => {
@@ -276,7 +273,9 @@ export const App = forwardRef(function App({ onReady }, ref) {
   let zoomScope = focus;
   while (zoomScope && !expanded.has(zoomScope))
     zoomScope = graph.parents.get(zoomScope);
-  const activeKey = contextEnabled ? selected || zoomScope : null;
+  const activeKey = contextEnabled
+    ? selected || (!project && zoomScope) || null
+    : null;
   const inside = useCallback(
     (key, container) => {
       while (key) {
@@ -301,11 +300,24 @@ export const App = forwardRef(function App({ onReady }, ref) {
       }
     return result;
   }, [activeKey, bundles, inside]);
+  const visibleBundles = useMemo(
+    () =>
+      project && contextEnabled
+        ? bundles.filter(
+            (edge) =>
+              activeKey &&
+              edge.bundle.relations.some(
+                (r) => inside(r.from, activeKey) || inside(r.to, activeKey),
+              ),
+          )
+        : bundles,
+    [project, contextEnabled, bundles, activeKey, inside],
+  );
   const nodes = useMemo(
     () =>
       Object.values(layout.nodes).map((box) => {
         const handles = [];
-        for (const edge of bundles) {
+        for (const edge of visibleBundles) {
           if (edge.bundle.from === box.key)
             handles.push({
               ...edge.source,
@@ -358,6 +370,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
       graph,
       interfaces,
       bundles,
+      visibleBundles,
       expansionKey,
       fitNode,
       showNode,
@@ -369,33 +382,35 @@ export const App = forwardRef(function App({ onReady }, ref) {
   );
   const edges = useMemo(
     () =>
-      placeEdgeLabels(bundles, nodes, viewport, size, layer).map((edge) => ({
-        id: edge.id,
-        type: 'architecture',
-        source: edge.bundle.from,
-        target: edge.bundle.to,
-        sourceHandle: 's-' + edge.id,
-        targetHandle: 't-' + edge.id,
-        selectable: false,
-        zIndex: 20,
-        data: {
-          ...edge,
-          onOpen: showRelation,
-          muted:
-            (layer !== 'all' && edge.bundle.kind !== layer) ||
-            (!!activeKey &&
-              !edge.bundle.relations.some(
-                (r) => inside(r.from, activeKey) || inside(r.to, activeKey),
-              )),
-          active:
-            panel?.type === 'relation' &&
-            edge.bundle.relations.some((e) =>
-              panel.bundle.relations.some((p) => p.key === e.key),
-            ),
-        },
-      })),
+      placeEdgeLabels(visibleBundles, nodes, viewport, size, layer).map(
+        (edge) => ({
+          id: edge.id,
+          type: 'architecture',
+          source: edge.bundle.from,
+          target: edge.bundle.to,
+          sourceHandle: 's-' + edge.id,
+          targetHandle: 't-' + edge.id,
+          selectable: false,
+          zIndex: 20,
+          data: {
+            ...edge,
+            onOpen: showRelation,
+            muted:
+              (layer !== 'all' && edge.bundle.kind !== layer) ||
+              (!!activeKey &&
+                !edge.bundle.relations.some(
+                  (r) => inside(r.from, activeKey) || inside(r.to, activeKey),
+                )),
+            active:
+              panel?.type === 'relation' &&
+              edge.bundle.relations.some((e) =>
+                panel.bundle.relations.some((p) => p.key === e.key),
+              ),
+          },
+        }),
+      ),
     [
-      bundles,
+      visibleBundles,
       nodes,
       viewport.x,
       viewport.y,
@@ -610,6 +625,43 @@ export const App = forwardRef(function App({ onReady }, ref) {
         ]),
       ].filter((key) => !inside(key, activeKey))
     : [];
+  const mapOptions = (
+    <>
+      <select
+        data-control="layer"
+        aria-label={copy.layerLabel}
+        value={layer}
+        onChange={(e) => {
+          clearClick();
+          setLayer(e.target.value);
+          if (!project) navigation.close();
+        }}
+      >
+        {Object.entries(copy.layers).map(([key, label]) => (
+          <option key={key} value={key}>
+            {label}
+          </option>
+        ))}
+      </select>
+      <button
+        className="quiet"
+        data-control="contracts"
+        onClick={() => {
+          clearClick();
+          navigation.open({ type: 'contracts' });
+        }}
+      >
+        {copy.rulesButton}
+      </button>
+      <button
+        className="quiet"
+        data-control="about"
+        onClick={() => navigation.open({ type: 'about' })}
+      >
+        {copy.aboutButton}
+      </button>
+    </>
+  );
   return (
     <div
       className="map-app"
@@ -643,10 +695,20 @@ export const App = forwardRef(function App({ onReady }, ref) {
               data-control="project"
               onClick={() => {
                 clearClick();
-                navigation.open({ type: 'project' });
+                home();
               }}
             >
               {projectCopy.button}
+            </button>
+          )}
+          {project && (
+            <button
+              className="quiet"
+              data-control="connection-scope"
+              aria-pressed={!contextEnabled}
+              onClick={() => setContextEnabled((value) => !value)}
+            >
+              {projectCopy.brief.allConnections}
             </button>
           )}
           {project ? (
@@ -680,39 +742,20 @@ export const App = forwardRef(function App({ onReady }, ref) {
               ))}
             </select>
           )}
-          <select
-            data-control="layer"
-            aria-label={copy.layerLabel}
-            value={layer}
-            onChange={(e) => {
-              clearClick();
-              setLayer(e.target.value);
-              navigation.close();
-            }}
-          >
-            {Object.entries(copy.layers).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </select>
-          <button
-            className="quiet"
-            data-control="contracts"
-            onClick={() => {
-              clearClick();
-              navigation.open({ type: 'contracts' });
-            }}
-          >
-            {copy.rulesButton}
-          </button>
-          <button
-            className="quiet"
-            data-control="about"
-            onClick={() => navigation.open({ type: 'about' })}
-          >
-            {copy.aboutButton}
-          </button>
+          {project ? (
+            <details
+              className="map-options"
+              onClick={(event) => {
+                if (event.target.closest('button'))
+                  event.currentTarget.open = false;
+              }}
+            >
+              <summary>{projectCopy.brief.options}</summary>
+              <div>{mapOptions}</div>
+            </details>
+          ) : (
+            mapOptions
+          )}
         </div>
       </header>
       {panel && (
@@ -748,7 +791,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
         }}
         onWheelCapture={(e) => {
           atHome.current = false;
-          setContextEnabled(true);
+          if (!project) setContextEnabled(true);
           pointer.current = { x: e.clientX, y: e.clientY };
           explicitFocus.current = null;
           clearClick();
@@ -787,6 +830,11 @@ export const App = forwardRef(function App({ onReady }, ref) {
           }}
           onNodeDoubleClick={(_, n) => fitNode(n.id)}
           onEdgeClick={(_, e) => showRelation(e.data.bundle)}
+          onPaneClick={() => {
+            if (!project) return;
+            setSelected(null);
+            navigation.open({ type: 'project' });
+          }}
           attributionPosition="bottom-left"
           ariaLabelConfig={{ 'minimap.ariaLabel': copy.minimapLabel }}
         >
@@ -856,6 +904,11 @@ export const App = forwardRef(function App({ onReady }, ref) {
           </React.Fragment>
         ))}
       </nav>
+      {project && !activeKey && contextEnabled && !!graph.nodes.size && (
+        <div className="map-context map-prompt">
+          {projectCopy.brief.mapHint}
+        </div>
+      )}
       {activeKey && (
         <div className="map-context">
           <button
@@ -943,7 +996,11 @@ export const App = forwardRef(function App({ onReady }, ref) {
         showOnMap={showOnMap}
         showRelation={showRelation}
         showRecord={showRecord}
-        overview={() => navigation.open({ type: 'project' })}
+        overview={() => {
+          setSelected(null);
+          setContextEnabled(true);
+          navigation.open({ type: 'project' });
+        }}
         close={navigation.close}
         navigation={navigation}
         hidden={mobileMap && root.current?.clientWidth <= 780}

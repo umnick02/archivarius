@@ -9,7 +9,50 @@ import {
   primaryFields,
   relatedGroups,
   technicalFields,
+  briefConfirmation,
+  plannedTasks,
 } from './project-view.mjs';
+
+export function ProjectSummary({ recordKey, showRecord }) {
+  const { project, analysis, projectCopy: copy } = useArchitecture();
+  const record = currentRecord(project, recordKey);
+  const tasks = plannedTasks(project, analysis, recordKey);
+  const state = briefConfirmation(analysis, recordKey);
+  return (
+    <div className="project-summary" data-summary={recordKey}>
+      {!['source', 'decision', 'document'].includes(record.type) && (
+        <section className="summary-status" data-brief-state={state}>
+          <h3>{copy.brief.readiness}</h3>
+          <p>{copy.brief.states[state]}</p>
+        </section>
+      )}
+      {tasks.length > 0 && (
+        <section className="summary-plan">
+          <h3>{copy.brief.plan}</h3>
+          <button
+            className="plan-next record-link"
+            data-planned-task={tasks[0].key}
+            onClick={() => showRecord(tasks[0].key)}
+          >
+            {tasks[0].label && <small>{tasks[0].label}</small>}
+            <strong>{tasks[0].title}</strong>
+          </button>
+          {tasks.length > 1 && (
+            <details data-disclosure="planned-tasks">
+              <summary>
+                {format(copy.brief.otherTasks, { count: tasks.length - 1 })}
+              </summary>
+              <RecordLinks
+                keys={tasks.slice(1).map((r) => r.key)}
+                showRecord={showRecord}
+              />
+            </details>
+          )}
+        </section>
+      )}
+    </div>
+  );
+}
 
 export function ProjectConfirmation({
   recordKey,
@@ -238,7 +281,8 @@ export function ProjectInspector({
     record[field] !== undefined &&
     !(Array.isArray(record[field]) && !record[field].length);
   const renderField = (field) =>
-    present(field) && (
+    present(field) &&
+    record[field] !== record.title && (
       <section className="record-field" data-field={field} key={field}>
         <h3>{copy.fields[field] || field}</h3>
         {fieldValue(field, record[field])}
@@ -255,76 +299,80 @@ export function ProjectInspector({
   return (
     <>
       <div className="eyebrow">{copy.types[record.type]}</div>
+      {record.type === 'task' && record.label && (
+        <p className="record-label">{record.label}</p>
+      )}
       <h2 data-record-title={record.key}>{record.title}</h2>
       <div className="record-primary">{primary.map(renderField)}</div>
-      {record.type === 'component' && (
-        <>
-          <button
-            className="panel-button"
-            data-show-map={record.key}
-            onClick={() => fitNode(record.key)}
-          >
-            {copy.map}
-          </button>
-          {interactions}
-        </>
-      )}
       {record.type === 'document' ? (
         <ProjectDocument document={record} showRecord={showRecord} />
       ) : (
-        <ProjectConfirmation recordKey={record.key} showRecord={showRecord} />
+        <ProjectSummary recordKey={record.key} showRecord={showRecord} />
       )}
-      {secondary.length > 0 && (
-        <details className="record-secondary" data-disclosure="secondary">
-          <summary>{copy.more}</summary>
-          {secondary.map(renderField)}
+      <details className="record-secondary" data-disclosure="secondary">
+        <summary>{copy.brief.details}</summary>
+        {record.type === 'component' && (
+          <>
+            <button
+              className="panel-button"
+              data-show-map={record.key}
+              onClick={() => fitNode(record.key)}
+            >
+              {copy.map}
+            </button>
+            {interactions}
+          </>
+        )}
+        {secondary.map(renderField)}
+        {record.type !== 'document' && (
+          <ProjectConfirmation recordKey={record.key} showRecord={showRecord} />
+        )}
+        <ProjectLinks recordKey={record.key} showRecord={showRecord} />
+        <details className="record-provenance" data-disclosure="provenance">
+          <summary>{copy.details}</summary>
+          <code className="record-technical">
+            {record.key} · {digest(record)}
+          </code>
+          {[...technicalFields].filter(present).map(renderField)}
+          {project.snapshots
+            .filter((s) => s.contract === record.basis?.contract)
+            .map((s) => (
+              <details key={digest(s)}>
+                <summary>
+                  {copy.snapshot} · {s.contract.slice(0, 12)}
+                </summary>
+                {Object.entries(s.records).map(([key, revision]) => {
+                  const definition =
+                    project.records.find(
+                      (r) => r.key === key && digest(r) === revision,
+                    ) ||
+                    project.history.find((h) => h.digest === revision)?.record;
+                  return (
+                    <details key={key}>
+                      <summary>{definition?.title || key}</summary>
+                      <pre className="record-technical">
+                        {JSON.stringify(definition, null, 2)}
+                      </pre>
+                    </details>
+                  );
+                })}
+              </details>
+            ))}
+          <h3>{copy.history}</h3>
+          {project.history
+            .filter((h) => h.record.key === record.key)
+            .map((h) => (
+              <details key={h.digest}>
+                <summary>
+                  {h.record.title} · {h.digest.slice(0, 12)}
+                </summary>
+                <p>{copy.historical}</p>
+                <pre className="record-technical">
+                  {JSON.stringify(h.record, null, 2)}
+                </pre>
+              </details>
+            ))}
         </details>
-      )}
-      <ProjectLinks recordKey={record.key} showRecord={showRecord} />
-      <details className="record-provenance" data-disclosure="provenance">
-        <summary>{copy.details}</summary>
-        <code className="record-technical">
-          {record.key} · {digest(record)}
-        </code>
-        {[...technicalFields].filter(present).map(renderField)}
-        {project.snapshots
-          .filter((s) => s.contract === record.basis?.contract)
-          .map((s) => (
-            <details key={digest(s)}>
-              <summary>
-                {copy.snapshot} · {s.contract.slice(0, 12)}
-              </summary>
-              {Object.entries(s.records).map(([key, revision]) => {
-                const definition =
-                  project.records.find(
-                    (r) => r.key === key && digest(r) === revision,
-                  ) ||
-                  project.history.find((h) => h.digest === revision)?.record;
-                return (
-                  <details key={key}>
-                    <summary>{definition?.title || key}</summary>
-                    <pre className="record-technical">
-                      {JSON.stringify(definition, null, 2)}
-                    </pre>
-                  </details>
-                );
-              })}
-            </details>
-          ))}
-        <h3>{copy.history}</h3>
-        {project.history
-          .filter((h) => h.record.key === record.key)
-          .map((h) => (
-            <details key={h.digest}>
-              <summary>
-                {h.record.title} · {h.digest.slice(0, 12)}
-              </summary>
-              <p>{copy.historical}</p>
-              <pre className="record-technical">
-                {JSON.stringify(h.record, null, 2)}
-              </pre>
-            </details>
-          ))}
       </details>
     </>
   );

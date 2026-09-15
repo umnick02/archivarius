@@ -1,7 +1,11 @@
 import React, { useLayoutEffect, useRef } from 'react';
 import { relationCount, useArchitecture } from './context.jsx';
 import { renderDocumentation } from './document.mjs';
-import { ProjectInspector, ProjectConfirmation } from './ProjectInspector.jsx';
+import {
+  ProjectInspector,
+  ProjectConfirmation,
+  ProjectSummary,
+} from './ProjectInspector.jsx';
 import { ProjectOverview } from './ProjectOverview.jsx';
 import { groupInteractions } from './view.mjs';
 import { aggregateImplementation } from './implementation.mjs';
@@ -341,12 +345,7 @@ export function Inspector({
             {panel.bundle.relations.map((edge) => (
               <section key={edge.key}>
                 <h3>{edge.label}</h3>
-                {project ? (
-                  <ProjectConfirmation
-                    recordKey={edge.key}
-                    showRecord={showRecord}
-                  />
-                ) : (
+                {!project && (
                   <Implementation
                     state={completion.relations[edge.key].state}
                     evidence={edge.implementationEvidence}
@@ -359,12 +358,25 @@ export function Inspector({
                 </p>
                 <p>{edge.meaning}</p>
                 {project && (
-                  <button
-                    className="panel-button"
-                    onClick={() => showRecord(edge.key)}
-                  >
-                    {projectCopy.open}
-                  </button>
+                  <>
+                    <ProjectSummary
+                      recordKey={edge.key}
+                      showRecord={showRecord}
+                    />
+                    <details data-disclosure={`relation-${edge.key}-details`}>
+                      <summary>{projectCopy.brief.details}</summary>
+                      <ProjectConfirmation
+                        recordKey={edge.key}
+                        showRecord={showRecord}
+                      />
+                      <button
+                        className="panel-button"
+                        onClick={() => showRecord(edge.key)}
+                      >
+                        {projectCopy.open}
+                      </button>
+                    </details>
+                  </>
                 )}
                 {[
                   [copy.source, edge.from],
