@@ -83,6 +83,109 @@ export function applicableRequirements(model, key) {
   );
 }
 
+// Review dependencies follow owned contracts, not reverse implementation/evidence
+// consumers. Recompute membership so new inherited constraints also invalidate.
+function reviewSelection(model, keys) {
+  const records = index(model),
+    selected = new Set(),
+    expanded = new Set();
+  const queue = keys.map((key) => [key, true]);
+  const shallow = new Set([
+    'scope',
+    'parent',
+    'appliesTo',
+    'affects',
+    'targets',
+    'from',
+    'to',
+    'subjects',
+  ]);
+  while (queue.length) {
+    const [key, expand] = queue.pop(),
+      record = records.get(key);
+    if (!record) throw new ArchitectureError('UNKNOWN_RECORD', [key]);
+    selected.add(key);
+    if (!expand || expanded.has(key)) continue;
+    expanded.add(key);
+    for (const ref of recordReferences(record))
+      if (!ref.history) queue.push([ref.key, !shallow.has(ref.field)]);
+    if (['task', 'check', 'decision'].includes(record.type)) {
+      // Explicit covers/uses define local scope; ancestor-scope rules always apply.
+      let scope = record.scope;
+      while (scope) {
+        for (const other of model.records)
+          if (other.type === 'requirement' && other.appliesTo.includes(scope))
+            queue.push([other.key, true]);
+        scope = records.get(scope)?.parent;
+      }
+    }
+    if (
+      ['component', 'interface', 'interaction', 'scope'].includes(record.type)
+    )
+      for (const requirement of applicableRequirements(model, key))
+        queue.push([requirement.key, true]);
+    if (keys.includes(key) && record.type === 'requirement')
+      for (const other of model.records)
+        if (other.type === 'criterion' && other.requirement === key)
+          queue.push([other.key, true]);
+  }
+  const documents = model.records
+    .filter((r) => r.type === 'document' && !selected.has(r.key))
+    .flatMap((document) => {
+      const sections = documentSections(document, selected);
+      return sections.length
+        ? [{ key: document.key, path: document.path, sections }]
+        : [];
+    });
+  return {
+    records: model.records.filter((r) => selected.has(r.key)),
+    documents,
+  };
+}
+
+export function dependencyDigest(model, key) {
+  const selection = reviewSelection(model, [key]);
+  const semantic = ({ title, basis, reconsideredBecause, ...record }) => record;
+  return digest({
+    version: model.version,
+    root: model.root,
+    entry: model.entry,
+    records: selection.records
+      .filter((r) => r.type !== 'result')
+      .map(semantic)
+      .sort((a, b) => a.key.localeCompare(b.key)),
+    // Position changes alone do not change an owning section's meaning.
+    documents: selection.documents
+      .map((d) => ({
+        key: d.key,
+        path: d.path,
+        blocks: d.sections.map((s) => s.block),
+      }))
+      .sort((a, b) => a.key.localeCompare(b.key)),
+  });
+}
+
+export function projectRead(model, keys) {
+  assertProject(model);
+  const selected = reviewSelection(model, keys);
+  return {
+    keys: [...keys],
+    records: selected.records.map(definition),
+    documents: selected.documents,
+    omitted: model.records.length - selected.records.length,
+  };
+}
+
+const snapshotManifest = (model) => ({
+  title: model.title,
+  root: model.root,
+  entry: model.entry,
+  contract: contractDigest(model),
+  realization: realizationDigest(model),
+  records: Object.fromEntries(model.records.map((r) => [r.key, digest(r)])),
+  bindings: structuredClone(model.bindings),
+});
+
 export function projectArchitecture(model) {
   const records = index(model);
   const components = model.records.filter((r) => r.type === 'component');
@@ -140,6 +243,10 @@ export function validateProject(model) {
   if (diagnostics.length) return finish();
   if (model.version !== 4) {
     issue('PROJECT_VERSION', '', '/version');
+    return finish();
+  }
+  if (model.archive) {
+    issue('ARCHIVE_NOT_LOADED', '', '/archive');
     return finish();
   }
   const records = index(model),
@@ -314,7 +421,11 @@ export function analyzeProject(model, { verifiedResults = [] } = {}) {
     if ('basis' in record) {
       if (!record.basis)
         reasons.push({ code: 'BASIS_MISSING', key: record.key });
-      else if (record.basis.contract !== contract)
+      else if (
+        record.type !== 'result' && record.basis.dependencies
+          ? record.basis.dependencies !== dependencyDigest(model, record.key)
+          : record.basis.contract !== contract
+      )
         reasons.push({ code: 'BASIS_CHANGED', key: record.key });
     }
     if (record.type === 'result' && record.realization !== realization)
@@ -700,10 +811,14 @@ export function projectContext(model, keys) {
       if (other.type === 'result' && other.check === key) include(other.key);
     }
   }
+  for (const key of keys)
+    for (const record of reviewSelection(model, [key]).records)
+      include(record.key, false);
+  const sectionKeys = new Set(selected);
   const documents = model.records
     .filter((record) => record.type === 'document')
     .flatMap((document) => {
-      const sections = documentSections(document, new Set(keys));
+      const sections = documentSections(document, sectionKeys);
       if (!sections.length) return [];
       for (const { block } of sections)
         for (const ref of documentReferences({ blocks: [block] }))
@@ -719,7 +834,7 @@ export function projectContext(model, keys) {
     });
   const chosen = model.records.filter((record) => selected.has(record.key));
   return {
-    snapshot: digest(model),
+    snapshot: digest(snapshotManifest(model)),
     contract: contractDigest(model),
     keys: [...keys],
     reads: Object.fromEntries(
@@ -737,27 +852,43 @@ export function applyProjectChanges(model, context, change) {
   if (diagnostics.length)
     throw new ArchitectureError('INVALID_CHANGE', [], diagnostics);
   const { put = [], remove = [], review = [], reason } = change;
-  // A read receipt cannot silently lose an item or change its bytes.
-  if (
-    !context ||
-    context.snapshot !== digest(model) ||
-    context.contract !== contractDigest(model)
-  )
+  // Reconstruct the original receipt from immutable revisions, then compare the
+  // current read closure. Disjoint edits may rebase; trimmed or stale reads may not.
+  if (!context || !Array.isArray(context.keys))
     throw new ArchitectureError('CONTEXT_CHANGED');
-  const expected = projectContext(model, context.keys);
+  const manifest = snapshotManifest(model);
+  let basis = model;
+  if (context.snapshot !== digest(manifest)) {
+    const saved = model.snapshots.find((s) => digest(s) === context.snapshot);
+    if (!saved) throw new ArchitectureError('CONTEXT_CHANGED');
+    const revisions = new Map([
+      ...model.history.map((h) => [h.digest, h.record]),
+      ...model.records.map((r) => [digest(r), r]),
+    ]);
+    const { contract, realization, ...metadata } = saved;
+    basis = {
+      ...model,
+      ...metadata,
+      history: [...revisions].map(([digest, record]) => ({ digest, record })),
+      records: Object.values(saved.records).map((hash) => revisions.get(hash)),
+    };
+  }
+  const expected = projectContext(basis, context.keys);
   if (digest(expected) !== digest(context))
+    throw new ArchitectureError('CONTEXT_CHANGED');
+  const current = projectContext(model, context.keys);
+  if (
+    digest(current.reads) !== digest(context.reads) ||
+    digest(current.documents) !== digest(context.documents) ||
+    ['title', 'root', 'entry', 'bindings'].some(
+      (key) => digest(model[key]) !== digest(basis[key]),
+    ) ||
+    (context.contract !== current.contract &&
+      put.some((r) => r.type === 'result'))
+  )
     throw new ArchitectureError('CONTEXT_CHANGED');
   const next = structuredClone(model),
     records = index(next);
-  const manifest = {
-    title: model.title,
-    root: model.root,
-    entry: model.entry,
-    contract: contractDigest(model),
-    realization: realizationDigest(model),
-    records: Object.fromEntries(model.records.map((r) => [r.key, digest(r)])),
-    bindings: structuredClone(model.bindings),
-  };
   if (!next.snapshots.some((s) => digest(s) === digest(manifest)))
     next.snapshots.push(manifest);
   const archive = (record) => {
@@ -812,8 +943,30 @@ export function applyProjectChanges(model, context, change) {
       )
     )
       throw new ArchitectureError('REVIEW_REQUIRED', [key]);
+    const selection = reviewSelection(next, [key]);
+    if (
+      selection.records.some(
+        (r) => !context.reads[r.key] && !changedKeys.has(r.key),
+      ) ||
+      selection.documents.some(
+        (d) =>
+          !context.reads[d.key] &&
+          !changedKeys.has(d.key) &&
+          !context.documents.some(
+            (read) =>
+              read.key === d.key &&
+              d.sections.every((section) =>
+                read.sections.some((s) => s.index === section.index),
+              ),
+          ),
+      )
+    )
+      throw new ArchitectureError('REVIEW_REQUIRED', [key]);
     archive(record);
-    record.basis = { contract: contractDigest(next) };
+    record.basis = {
+      contract: contractDigest(next),
+      dependencies: dependencyDigest(next, key),
+    };
     record.reconsideredBecause = reason;
   }
   return assertProject(next);

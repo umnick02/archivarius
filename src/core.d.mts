@@ -91,3 +91,18 @@ export function renderDocument(
   document: Extract<ProjectModel['records'][number], { type: 'document' }>,
   options?: { notice?: boolean; headingOffset?: number },
 ): string;
+
+export function dependencyDigest(model: ProjectModel, key: string): string;
+export function projectRead(
+  model: ProjectModel,
+  keys: string[],
+): {
+  keys: string[];
+  records: Array<Omit<ProjectRecord, 'basis' | 'reconsideredBecause'>>;
+  documents: Array<{
+    key: string;
+    path: string;
+    sections: Array<{ index: number; block: unknown }>;
+  }>;
+  omitted: number;
+};

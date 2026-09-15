@@ -3,7 +3,9 @@ Archivarius
   archivarius validate <model.json> [--json]
   archivarius docs <model.json> --output <architecture.md> [--locale ru|en] [--check]
   archivarius documents <project.json> --output <directory> [--check] [--json]
-  archivarius context <project.json> --focus <key> [--focus <key>]
+  archivarius read <project.json> --focus <key> [--focus <key>]
+  archivarius context <project.json> --focus <key> [--focus <key>] [--output <receipt.json>]
+  archivarius archive <project.json>
   archivarius apply <project.json> --context <context.json> --change <change.json>
   archivarius run <project.json> --focus <check-key> --result <new-key> --evidence <relative-path.json>
   archivarius verify <project.json>
@@ -13,7 +15,10 @@ validate checks both the file schema and all graph invariants.
 docs generates Markdown from that same validated model. It never edits the model.
 documents renders document records to their declared Markdown/JSON paths under the output directory.
 --check compares the output with fresh generation and exits unsuccessfully on drift.
-context returns compact JSON records and the read receipt; apply preserves history atomically.
+read returns focused contracts and owning sections without review metadata.
+context returns the exact edit receipt; --output saves it and prints the focused read view.
+apply checks the read closure, permits disjoint edits and preserves history atomically.
+archive moves existing history to immutable adjacent hash-linked segments; node reads hydrate them.
 run explicitly executes the check's command and records its actual outcome.
 verify reads bound files and check artifacts; missing confirmation exits with code 1.
 Exit codes: 0 success, 1 invalid model / stale document / I/O failure, 2 invalid arguments.

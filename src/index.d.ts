@@ -29,6 +29,8 @@ export {
   validateProject,
   analyzeProject,
   projectContext,
+  projectRead,
+  dependencyDigest,
   applyProjectChanges,
 } from './core.mjs';
 

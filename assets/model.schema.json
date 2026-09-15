@@ -125,6 +125,19 @@
           }
         }
       }
+    },
+    "archive": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "head"],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "head": {
+          "$ref": "#/$defs/digest"
+        }
+      }
     }
   },
   "$defs": {
@@ -160,6 +173,9 @@
       "required": ["contract"],
       "properties": {
         "contract": {
+          "$ref": "#/$defs/digest"
+        },
+        "dependencies": {
           "$ref": "#/$defs/digest"
         }
       }
@@ -349,6 +365,10 @@
               "$ref": "#/$defs/key",
               "x-targets": ["decision"],
               "x-history": true
+            },
+            "governedBy": {
+              "$ref": "#/$defs/keys",
+              "x-targets": ["document"]
             }
           },
           "required": [
@@ -537,6 +557,10 @@
             },
             "reconsideredBecause": {
               "$ref": "#/$defs/text"
+            },
+            "governedBy": {
+              "$ref": "#/$defs/keys",
+              "x-targets": ["document"]
             }
           },
           "required": [
@@ -588,6 +612,10 @@
             "command": {
               "$ref": "#/$defs/texts",
               "minItems": 1
+            },
+            "governedBy": {
+              "$ref": "#/$defs/keys",
+              "x-targets": ["document"]
             }
           },
           "required": [

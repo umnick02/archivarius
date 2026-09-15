@@ -10,8 +10,9 @@ import {
   updateProjectFile,
   executeProjectCheck,
   writeAtomic,
+  archiveProjectFile,
 } from './node.mjs';
-import { projectContext, analyzeProject } from './project.mjs';
+import { projectContext, projectRead, analyzeProject } from './project.mjs';
 import { parseJSON } from './core.mjs';
 
 async function main() {
@@ -46,7 +47,9 @@ async function main() {
       validate: ['json'],
       docs: ['output', 'locale', 'check'],
       documents: ['output', 'check', 'json'],
-      context: ['focus', 'json'],
+      context: ['focus', 'json', 'output'],
+      read: ['focus', 'json'],
+      archive: ['json'],
       apply: ['context', 'change', 'json'],
       verify: ['json'],
       run: ['focus', 'result', 'evidence', 'json'],
@@ -60,11 +63,13 @@ async function main() {
         'docs',
         'documents',
         'context',
+        'read',
+        'archive',
         'apply',
         'verify',
         'run',
       ].includes(command) ||
-      (command === 'context' && !values.focus?.length) ||
+      (['context', 'read'].includes(command) && !values.focus?.length) ||
       (command === 'apply' && (!values.context || !values.change)) ||
       (command === 'run' &&
         (values.focus?.length !== 1 || !values.result || !values.evidence)) ||
@@ -101,8 +106,30 @@ async function main() {
       );
       return;
     }
+    if (command === 'archive') {
+      await archiveProjectFile(input);
+      print({ valid: true, archived: true });
+      return;
+    }
+    if (command === 'read') {
+      print(projectRead(model, values.focus));
+      return;
+    }
     if (command === 'context') {
-      print(projectContext(model, values.focus));
+      const context = projectContext(model, values.focus);
+      if (values.output) {
+        const output = path.resolve(values.output);
+        const actual = await fs.realpath(output).catch((error) => {
+          if (error.code !== 'ENOENT') throw error;
+        });
+        if (
+          output === path.resolve(input) ||
+          actual === (await fs.realpath(input))
+        )
+          throw new Error('OUTPUT_IS_MODEL');
+        await writeAtomic(output, JSON.stringify(context, null, 2) + '\n');
+        print({ ...projectRead(model, values.focus), receipt: output });
+      } else print(context);
       return;
     }
     if (command === 'apply') {

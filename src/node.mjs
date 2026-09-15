@@ -2,7 +2,7 @@ import fs, { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { execFile } from 'node:child_process';
-import { ArchitectureError, parseArchitecture } from './core.mjs';
+import { ArchitectureError, parseArchitecture, parseJSON } from './core.mjs';
 import { renderDocumentation } from './document.mjs';
 import {
   assertProject,
@@ -12,10 +12,15 @@ import {
   realizationDigest,
 } from './project.mjs';
 import { verifyProjectEvidence, relativeArtifactPath } from './evidence.mjs';
+import { loadProjectStorage, storeProjectStorage } from './project-storage.mjs';
 import { digest, hashBytes } from './digest.mjs';
 
-export async function readArchitectureFile(path) {
-  return parseArchitecture(await readFile(path, 'utf8'));
+export async function readArchitectureFile(file) {
+  file = await fs.realpath(file);
+  const raw = parseJSON(await readFile(file, 'utf8'));
+  if (raw?.version === 4)
+    return assertProject(await loadProjectStorage(file, raw));
+  return parseArchitecture(JSON.stringify(raw));
 }
 
 export async function generateDocumentation(model, { locale = 'ru' } = {}) {
@@ -63,7 +68,7 @@ export async function writeAtomic(file, contents) {
   }
 }
 
-export async function updateProjectFile(file, context, change) {
+async function mutateProjectFile(file, transform, archive = false) {
   file = await fs.realpath(file);
   const lock = file + '.lock';
   let handle;
@@ -75,15 +80,25 @@ export async function updateProjectFile(file, context, change) {
   }
   try {
     const model = await readArchitectureFile(file);
-    const next = applyProjectChanges(model, context, change);
+    const next = transform(model);
     if (digest(await readArchitectureFile(file)) !== digest(model))
       throw new ArchitectureError('CONTEXT_CHANGED');
-    await writeAtomic(file, JSON.stringify(next, null, 2) + '\n');
+    await storeProjectStorage(file, next, model, archive, writeAtomic);
     return next;
   } finally {
     await handle.close();
     await fs.rm(lock, { force: true });
   }
+}
+
+export async function updateProjectFile(file, context, change) {
+  return mutateProjectFile(file, (model) =>
+    applyProjectChanges(model, context, change),
+  );
+}
+
+export async function archiveProjectFile(file) {
+  return mutateProjectFile(file, (model) => model, true);
 }
 
 export async function executeProjectCheck(

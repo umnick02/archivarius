@@ -43,3 +43,5 @@ export function exportProjectDocuments(
   directory: string,
   options?: { check?: boolean; source?: string },
 ): Promise<{ files: string[]; changed: string[] }>;
+
+export function archiveProjectFile(file: string): Promise<ProjectModel>;

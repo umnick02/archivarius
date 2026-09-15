@@ -7,6 +7,8 @@ export {
   validateProject,
   analyzeProject,
   projectContext,
+  projectRead,
+  dependencyDigest,
   applyProjectChanges,
   contractDigest,
   realizationDigest,
