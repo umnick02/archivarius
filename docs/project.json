@@ -5,7 +5,22 @@
   "root": "archivarius",
   "entry": "map",
   "bindings": {},
-  "history": [],
+  "history": [
+    {
+      "digest": "8806db61d227d2b20a59226fd480252475f61ba8718b0957685984bfa666986b",
+      "record": {
+        "key": "cli",
+        "type": "component",
+        "title": "CLI",
+        "scope": "archivarius",
+        "parent": "node-api",
+        "kind": "component",
+        "zone": "infrastructure",
+        "summary": "Exposes validate, read, context, apply, documents, verify, run and archive over the model file.",
+        "boundary": "Argument parsing and file paths stay inside the CLI."
+      }
+    }
+  ],
   "records": [
     {
       "key": "archivarius",
@@ -20,6 +35,14 @@
       "scope": "archivarius",
       "origin": "owner",
       "statement": "An owner understands a system's structure, the grounds for decisions, the remaining work and the effect of changes from one snapshot; an LLM reads and edits the same records."
+    },
+    {
+      "key": "self-description",
+      "type": "source",
+      "title": "The repository describes itself",
+      "scope": "archivarius",
+      "origin": "owner",
+      "statement": "The snapshot in this repository describes Archivarius itself, so the map below, the tables under it and this page are the project's own records drawn by the library it documents."
     },
     {
       "key": "contract-basis",
@@ -88,7 +111,7 @@
       "parent": "node-api",
       "kind": "component",
       "zone": "infrastructure",
-      "summary": "Exposes validate, read, context, apply, documents, verify, run and archive over the model file.",
+      "summary": "Exposes validate, read, context, apply, docs, documents, verify, run and archive over the model file.",
       "boundary": "Argument parsing and file paths stay inside the CLI."
     },
     {
@@ -558,5 +581,58 @@
       "basis": null
     }
   ],
-  "snapshots": []
+  "snapshots": [
+    {
+      "title": "Archivarius",
+      "root": "archivarius",
+      "entry": "map",
+      "contract": "81f92eda09835c21a4c6b89536f15888fb9ea6c9b47f5b40ed3bc37cd7765fd0",
+      "realization": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "records": {
+        "archivarius": "d478102e4b79a22fcda80276465402bb1d7544dc23cff67792ef9ef22f44aab2",
+        "owner-intent": "d8eda33949d0ff75d1a23473ff150f735b9e6c988987f70ab16ee6cb3970ccc7",
+        "contract-basis": "077ed405be0f865c4b5cff7fcbc05a60bccde0403b10938f84e09b7151167767",
+        "model": "b017733d7db923a3fdfae3b73fb1a2f18b571dd194f1fc83764a36b47d5fdd55",
+        "core": "706e79d65ff0a6886e7e563982ec2c7e9f30d212d12003dc7c37ddb8d2a35c81",
+        "graph": "343788a25f41a140f4651943f2d8a262fbdc17a677880c174048b726a6709cfb",
+        "digest": "c118ed08dcaf8a03dabd4a5173ec5a7f16082f1b84964886b99e7afbe8d9338e",
+        "node-api": "b77b214cbecc25d262320c5dbad05c76ffe90506b31b55657c3d3addb43e4598",
+        "cli": "8806db61d227d2b20a59226fd480252475f61ba8718b0957685984bfa666986b",
+        "evidence": "c5e1d00a4ce17cf82caaddc1a622a197c99fd4d8601a08af404e6b6b551fcf4d",
+        "render": "a5b58be17f90c733433e8d7fc6bb49a1f1c0ec820b98694d2246271cfa0d6601",
+        "map": "f81d74d50cd4617f6e22ec2b2424f66c6ddd4f060e2e47c753a7b75151ef3cde",
+        "inspector": "f404bf808afe9fa07c0cb45ebb036cf55a5729d31cff16157ff0c86511b86880",
+        "model-source": "fd1edf25b79988cfa492c1643e3d6817ed81f16394e52d118ec2c228a9e1d9f8",
+        "change-input": "36700ab06f06beb646c3175473500db224d2afb798fdc1e538e476230a1a0b4e",
+        "evidence-artifact": "20f1f777c06d7160ee61d10eb56772d3d1e7d470a810e477cffea52672e72d97",
+        "reference-set": "8e3d45c40edac217ae1b424b8632ff0d0291599e74ee72f32d0350ca06001899",
+        "basis-value": "af443b0015619c65451a274414a8d286a7660af0ca3392185d78398b7fc4aebe",
+        "record-detail": "4141fbf755ed83f2ea570d144fc42b8c97bfccbedb8c801a37784463c3c7aeeb",
+        "load-model": "97709ccf95fc14621f75d832f5b61e1f54b1696e1d5c46236bc7c325284191cf",
+        "check-references": "ad6a21ddbcaf833fdb3f4554feae9e982ebf2c6bffbcaeefe63b46bd604a58d0",
+        "compute-basis": "f44be21695787d9b66c0e2698afb4209b7fe668d9424d1e0ab1c0d99887f78e3",
+        "inspect-record": "28da7823e8b8787b03d18025a4a053d11a442b0b6de39f1f410833c2480ed862",
+        "apply-change": "6460f9a6987c4b8a23ae5a4a96613b94249f2ba6f200d930fd64c84be74599ea",
+        "verify-evidence": "ab170aa235bf5eabce1983ddd52c3479de88581675785b5b2fda77bca8f5e363",
+        "single-snapshot": "76dfd1c2531d7c2cc756e417e710a53d9f12a38a7d425e4286e5f4e8fa4911e1",
+        "single-snapshot-c": "54682dc7a4da547b76349e3d286498f5934fa227620cfc84fb32930771d1d62f",
+        "validated-change": "5ecdf8f71eae9a7e3595ffeb16899366205990eb206182d844f18eddd0f8995f",
+        "validated-change-c": "f5b946e1ae5095a3ab95788a373ae5784abc62c4f08b91c3f1707ece890a0b68",
+        "byte-exact-evidence": "ee1948a7d615eed5fe92db4f0b64881e03a3b6da1a9876a376d9f150e3392f18",
+        "byte-exact-evidence-c": "ab1734ed6adf6ac9ee830b8bc9204e5d059db46142964b1956d14aa0f70d8dbf",
+        "conservative-freshness": "7911d529bb8fa23ea7b8916dd75a34e5e8f40741ac90373e38083e4e27a187ce",
+        "conservative-freshness-c": "7a4ff864fc435b6f679882c901981d824c4f8de4ab788a40e4e038d7517d6fde",
+        "basis-digest": "997583c2c7a5ed8e34e04678056bce0ec7660a2e3ef655502a747b81b515eee9",
+        "external-resources": "1d19447cd0ccc89e69fa2049684d80ca5e13c37331b3e8e6d696694279e81971",
+        "edit-and-render": "9130958b427c5349ff3febd5517f8051975a1aeca3e9c5897ca8cd87616bab22",
+        "task-model": "527869fabb9bb735c35cac86210ef917cff993ff13123a8157db3231938873e9",
+        "task-render": "1cbf90caf829f95167740d3cd0108b3f04da4da5d75e9277d3e184b57c596b9b",
+        "task-evidence": "91d971f2399f9d36855bc460069f81c85c2143b51bfaae13aed787ca489da2de",
+        "check-model": "d32ce95d409105ae84c57a90edf88e71049108f2c3264c2c242fc5a91a49a3af",
+        "check-render": "4ff9b21857262da1aab7301ac8b5b1e3afe69beb0b0b20bcee5ca1e7a9915c49",
+        "check-evidence": "f245a6059dbe9e05f1ac12c93fcb15f9d54b81e4ac20237edfb191924ff20da5"
+      },
+      "bindings": {}
+    }
+  ]
 }

@@ -106,8 +106,10 @@ export function renderReadme(model, copy) {
     ),
     '```',
     '',
-    ...architectureDiagram(model),
+    // What the statements settle - whose system this is, and what the links in
+    // the record above are for - has to be read before the picture, not after.
     ...records('source').flatMap(statements),
+    ...architectureDiagram(model),
     // A reader who does not know the vocabulary yet needs one concrete run
     // through the system before the parts it is made of.
     ...table(

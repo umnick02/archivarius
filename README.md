@@ -16,6 +16,12 @@ One validated JSON file - a snapshot - holds a project's whole description as sm
 }
 ```
 
+An owner understands a system's structure, the grounds for decisions, the remaining work and the effect of changes from one snapshot; an LLM reads and edits the same records.
+
+The snapshot in this repository describes Archivarius itself, so the map below, the tables under it and this page are the project's own records drawn by the library it documents.
+
+A record keeps the definitions it was written against apart from the records it merely mentions, so when a definition changes, whatever rested on it stops counting as confirmed instead of quietly staying green.
+
 ```mermaid
 flowchart LR
     subgraph c-model["Model and contract"]
@@ -38,10 +44,6 @@ flowchart LR
     c-cli -->|"Apply a change"| c-core
     c-cli -->|"Verify evidence"| c-evidence
 ```
-
-An owner understands a system's structure, the grounds for decisions, the remaining work and the effect of changes from one snapshot; an LLM reads and edits the same records.
-
-A record keeps the definitions it was written against apart from the records it merely mentions, so when a definition changes, whatever rested on it stops counting as confirmed instead of quietly staying green.
 
 | Scenario | Actor | Preconditions | Actions | Failure and recovery |
 | --- | --- | --- | --- | --- |
