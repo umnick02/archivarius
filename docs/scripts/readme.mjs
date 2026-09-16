@@ -77,17 +77,12 @@ export function renderReadme(model, copy) {
     prose[record.type].flatMap((field) =>
       value(record, field) ? [value(record, field), ''] : [],
     );
-  // A reader learns what is confirmed from the same analysis and the same
-  // wording the map shows, including its caveat about what a number means.
-  const progress = analyzeProject(model).completion[scope.key];
-  const confirmed = new Set(progress.progress.confirmedCriteria);
-  // What is missing is stated once per kind of gap; naming every record again
-  // would only reprint the model.
-  const reasons = [
-    ...new Set(
-      progress.reasons.map((reason) => copy.reasonsByCode[reason.code]),
-    ),
-  ].filter(Boolean);
+  // Confirmation belongs where a record can be named and opened: the map's
+  // overview and the full documentation carry the gaps with their keys. Here it
+  // would only be an aggregate about this file's own bookkeeping.
+  const confirmed = new Set(
+    analyzeProject(model).completion[scope.key].progress.confirmedCriteria,
+  );
   return [
     '# ' + scope.title,
     '',
@@ -129,17 +124,6 @@ export function renderReadme(model, copy) {
       'decision',
       records('decision').map((record) => [record.title, record]),
     ),
-    // The count closes the page next to the gaps that explain it: a bare number
-    // above the architecture invites the reading its own caveat has to deny.
-    copy.criteriaProgress
-      .replace('{confirmed}', String(confirmed.size))
-      .replace('{total}', String(progress.progress.criteria.length)),
-    '',
-    ...(reasons.length
-      ? [row([copy.reasons]), row(['---']), ...reasons.map((r) => row([r])), '']
-      : []),
-    copy.confirmationNote,
-    '',
     generatedNotice,
     '',
   ].join('\n');
