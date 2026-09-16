@@ -88,12 +88,18 @@ export function renderReadme(model, copy) {
     '# ' + scope.title,
     '',
     ...statements(scope),
-    // The sentence above claims small linked records; the most linked record in
-    // the file shows one, so the vocabulary is concrete before the parts arrive.
+    // The sentence above claims small linked records, so the clearest specimen
+    // is the one that is mostly links: the densest record, not the largest.
     '```json',
     JSON.stringify(
       [...model.records]
-        .map((record) => [recordReferences(record).length, record])
+        .map((record) => {
+          const text = JSON.stringify(record, null, 2);
+          return [
+            recordReferences(record).length / text.split('\n').length,
+            record,
+          ];
+        })
         .sort((a, b) => b[0] - a[0] || a[1].key.localeCompare(b[1].key))[0][1],
       null,
       2,

@@ -4,26 +4,15 @@ One validated JSON file - a snapshot - holds a project's whole description as sm
 
 ```json
 {
-  "key": "task-model",
-  "type": "task",
-  "title": "Maintain the model and contract",
+  "key": "apply-change",
+  "type": "interaction",
+  "title": "Apply a change",
   "scope": "archivarius",
-  "change": "Keep the schema, graph references, digest and validated-change path consistent.",
-  "affects": [
-    "core",
-    "graph",
-    "digest"
-  ],
-  "covers": [
-    "validated-change-c",
-    "conservative-freshness-c"
-  ],
-  "needs": [],
-  "uses": [
-    "basis-digest",
-    "edit-and-render"
-  ],
-  "basis": null
+  "from": "cli",
+  "to": "core",
+  "kind": "command",
+  "channel": "apply",
+  "contract": "change-input"
 }
 ```
 
