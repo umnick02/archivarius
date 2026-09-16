@@ -5,14 +5,17 @@ import {
   digest,
 } from './project.mjs';
 
-import { renderDocument } from './documents.mjs';
+import { renderDocument, generatedNotice } from './documents.mjs';
 
 const escape = (value) =>
   String(value)
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
-    .replace(/([\\`*_[\]{}()#+.!|~-])/g, '\\$1');
+    .replace(/([\\`*_[\]|~])/g, '\\$1')
+    // Only a line that opens with Markdown structure can change the shape of the
+    // document; punctuation inside a sentence must stay readable.
+    .replace(/^(\s*)([#>+-]|\d+\.)/gm, '$1\\$2');
 const inline = (value) => escape(value).replace(/[\r\n]+/g, ' ');
 
 // The diagram is generated from the component and interaction records so that it
@@ -21,13 +24,21 @@ function architectureDiagram(model) {
   const components = model.records.filter((r) => r.type === 'component');
   if (!components.length) return [];
   const label = (value) => '"' + String(value).replaceAll('"', '#quot;') + '"';
+  // Record keys are free text, so a key like "graph" or "end" would be read as
+  // Mermaid syntax. Identifiers are namespaced to keep every key usable.
+  const id = (key) => 'c-' + key;
   const node = (component, depth) => {
     const pad = '    '.repeat(depth + 1);
     const children = components.filter((r) => r.parent === component.key);
     if (!children.length)
-      return [pad + component.key + '[' + label(component.title) + ']'];
+      return [pad + id(component.key) + '[' + label(component.title) + ']'];
     return [
-      pad + 'subgraph ' + component.key + '[' + label(component.title) + ']',
+      pad +
+        'subgraph ' +
+        id(component.key) +
+        '[' +
+        label(component.title) +
+        ']',
       ...children.flatMap((child) => node(child, depth + 1)),
       pad + 'end',
     ];
@@ -41,7 +52,10 @@ function architectureDiagram(model) {
     ...roots.flatMap((root) => node(root, 0)),
     ...model.records
       .filter((r) => r.type === 'interaction')
-      .map((r) => '    ' + r.from + ' -->|' + label(r.channel) + '| ' + r.to),
+      .map(
+        (r) =>
+          '    ' + id(r.from) + ' -->|' + label(r.channel) + '| ' + id(r.to),
+      ),
     '```',
     '',
   ];
@@ -86,6 +100,8 @@ export function renderProjectDocumentation(model, copy) {
     for (const [key, value] of Object.entries(record)) {
       if (
         ['key', 'type', 'title'].includes(key) ||
+        value === null ||
+        value === undefined ||
         (Array.isArray(value) && !value.length)
       )
         continue;
@@ -140,5 +156,5 @@ export function renderProjectDocumentation(model, copy) {
         '',
       );
   }
-  return lines.join('\n');
+  return [...lines, generatedNotice, ''].join('\n');
 }

@@ -21,6 +21,7 @@ import {
   generateDocumentation,
 } from '../src/node.mjs';
 import { hashBytes } from '../src/digest.mjs';
+import { generatedNotice } from '../src/documents.mjs';
 import { readArchitecture, prepareArchitecture } from '../src/load.mjs';
 
 const example = JSON.parse(
@@ -488,7 +489,7 @@ test('documentation renders the architecture as a diagram generated from compone
     );
     if (components.some((other) => other.parent === component.key))
       assert(
-        diagram.includes('subgraph ' + component.key),
+        new RegExp('subgraph \\S*' + component.key).test(diagram),
         'missing subgraph ' + component.key,
       );
   }
@@ -501,6 +502,59 @@ test('documentation renders the architecture as a diagram generated from compone
       'missing interaction ' + interaction.key,
     );
   assert.equal(markdown, await generateDocumentation(structuredClone(model)));
+});
+
+test('diagram identifiers never collide with Mermaid keywords', async () => {
+  // The repository's own model is the real fixture: it owns a component keyed
+  // "graph", which Mermaid reads as the start of a diagram.
+  const reserved = [
+    'graph',
+    'subgraph',
+    'end',
+    'flowchart',
+    'class',
+    'classDef',
+    'style',
+    'linkStyle',
+    'click',
+    'direction',
+    'default',
+  ];
+  const model = JSON.parse(
+    await fs.readFile(new URL('../docs/project.json', import.meta.url), 'utf8'),
+  );
+  assert(
+    model.records.some(
+      (r) => r.type === 'component' && reserved.includes(r.key),
+    ),
+    'fixture needs a component keyed with a Mermaid keyword',
+  );
+  const markdown = await generateDocumentation(model);
+  const diagram = markdown.match(/```mermaid\n([\s\S]*?)\n```/)[1];
+  for (const word of reserved)
+    assert(
+      !new RegExp('(?:^|[\\s|])' + word + '(?:\\[|\\s*--)', 'm').test(diagram),
+      'reserved identifier: ' + word,
+    );
+});
+
+test('documentation omits fields without a value instead of printing them', async () => {
+  const model = clone();
+  const record = model.records.find((r) => r.basis === null);
+  assert(record, 'fixture needs a record with an unrecorded basis');
+  const markdown = await generateDocumentation(model);
+  assert(!/^null$/m.test(markdown), 'a null field leaked into the output');
+});
+
+test('documentation ends with the generated notice so the file is not hand-edited', async () => {
+  const markdown = await generateDocumentation(clone());
+  assert(markdown.trimEnd().endsWith(generatedNotice), markdown.slice(-120));
+});
+
+test('documentation escapes only what Markdown needs, leaving prose readable', async () => {
+  const markdown = await generateDocumentation(clone());
+  assert(!markdown.includes('\\.'), 'sentence periods must not be escaped');
+  assert(!markdown.includes('\\-'), 'hyphens inside words must not be escaped');
 });
 
 test('actual check records bind command, source bytes and outcome; stale and missing evidence cannot confirm', async (t) => {

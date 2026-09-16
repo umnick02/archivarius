@@ -6,25 +6,25 @@ Snapshot: `be5d59cf1874d0f48d3c95092dc8488e0bac4abde9725121d4d65179070caae2`
 
 ```mermaid
 flowchart TD
-    subgraph model["Model and contract"]
-        core["Core"]
-        graph["Graph references"]
-        digest["Canonical digest"]
+    subgraph c-model["Model and contract"]
+        c-core["Core"]
+        c-graph["Graph references"]
+        c-digest["Canonical digest"]
     end
-    subgraph node-api["Node API"]
-        cli["CLI"]
-        evidence["Evidence verification"]
+    subgraph c-node-api["Node API"]
+        c-cli["CLI"]
+        c-evidence["Evidence verification"]
     end
-    subgraph render["Map rendering"]
-        map["Architecture map"]
-        inspector["Inspector and overview"]
+    subgraph c-render["Map rendering"]
+        c-map["Architecture map"]
+        c-inspector["Inspector and overview"]
     end
-    map -->|"load"| core
-    core -->|"validate"| graph
-    core -->|"digest"| digest
-    map -->|"inspect"| inspector
-    cli -->|"apply"| core
-    cli -->|"verify"| evidence
+    c-map -->|"load"| c-core
+    c-core -->|"validate"| c-graph
+    c-core -->|"digest"| c-digest
+    c-map -->|"inspect"| c-inspector
+    c-cli -->|"apply"| c-core
+    c-cli -->|"verify"| c-evidence
 ```
 
 <a id="record-archivarius"></a>
@@ -35,7 +35,7 @@ Scope
 
 **Purpose:**
 
-A single validated JSON snapshot describes a project's architecture, requirements, decisions, scenarios, tasks and checks, and a React library renders it as an architecture map with semantic zoom\.
+A single validated JSON snapshot describes a project's architecture, requirements, decisions, scenarios, tasks and checks, and a React library renders it as an architecture map with semantic zoom.
 
 <a id="record-owner-intent"></a>
 
@@ -53,7 +53,7 @@ owner
 
 **Statement:**
 
-An owner understands a system's structure, the grounds for decisions, the remaining work and the effect of changes from one snapshot; an LLM reads and edits the same records\.
+An owner understands a system's structure, the grounds for decisions, the remaining work and the effect of changes from one snapshot; an LLM reads and edits the same records.
 
 <a id="record-contract-basis"></a>
 
@@ -71,7 +71,7 @@ assumption
 
 **Statement:**
 
-Revisions, used context and check results are distinct from ordinary references so that stale grounds and superseded evidence cannot pass as current confirmation\.
+Revisions, used context and check results are distinct from ordinary references so that stale grounds and superseded evidence cannot pass as current confirmation.
 
 <a id="record-model"></a>
 
@@ -93,7 +93,7 @@ pure
 
 **Responsibility:**
 
-Owns the v4 JSON schema, record types, graph references, history, snapshots and the validated\-change contract\.
+Owns the v4 JSON schema, record types, graph references, history, snapshots and the validated-change contract.
 
 <a id="record-core"></a>
 
@@ -119,11 +119,11 @@ pure
 
 **Responsibility:**
 
-Parses and validates a model, projects a v4 project to an architecture, and analyzes freshness and completion\.
+Parses and validates a model, projects a v4 project to an architecture, and analyzes freshness and completion.
 
 **Detail boundary:**
 
-Layout and rendering stay outside the core\.
+Layout and rendering stay outside the core.
 
 <a id="record-graph"></a>
 
@@ -149,11 +149,11 @@ pure
 
 **Responsibility:**
 
-Validates typed relations between records and reports reverse links and coverage\.
+Validates typed relations between records and reports reverse links and coverage.
 
 **Detail boundary:**
 
-Reference semantics are fixed by the schema targets\.
+Reference semantics are fixed by the schema targets.
 
 <a id="record-digest"></a>
 
@@ -179,11 +179,11 @@ pure
 
 **Responsibility:**
 
-Computes the SHA\-256 basis over a canonical representation of the definitions\.
+Computes the SHA-256 basis over a canonical representation of the definitions.
 
 **Detail boundary:**
 
-The canonicalization rules are internal to the digest\.
+The canonicalization rules are internal to the digest.
 
 <a id="record-node-api"></a>
 
@@ -205,7 +205,7 @@ infrastructure
 
 **Responsibility:**
 
-Reads a model file, verifies evidence artifacts by bytes, applies validated changes, and generates documentation\.
+Reads a model file, verifies evidence artifacts by bytes, applies validated changes, and generates documentation.
 
 <a id="record-cli"></a>
 
@@ -231,11 +231,11 @@ infrastructure
 
 **Responsibility:**
 
-Exposes validate, read, context, apply, documents, verify, run and archive over the model file\.
+Exposes validate, read, context, apply, documents, verify, run and archive over the model file.
 
 **Detail boundary:**
 
-Argument parsing and file paths stay inside the CLI\.
+Argument parsing and file paths stay inside the CLI.
 
 <a id="record-evidence"></a>
 
@@ -261,11 +261,11 @@ infrastructure
 
 **Responsibility:**
 
-Matches declared binding bytes against files and records actual check outcomes\.
+Matches declared binding bytes against files and records actual check outcomes.
 
 **Detail boundary:**
 
-Executing checks is performed by the run command, not by loading a model\.
+Executing checks is performed by the run command, not by loading a model.
 
 <a id="record-render"></a>
 
@@ -287,7 +287,7 @@ presentation
 
 **Responsibility:**
 
-Mounts an interactive architecture map with semantic zoom and an inspector for records\.
+Mounts an interactive architecture map with semantic zoom and an inspector for records.
 
 <a id="record-map"></a>
 
@@ -313,11 +313,11 @@ presentation
 
 **Responsibility:**
 
-Lays out components and interactions and reveals detail as the map is zoomed\.
+Lays out components and interactions and reveals detail as the map is zoomed.
 
 **Detail boundary:**
 
-Layout geometry stays inside the map\.
+Layout geometry stays inside the map.
 
 <a id="record-inspector"></a>
 
@@ -343,11 +343,11 @@ presentation
 
 **Responsibility:**
 
-Shows a record's meaning, links, implementation outcome and the reasons requiring attention\.
+Shows a record's meaning, links, implementation outcome and the reasons requiring attention.
 
 **Detail boundary:**
 
-Project data and UI copy stay external resources\.
+Project data and UI copy stay external resources.
 
 <a id="record-model-source"></a>
 
@@ -361,11 +361,11 @@ Interaction contract
 
 **Payload:**
 
-A v4 JSON snapshot as a URL, File, Blob or parsed object\.
+A v4 JSON snapshot as a URL, File, Blob or parsed object.
 
 **Meaning:**
 
-The rendering subsystem loads a snapshot to display\.
+The rendering subsystem loads a snapshot to display.
 
 **Constraints:**
 
@@ -383,11 +383,11 @@ Interaction contract
 
 **Payload:**
 
-A context receipt and a change with put and remove sets\.
+A context receipt and a change with put and remove sets.
 
 **Meaning:**
 
-The node API applies a validated change against an unchanged context\.
+The node API applies a validated change against an unchanged context.
 
 **Constraints:**
 
@@ -405,15 +405,15 @@ Interaction contract
 
 **Payload:**
 
-Relative binding paths and the bytes they resolve to\.
+Relative binding paths and the bytes they resolve to.
 
 **Meaning:**
 
-Evidence verification compares declared inputs against actual files\.
+Evidence verification compares declared inputs against actual files.
 
 **Constraints:**
 
-- [Confirmation needs byte\-exact evidence](#record-byte-exact-evidence)
+- [Confirmation needs byte-exact evidence](#record-byte-exact-evidence)
 
 <a id="record-reference-set"></a>
 
@@ -427,11 +427,11 @@ Interaction contract
 
 **Payload:**
 
-The typed relations between records\.
+The typed relations between records.
 
 **Meaning:**
 
-The core asks the graph to validate references and report coverage\.
+The core asks the graph to validate references and report coverage.
 
 **Constraints:**
 
@@ -449,11 +449,11 @@ Interaction contract
 
 **Payload:**
 
-The canonical definitions and their SHA\-256 basis\.
+The canonical definitions and their SHA-256 basis.
 
 **Meaning:**
 
-The core asks the digest for the freshness basis\.
+The core asks the digest for the freshness basis.
 
 **Constraints:**
 
@@ -471,11 +471,11 @@ Interaction contract
 
 **Payload:**
 
-A selected record with its links and implementation outcome\.
+A selected record with its links and implementation outcome.
 
 **Meaning:**
 
-The map opens a record in the inspector\.
+The map opens a record in the inspector.
 
 **Constraints:**
 
@@ -673,11 +673,11 @@ Requirement
 
 **Rule:**
 
-Every statement has a single definition; all views render the one selected snapshot\.
+Every statement has a single definition; all views render the one selected snapshot.
 
 **Conditions:**
 
-- A model is loaded or rendered\.
+- A model is loaded or rendered.
 
 **Applies to:**
 
@@ -704,7 +704,7 @@ Criterion
 
 **Criterion:**
 
-The map, inspector and generated documentation all reflect the same loaded snapshot and definitions\.
+The map, inspector and generated documentation all reflect the same loaded snapshot and definitions.
 
 <a id="record-validated-change"></a>
 
@@ -718,11 +718,11 @@ Requirement
 
 **Rule:**
 
-A change requires an unchanged context receipt; a stale context, unknown field or broken reference is rejected and the source file is preserved\.
+A change requires an unchanged context receipt; a stale context, unknown field or broken reference is rejected and the source file is preserved.
 
 **Conditions:**
 
-- A change is applied through the API or CLI\.
+- A change is applied through the API or CLI.
 
 **Applies to:**
 
@@ -749,11 +749,11 @@ Criterion
 
 **Criterion:**
 
-A stale context, unknown field or broken reference is rejected and the input model is left unmodified\.
+A stale context, unknown field or broken reference is rejected and the input model is left unmodified.
 
 <a id="record-byte-exact-evidence"></a>
 
-## Confirmation needs byte\-exact evidence
+## Confirmation needs byte-exact evidence
 
 Requirement
 
@@ -763,11 +763,11 @@ Requirement
 
 **Rule:**
 
-A check outcome confirms only with an available execution artifact and matching bytes for every declared input; missing or stale evidence does not confirm\.
+A check outcome confirms only with an available execution artifact and matching bytes for every declared input; missing or stale evidence does not confirm.
 
 **Conditions:**
 
-- An implementation outcome is derived\.
+- An implementation outcome is derived.
 
 **Applies to:**
 
@@ -789,11 +789,11 @@ Criterion
 
 **Requirement:**
 
-- [Confirmation needs byte\-exact evidence](#record-byte-exact-evidence)
+- [Confirmation needs byte-exact evidence](#record-byte-exact-evidence)
 
 **Criterion:**
 
-A result confirms only when its artifact exists and every declared input's bytes match; otherwise the criterion is not confirmed\.
+A result confirms only when its artifact exists and every declared input's bytes match; otherwise the criterion is not confirmed.
 
 <a id="record-conservative-freshness"></a>
 
@@ -807,11 +807,11 @@ Requirement
 
 **Rule:**
 
-Changing any definition conservatively marks dependent decisions, tasks and checks as requiring review; the current review scope is the whole project\.
+Changing any definition conservatively marks dependent decisions, tasks and checks as requiring review; the current review scope is the whole project.
 
 **Conditions:**
 
-- A definition changes\.
+- A definition changes.
 
 **Applies to:**
 
@@ -837,7 +837,7 @@ Criterion
 
 **Criterion:**
 
-After a definition changes, decisions, tasks and checks depending on it report their basis as no longer current\.
+After a definition changes, decisions, tasks and checks depending on it report their basis as no longer current.
 
 <a id="record-basis-digest"></a>
 
@@ -851,23 +851,23 @@ Decision
 
 **Decision topic:**
 
-freshness\-basis
+freshness-basis
 
 **Choice:**
 
-Compute basis\.contract as a SHA\-256 over a canonical representation of the definitions, excluding results, history and review text\.
+Compute basis.contract as a SHA-256 over a canonical representation of the definitions, excluding results, history and review text.
 
 **Alternatives:**
 
-- Track freshness by timestamps or manual review flags\.
+- Track freshness by timestamps or manual review flags.
 
 **Rationale:**
 
-A content digest detects real definition changes without trusting order or edit metadata\.
+A content digest detects real definition changes without trusting order or edit metadata.
 
 **Consequences:**
 
-- Any definition change, including additions, drops the current basis\.
+- Any definition change, including additions, drops the current basis.
 
 **Affects:**
 
@@ -877,10 +877,6 @@ A content digest detects real definition changes without trusting order or edit 
 
 - [Conservative freshness](#record-conservative-freshness)
 - [Changes are validated against an unchanged context](#record-validated-change)
-
-**Contract basis:**
-
-null
 
 **Why confirmation is missing:**
 
@@ -898,23 +894,23 @@ Decision
 
 **Decision topic:**
 
-resource\-loading
+resource-loading
 
 **Choice:**
 
-Load model data and UI copy as external resources rather than bundling them into the library\.
+Load model data and UI copy as external resources rather than bundling them into the library.
 
 **Alternatives:**
 
-- Embed a default model and copy in the shipped scripts\.
+- Embed a default model and copy in the shipped scripts.
 
 **Rationale:**
 
-The format stays independent of any project, repository or build, and shipped scripts do not carry project data\.
+The format stays independent of any project, repository or build, and shipped scripts do not carry project data.
 
 **Consequences:**
 
-- A consumer supplies the model source and container\.
+- A consumer supplies the model source and container.
 
 **Affects:**
 
@@ -924,17 +920,13 @@ The format stays independent of any project, repository or build, and shipped sc
 
 - [One snapshot, one set of definitions](#record-single-snapshot)
 
-**Contract basis:**
-
-null
-
 **Why confirmation is missing:**
 
 - Basis has not been recorded: [Project data and copy stay external](#record-external-resources)
 
 <a id="record-edit-and-render"></a>
 
-## Edit a definition and re\-render
+## Edit a definition and re-render
 
 Scenario
 
@@ -948,14 +940,14 @@ LLM agent
 
 **Preconditions:**
 
-- A validated snapshot is loaded\.
+- A validated snapshot is loaded.
 
 **Actions:**
 
-- Read a focused record's context\.
-- Apply a validated change against the unchanged context\.
-- Re\-validate the whole snapshot\.
-- Re\-render the map and inspector\.
+- Read a focused record's context.
+- Apply a validated change against the unchanged context.
+- Re-validate the whole snapshot.
+- Re-render the map and inspector.
 
 **Uses:**
 
@@ -969,8 +961,8 @@ LLM agent
 
 **Failure and recovery:**
 
-- A stale context is rejected and the model is preserved\.
-- A broken reference fails validation\.
+- A stale context is rejected and the model is preserved.
+- A broken reference fails validation.
 
 <a id="record-task-model"></a>
 
@@ -984,7 +976,7 @@ Task
 
 **Change:**
 
-Keep the schema, graph references, digest and validated\-change path consistent\.
+Keep the schema, graph references, digest and validated-change path consistent.
 
 **Affects:**
 
@@ -1000,11 +992,7 @@ Keep the schema, graph references, digest and validated\-change path consistent\
 **Uses:**
 
 - [Canonical digest for the basis](#record-basis-digest)
-- [Edit a definition and re\-render](#record-edit-and-render)
-
-**Contract basis:**
-
-null
+- [Edit a definition and re-render](#record-edit-and-render)
 
 **Why confirmation is missing:**
 
@@ -1022,7 +1010,7 @@ Task
 
 **Change:**
 
-Mount the map and inspector from one loaded snapshot\.
+Mount the map and inspector from one loaded snapshot.
 
 **Affects:**
 
@@ -1036,10 +1024,6 @@ Mount the map and inspector from one loaded snapshot\.
 **Uses:**
 
 - [Project data and copy stay external](#record-external-resources)
-
-**Contract basis:**
-
-null
 
 **Why confirmation is missing:**
 
@@ -1057,7 +1041,7 @@ Task
 
 **Change:**
 
-Match declared binding bytes and record actual check outcomes\.
+Match declared binding bytes and record actual check outcomes.
 
 **Affects:**
 
@@ -1067,10 +1051,6 @@ Match declared binding bytes and record actual check outcomes\.
 **Covers:**
 
 - [Stale and missing evidence cannot confirm](#record-byte-exact-evidence-c)
-
-**Contract basis:**
-
-null
 
 **Why confirmation is missing:**
 
@@ -1088,7 +1068,7 @@ Check
 
 **Check method:**
 
-Validate models and reject stale contexts, unknown fields, broken references and forged bases\.
+Validate models and reject stale contexts, unknown fields, broken references and forged bases.
 
 **Covers:**
 
@@ -1097,7 +1077,7 @@ Validate models and reject stale contexts, unknown fields, broken references and
 
 **Scenarios:**
 
-- [Edit a definition and re\-render](#record-edit-and-render)
+- [Edit a definition and re-render](#record-edit-and-render)
 
 **Verifies:**
 
@@ -1108,10 +1088,6 @@ Validate models and reject stale contexts, unknown fields, broken references and
 **Check level:**
 
 integration
-
-**Contract basis:**
-
-null
 
 **Why confirmation is missing:**
 
@@ -1129,7 +1105,7 @@ Check
 
 **Check method:**
 
-Render the map, inspector and documentation from a single snapshot and confirm they agree\.
+Render the map, inspector and documentation from a single snapshot and confirm they agree.
 
 **Covers:**
 
@@ -1137,7 +1113,7 @@ Render the map, inspector and documentation from a single snapshot and confirm t
 
 **Scenarios:**
 
-- [Edit a definition and re\-render](#record-edit-and-render)
+- [Edit a definition and re-render](#record-edit-and-render)
 
 **Verifies:**
 
@@ -1149,17 +1125,13 @@ Render the map, inspector and documentation from a single snapshot and confirm t
 
 integration
 
-**Contract basis:**
-
-null
-
 **Why confirmation is missing:**
 
 - Basis has not been recorded: [Rendering from one snapshot](#record-check-render)
 
 <a id="record-check-evidence"></a>
 
-## Byte\-exact evidence
+## Byte-exact evidence
 
 Check
 
@@ -1169,7 +1141,7 @@ Check
 
 **Check method:**
 
-Confirm outcomes only with an available artifact and matching declared\-input bytes\.
+Confirm outcomes only with an available artifact and matching declared-input bytes.
 
 **Covers:**
 
@@ -1177,7 +1149,7 @@ Confirm outcomes only with an available artifact and matching declared\-input by
 
 **Scenarios:**
 
-- [Edit a definition and re\-render](#record-edit-and-render)
+- [Edit a definition and re-render](#record-edit-and-render)
 
 **Verifies:**
 
@@ -1187,10 +1159,8 @@ Confirm outcomes only with an available artifact and matching declared\-input by
 
 integration
 
-**Contract basis:**
-
-null
-
 **Why confirmation is missing:**
 
-- Basis has not been recorded: [Byte\-exact evidence](#record-check-evidence)
+- Basis has not been recorded: [Byte-exact evidence](#record-check-evidence)
+
+<!-- Generated by Archivarius; edit the project JSON, not this file. -->
