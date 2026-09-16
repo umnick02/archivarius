@@ -1,0 +1,34 @@
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Resolve Chrome for the headless render checks
+        run: |
+          which google-chrome || which chromium || which chromium-browser
+          echo "CHROME_PATH=$(which google-chrome || which chromium || which chromium-browser)" >> "$GITHUB_ENV"
+      - run: npm run check
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: render-screenshots
+          path: .runtime/*.png
+          if-no-files-found: ignore

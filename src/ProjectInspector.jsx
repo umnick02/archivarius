@@ -1,4 +1,3 @@
-import React from 'react';
 import { ProjectDocument } from './ProjectDocument.jsx';
 import { useArchitecture, format } from './context.jsx';
 import { recordReferences, digest } from './project.mjs';

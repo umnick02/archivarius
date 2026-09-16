@@ -1,11 +1,29 @@
 import ELK from 'elkjs/lib/elk.bundled.js';
 import { ArchitectureGraph } from '../graph.mjs';
+import { digest } from '../digest.mjs';
 import { createConnectors } from './connectors.mjs';
+
+// Geometry depends only on the node tree and the relations, so an unchanged
+// model is laid out once per session however often it is opened or remounted.
+const computed = new Map();
+const retained = 4;
 
 // ELK lays out each containment level. Child layouts are scaled into stable
 // parent rectangles; viewport changes never trigger another layout calculation.
-export async function buildLayout(model, { signal } = {}) {
+export async function buildLayout(model, { signal, cached = true } = {}) {
   signal?.throwIfAborted();
+  if (!cached) return layoutModel(model, signal);
+  const key = digest({ nodes: model.nodes, relations: model.relations });
+  const previous = computed.get(key);
+  if (previous) return previous;
+  const layout = await layoutModel(model, signal);
+  computed.set(key, layout);
+  for (const stale of [...computed.keys()].slice(0, -retained))
+    computed.delete(stale);
+  return layout;
+}
+
+async function layoutModel(model, signal) {
   const graph = ArchitectureGraph.validate(model);
   if (graph.errors.length) throw new Error(graph.errors.join('\n'));
   const elk = new ELK();

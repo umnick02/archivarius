@@ -1,11 +1,18 @@
-import React, { forwardRef, useEffect, useId, useRef, useState } from 'react';
+import {
+  Component,
+  forwardRef,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from 'react';
 import { ReactFlowProvider } from '@xyflow/react';
 import { App } from './App.jsx';
 import { ArchitectureContext, format } from './context.jsx';
 import { prepareArchitecture, readResources } from './load.mjs';
 import { colors } from './view.mjs';
 
-class MapBoundary extends React.Component {
+class MapBoundary extends Component {
   state = { error: null };
   static getDerivedStateFromError(error) {
     return { error };

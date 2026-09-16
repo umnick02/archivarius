@@ -2,7 +2,19 @@ import { runCli, requireBuild } from './framework.mjs';
 
 try {
   const [command, ...args] = process.argv.slice(2);
-  if (['validate', 'read', 'context', 'apply', 'documents', 'verify', 'run', 'archive'].includes(command)) {
+  if (
+    [
+      'validate',
+      'read',
+      'context',
+      'apply',
+      'docs',
+      'documents',
+      'verify',
+      'run',
+      'archive',
+    ].includes(command)
+  ) {
     try {
       runCli(command, args);
     } catch (error) {
@@ -27,7 +39,7 @@ try {
       });
   } else
     throw new Error(
-      'Expected validate, read, context, apply, documents, verify, run, archive or serve',
+      'Expected validate, read, context, apply, docs, documents, verify, run, archive or serve',
     );
 } catch (error) {
   process.stdout.write(

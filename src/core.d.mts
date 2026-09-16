@@ -35,6 +35,7 @@ export function validateArchitecture(model: unknown): {
   errors: string[];
   diagnostics: ArchitectureDiagnostic[];
 };
+export function parseJSON(text: string): unknown;
 export function parseArchitecture(text: string): ArchitectureInput;
 export interface ProjectReason {
   code: string;

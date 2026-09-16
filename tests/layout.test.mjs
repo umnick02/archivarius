@@ -79,7 +79,9 @@ test('ELK geometry covers the model without overlapping siblings or escaping par
 });
 
 test('rebuilding the same model preserves positions and routes', async () => {
-  assert.deepEqual(await buildLayout(model), layout);
+  const rebuilt = await buildLayout(model, { cached: false });
+  assert.notEqual(rebuilt, layout);
+  assert.deepEqual(rebuilt, layout);
 });
 
 test('every semantic zoom uses original relations, visible endpoints, and fixed geometry', () => {
@@ -148,4 +150,28 @@ test('descendant connectors stay outside unrelated sibling boxes', () => {
       }
     }
   }
+});
+
+test('an unchanged model reuses its computed geometry and a changed one does not', async () => {
+  assert.equal(await buildLayout(structuredClone(model)), layout);
+  const changed = structuredClone(model);
+  changed.nodes.at(-1).key = changed.nodes.at(-1).key + '-moved';
+  for (const relation of changed.relations)
+    for (const side of ['from', 'to'])
+      if (relation[side] === model.nodes.at(-1).key)
+        relation[side] = changed.nodes.at(-1).key;
+  const other = await buildLayout(changed);
+  assert.notEqual(other, layout);
+  assert.deepEqual(checkLayout(changed, other), []);
+});
+
+test('the reported layout engine version is the installed one', () => {
+  const installed = JSON.parse(
+    fs.readFileSync(
+      new URL('../node_modules/elkjs/package.json', import.meta.url),
+      'utf8',
+    ),
+  );
+  assert.equal(layout.engine, 'elkjs');
+  assert.equal(layout.version, installed.version);
 });

@@ -1,16 +1,22 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 
 export function usePanelNavigation(root, initial, readScene, restoreScene) {
   const [panel, setPanel] = useState(initial);
+  const [depth, setDepth] = useState(0);
   const current = useRef(initial),
     stack = useRef([]),
     returnFocus = useRef(null);
   const sequence = useRef(0);
   const callbacks = useRef({ readScene, restoreScene });
-  callbacks.current = { readScene, restoreScene };
+  // The scene callbacks are only invoked from committed handlers, so they are
+  // published after commit rather than mutated during render.
+  useLayoutEffect(() => {
+    callbacks.current = { readScene, restoreScene };
+  }, [readScene, restoreScene]);
   const commit = useCallback((next) => {
     current.current = next;
     setPanel(next);
+    setDepth(stack.current.length);
   }, []);
   const capture = useCallback(() => {
     const element = root.current?.querySelector('[data-control="inspector"]');
@@ -65,6 +71,6 @@ export function usePanelNavigation(root, initial, readScene, restoreScene) {
     back,
     close,
     reset,
-    canBack: !!stack.current.length,
+    canBack: depth > 0,
   };
 }

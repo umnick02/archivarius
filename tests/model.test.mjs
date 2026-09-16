@@ -11,7 +11,7 @@ const read = (name) =>
   JSON.parse(fs.readFileSync(new URL('../' + name, import.meta.url), 'utf8'));
 const model = read('examples/basic/public/architecture.json');
 const schema = new Ajv({ strict: false }).compile(
-  read('assets/legacy.schema.json'),
+  read('assets/architecture.schema.json'),
 );
 const node = (model, key) => Graph.validate(model).nodes.get(key);
 const confirm = (item) =>

@@ -1,12 +1,10 @@
 import fs from 'node:fs/promises';
 
-export async function connectBrowser() {
-  const targets = await (
-    await fetch('http://127.0.0.1:44890/json/list')
-  ).json();
-  const socket = new WebSocket(
-    targets.find((t) => t.type === 'page').webSocketDebuggerUrl,
-  );
+export async function connectBrowser(endpoint) {
+  const targets = await (await fetch(endpoint + '/json/list')).json();
+  const page = targets.find((t) => t.type === 'page');
+  if (!page) throw new Error('CDP_NO_PAGE: ' + endpoint);
+  const socket = new WebSocket(page.webSocketDebuggerUrl);
   await new Promise((resolve, reject) => {
     socket.onopen = resolve;
     socket.onerror = reject;

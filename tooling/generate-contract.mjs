@@ -8,7 +8,12 @@ const root = new URL('../', import.meta.url);
 const output = new URL('src/generated/', root);
 await fs.mkdir(output, { recursive: true });
 for (const [file, name, validatorName, typeName] of [
-  ['legacy.schema.json', 'ArchitectureModel', 'validate.mjs', 'model.d.mts'],
+  [
+    'architecture.schema.json',
+    'ArchitectureModel',
+    'validate.mjs',
+    'model.d.mts',
+  ],
   [
     'model.schema.json',
     'ProjectModel',

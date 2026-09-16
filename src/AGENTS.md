@@ -14,6 +14,8 @@ Invariants:
   links.
 - `generated/` is compiled from `assets/model.schema.json`; regenerate with
   `npm run generate`, never hand-edit it.
+- `project-document.mjs` generates the architecture diagram from the `component`
+  and `interaction` records; there is no hand-drawn second copy of the graph.
 - English only: no locale parameter on any export, and `context.jsx` pluralizes
   with `one`/`other` against `assets/strings.json` (`"locale":"en"`).
 

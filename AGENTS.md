@@ -19,6 +19,10 @@ by LLM agents. Read the directory instructions before editing.
   regenerate with `npm run generate`.
 - English is the only language. `assets/strings.json` keeps `"locale":"en"`; there
   is no locale parameter on any exported function.
+- `README.md` is generated from the documentation model by the library's own `docs`
+  command (`npm run docs:readme`), including its Mermaid architecture diagram.
+  Never hand-edit it; change `docs/project.json` and regenerate. `npm run check`
+  fails on drift, and Prettier ignores it.
 
 ## Find the owner
 
@@ -46,12 +50,14 @@ Use the Node version in `.nvmrc`; run commands from the repository root.
 | ------------------------------------ | ---------------------------------------------------------------- |
 | `npm run build`                      | Compile `src/` and copy `assets/` into `dist/`                   |
 | `npm test`                           | Node test suites in `tests/*.test.mjs` (regenerates contract)    |
-| `npm run test:browser`               | Headless render checks for the map and project browser           |
+| `npm run lint`                       | ESLint: hook rules, unused code and the no-I/O module boundary   |
+| `npm run test:browser`               | Headless render checks (own Chrome and server; needs `dist`)     |
 | `npm run test:package`               | Pack the tarball and validate an installed consumer              |
-| `npm run check`                      | `build` then `test` then `test:package`                          |
+| `npm run check`                      | Everything above plus `format:check` and `docs:readme:check`     |
 | `npm run generate`                   | Regenerate the contract validators/types in `src/generated/`     |
 | `npm run docs:validate`              | Validate the whole documentation model                           |
 | `npm run docs:read -- --focus <key>` | Read a subject's definitions without edit metadata               |
+| `npm run docs:readme`                | Regenerate `README.md` from the model                            |
 | `npm run docs:serve`                 | Local documentation viewer at `http://127.0.0.1:4174/`           |
 | `npm run format:check`               | Prettier check (`docs/` is ignored; the model is validated JSON) |
 
@@ -59,4 +65,5 @@ Use the Node version in `.nvmrc`; run commands from the repository root.
 
 Keep instructions concise: no README clones, no prose documentation outside
 `docs/project.json`, no stale previews or copied contracts. Historical design is in
-Git. Never hand-edit `src/generated/`; regenerate it. Format before committing.
+Git. Never hand-edit `src/generated/` or `README.md`; regenerate them. Format
+before committing.

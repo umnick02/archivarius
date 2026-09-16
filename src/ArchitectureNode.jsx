@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { Handle, useViewport, useUpdateNodeInternals } from '@xyflow/react';
 import { format, useArchitecture } from './context.jsx';
 import { ImplementationMark } from './ImplementationMark.jsx';

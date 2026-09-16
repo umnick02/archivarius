@@ -11,6 +11,8 @@ export function relativeArtifactPath(path) {
     typeof path === 'string' &&
     path.length > 0 &&
     !path.startsWith('/') &&
+    // NUL is rejected on purpose: it truncates paths in native filesystem calls.
+    // eslint-disable-next-line no-control-regex
     !/[\\:#?%\u0000]/.test(path) &&
     path.split('/').every((part) => part && part !== '.' && part !== '..')
   );

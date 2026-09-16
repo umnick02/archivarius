@@ -14,7 +14,7 @@ export async function readArchitecture(source, { signal } = {}) {
     let response;
     try {
       response = await fetch(source, { signal });
-    } catch (error) {
+    } catch {
       signal?.throwIfAborted();
       throw new ArchitectureError('MODEL_LOAD_FAILED');
     }

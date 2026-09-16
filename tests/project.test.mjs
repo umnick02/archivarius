@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { validateArchitecture, parseArchitecture } from '../src/core.mjs';
+import { parseArchitecture } from '../src/core.mjs';
 import {
   validateProject,
   analyzeProject,
@@ -465,6 +465,42 @@ test('documentation and history retain records and links without a separate pros
   const broken = structuredClone(model);
   broken.history[0].record.parameters.maxRows = 999;
   assert.equal(validateProject(broken).valid, false);
+});
+
+test('documentation renders the architecture as a diagram generated from components and interactions', async () => {
+  const model = clone();
+  const markdown = await generateDocumentation(model);
+  const fence = markdown.match(/```mermaid\n([\s\S]*?)\n```/);
+  assert(fence, 'expected a generated mermaid block');
+  const diagram = fence[1];
+  assert.match(diagram, /^flowchart/);
+  const components = model.records.filter((r) => r.type === 'component');
+  const interactions = model.records.filter((r) => r.type === 'interaction');
+  // Every component appears as a node and every subsystem groups its children.
+  for (const component of components) {
+    assert(
+      diagram.includes(component.key),
+      'missing component ' + component.key,
+    );
+    assert(
+      diagram.includes(component.title),
+      'missing title ' + component.title,
+    );
+    if (components.some((other) => other.parent === component.key))
+      assert(
+        diagram.includes('subgraph ' + component.key),
+        'missing subgraph ' + component.key,
+      );
+  }
+  // Every interaction appears as an edge labelled with its channel.
+  for (const interaction of interactions)
+    assert(
+      diagram.includes(interaction.from) &&
+        diagram.includes(interaction.to) &&
+        diagram.includes(interaction.channel),
+      'missing interaction ' + interaction.key,
+    );
+  assert.equal(markdown, await generateDocumentation(structuredClone(model)));
 });
 
 test('actual check records bind command, source bytes and outcome; stale and missing evidence cannot confirm', async (t) => {

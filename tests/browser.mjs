@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import { connectBrowser, pause } from './cdp.mjs';
+import { pause } from './cdp.mjs';
+import { startHarness } from './harness.mjs';
 import { generateDocumentation } from '../src/node.mjs';
 
 const model = JSON.parse(
@@ -12,7 +13,8 @@ const model = JSON.parse(
 const copy = JSON.parse(
   await fs.readFile(new URL('../assets/strings.json', import.meta.url), 'utf8'),
 );
-const b = await connectBrowser();
+const harness = await startHarness();
+const b = harness.browser;
 const state = (name = 'first') =>
   b.evaluate((name) => window.consumer[name].snapshot(), name);
 const focus = async (key) => {
@@ -83,7 +85,7 @@ try {
     mobile: false,
   });
   await b.call('Page.navigate', {
-    url: 'http://127.0.0.1:44891/embedded/maps/',
+    url: harness.url,
   });
   await pause(1500);
   assert(
@@ -529,11 +531,11 @@ try {
   assert(
     b.requests
       .filter((url) => /^https?:/.test(url))
-      .every((url) => url.startsWith('http://127.0.0.1:44891/')),
+      .every((url) => url.startsWith(harness.origin + '/')),
   );
   console.log(
     'PASS: installed package, independent maps, scoped CSS and keyboard, semantic zoom, file replacement, cancellation, failures, implementation evidence, StrictMode, destroy/remount, mobile, external resources.',
   );
 } finally {
-  b.close();
+  await harness.stop();
 }

@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import { connectBrowser, pause } from './cdp.mjs';
+import { pause } from './cdp.mjs';
+import { startHarness } from './harness.mjs';
 import { analyzeProject, contractDigest } from '../src/project.mjs';
 import { hashBytes } from '../src/digest.mjs';
 import { executeProjectCheck } from '../src/node.mjs';
@@ -14,7 +15,8 @@ const project = JSON.parse(
 const copy = JSON.parse(
   await fs.readFile(new URL('../assets/project.json', import.meta.url), 'utf8'),
 );
-const b = await connectBrowser();
+const harness = await startHarness();
+const b = harness.browser;
 const evidenceDirectory = new URL(
   '../.runtime/consumer/dist/implementation-fixture/',
   import.meta.url,
@@ -49,7 +51,7 @@ try {
     mobile: false,
   });
   await b.call('Page.navigate', {
-    url: 'http://127.0.0.1:44891/embedded/maps/',
+    url: harness.url,
   });
   await pause(1000);
   await b.evaluate(async () => {
@@ -675,6 +677,6 @@ try {
     'PASS: project views, uncovered requirements, trace links, fixed map geometry, mobile controls and plain-text rendering.',
   );
 } finally {
-  b.close();
+  await harness.stop();
   await fs.rm(evidenceDirectory, { recursive: true, force: true });
 }

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useArchitecture, format } from './context.jsx';
 import { ProjectConfirmation } from './ProjectInspector.jsx';
 import { digest } from './project.mjs';

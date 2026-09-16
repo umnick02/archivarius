@@ -1,4 +1,5 @@
-import React, {
+import {
+  Fragment,
   forwardRef,
   useImperativeHandle,
   useCallback,
@@ -96,22 +97,29 @@ export const App = forwardRef(function App({ onReady }, ref) {
       flow.setViewport(scene.viewport);
     },
   );
-  const { panel } = navigation;
+  const {
+    panel,
+    open: openPanel,
+    close: closePanel,
+    reset: resetPanel,
+  } = navigation;
   useEffect(() => setMobileMap(false), [panel?.entryId]);
   useEffect(() => {
     if (mobileMap) pane.current?.focus({ preventScroll: true });
   }, [mobileMap]);
   const expanded = useMemo(() => {
-    const next = expandedAt(
-      layout,
-      viewport.zoom,
-      size,
-      previousExpanded.current,
-    );
+    const previous = previousExpanded.current;
+    const next = expandedAt(layout, viewport.zoom, size, previous);
+    // Same expansion means the same object, so dependent memos and effects
+    // observe expansion content rather than recomputation.
+    if (
+      previous.size === next.size &&
+      [...next].every((key) => previous.has(key))
+    )
+      return previous;
     previousExpanded.current = next;
     return next;
   }, [layout, viewport.zoom, size]);
-  const expansionKey = [...expanded].join('/');
   const interfaces = useMemo(
     () =>
       new Map(
@@ -124,7 +132,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
   );
   const bundles = useMemo(
     () => projectedEdges(model, graph, layout, expanded, completion.relations),
-    [model, graph, layout, expansionKey, completion],
+    [model, graph, layout, expanded, completion],
   );
   const clearClick = useCallback(() => {
     clearTimeout(pendingClick.current);
@@ -154,8 +162,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
       const ticket = ++fitting.current;
       atHome.current = false;
       setContextEnabled(true);
-      if (!keepPanel)
-        leaf ? navigation.open({ type: 'node', key }) : navigation.close();
+      if (!keepPanel) leaf ? openPanel({ type: 'node', key }) : closePanel();
       setSelected(key);
       explicitFocus.current = key;
       setFocus(key);
@@ -189,21 +196,13 @@ export const App = forwardRef(function App({ onReady }, ref) {
         { duration: duration() },
       );
     },
-    [
-      flow,
-      graph,
-      layout,
-      maxZoom,
-      clearClick,
-      navigation.open,
-      navigation.close,
-    ],
+    [flow, graph, layout, maxZoom, clearClick, openPanel, closePanel],
   );
   const home = useCallback(async () => {
     clearClick();
     const ticket = ++fitting.current;
     atHome.current = true;
-    navigation.reset(
+    resetPanel(
       project &&
         (!graph.nodes.size ||
           (!initialized.current && root.current.clientWidth <= 780))
@@ -236,34 +235,34 @@ export const App = forwardRef(function App({ onReady }, ref) {
       },
       { duration: duration() },
     );
-  }, [flow, layout, clearClick, project, graph, navigation.reset]);
+  }, [flow, layout, clearClick, project, graph, resetPanel]);
   const showNode = useCallback(
     (key) => {
       clearClick();
-      navigation.open({ type: 'node', key });
+      openPanel({ type: 'node', key });
       setSelected(key);
       setContextEnabled(true);
     },
-    [clearClick, navigation.open],
+    [clearClick, openPanel],
   );
   const showRelation = useCallback(
     (bundle) => {
       clearClick();
-      navigation.open({ type: 'relation', bundle });
+      openPanel({ type: 'relation', bundle });
       setSelected(null);
     },
-    [clearClick, navigation.open],
+    [clearClick, openPanel],
   );
   const showRecord = useCallback(
     (key) => {
       clearClick();
-      navigation.open({ type: 'record', key });
+      openPanel({ type: 'record', key });
       if (graph.nodes.has(key)) {
         setSelected(key);
         setContextEnabled(true);
       }
     },
-    [clearClick, navigation.open, graph],
+    [clearClick, openPanel, graph],
   );
   const showOnMap = useCallback(
     async (key) => {
@@ -358,7 +357,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
       graph,
       interfaces,
       bundles,
-      expansionKey,
+      expanded,
       fitNode,
       showNode,
       selected,
@@ -397,9 +396,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
     [
       bundles,
       nodes,
-      viewport.x,
-      viewport.y,
-      viewport.zoom,
+      viewport,
       size,
       panel,
       showRelation,
@@ -416,7 +413,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
       key = graph.parents.get(key);
     }
     return result;
-  }, [graph, focus, expansionKey]);
+  }, [graph, focus, expanded]);
   const up = useCallback(() => {
     const key = path.at(-1),
       parent = key && graph.parents.get(key);
@@ -490,7 +487,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
     viewport.y,
     viewport.zoom,
     size,
-    expansionKey,
+    expanded,
     flow,
     graph,
     layout,
@@ -499,7 +496,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
     function keydown(e) {
       if (e.key === 'Escape') {
         e.preventDefault();
-        panel ? navigation.close() : up();
+        panel ? closePanel() : up();
       } else if (e.key === 'F6') {
         e.preventDefault();
         const inspector = root.current.querySelector(
@@ -530,7 +527,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
     const element = root.current;
     element.addEventListener('keydown', keydown);
     return () => element.removeEventListener('keydown', keydown);
-  }, [flow, home, panel, up, navigation.close, changeZoom]);
+  }, [flow, home, panel, up, closePanel, changeZoom]);
   const snapshot = useRef(null);
   snapshot.current = () => ({
     viewport: flow.getViewport(),
@@ -643,7 +640,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
               data-control="project"
               onClick={() => {
                 clearClick();
-                navigation.open({ type: 'project' });
+                openPanel({ type: 'project' });
               }}
             >
               {projectCopy.button}
@@ -654,7 +651,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
               className="quiet"
               data-control="project-search"
               onClick={() =>
-                navigation.open({
+                openPanel({
                   type: 'project',
                   view: 'all',
                   focusSearch: true,
@@ -687,7 +684,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
             onChange={(e) => {
               clearClick();
               setLayer(e.target.value);
-              navigation.close();
+              closePanel();
             }}
           >
             {Object.entries(copy.layers).map(([key, label]) => (
@@ -701,7 +698,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
             data-control="contracts"
             onClick={() => {
               clearClick();
-              navigation.open({ type: 'contracts' });
+              openPanel({ type: 'contracts' });
             }}
           >
             {copy.rulesButton}
@@ -709,7 +706,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
           <button
             className="quiet"
             data-control="about"
-            onClick={() => navigation.open({ type: 'about' })}
+            onClick={() => openPanel({ type: 'about' })}
           >
             {copy.aboutButton}
           </button>
@@ -848,12 +845,12 @@ export const App = forwardRef(function App({ onReady }, ref) {
       <nav data-control="breadcrumbs" aria-label={copy.positionLabel}>
         <button onClick={home}>{copy.wholeSystem}</button>
         {path.map((key) => (
-          <React.Fragment key={key}>
+          <Fragment key={key}>
             <span>/</span>
             <button onClick={() => fitNode(key)}>
               {graph.nodes.get(key).title}
             </button>
-          </React.Fragment>
+          </Fragment>
         ))}
       </nav>
       {activeKey && (
@@ -943,8 +940,8 @@ export const App = forwardRef(function App({ onReady }, ref) {
         showOnMap={showOnMap}
         showRelation={showRelation}
         showRecord={showRecord}
-        overview={() => navigation.open({ type: 'project' })}
-        close={navigation.close}
+        overview={() => openPanel({ type: 'project' })}
+        close={closePanel}
         navigation={navigation}
         hidden={mobileMap && root.current?.clientWidth <= 780}
       />

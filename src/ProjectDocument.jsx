@@ -1,4 +1,4 @@
-import React from 'react';
+import { Fragment } from 'react';
 import { documentValue, documentData } from './documents.mjs';
 import { useArchitecture } from './context.jsx';
 
@@ -37,10 +37,10 @@ export function ProjectDocument({ document, showRecord }) {
         return (
           <p key={key}>
             {item.lines.map((parts, i) => (
-              <React.Fragment key={i}>
+              <Fragment key={i}>
                 {i > 0 && '\n'}
                 {line(parts)}
-              </React.Fragment>
+              </Fragment>
             ))}
           </p>
         );
@@ -59,10 +59,10 @@ export function ProjectDocument({ document, showRecord }) {
             {item.items.map((lines, i) => (
               <li key={i}>
                 {lines.map((parts, j) => (
-                  <React.Fragment key={j}>
+                  <Fragment key={j}>
                     {j > 0 && ' '}
                     {line(parts)}
-                  </React.Fragment>
+                  </Fragment>
                 ))}
               </li>
             ))}
@@ -165,7 +165,7 @@ export function ProjectDocument({ document, showRecord }) {
       {tree.blocks.map(block)}
       {tree.children.map((item) =>
         item.level === 1 ? (
-          <React.Fragment key={item.index}>
+          <Fragment key={item.index}>
             {!!item.blocks.length && (
               <details data-disclosure={`document-${document.key}-intro`}>
                 <summary>{copy.documentIntro}</summary>
@@ -173,7 +173,7 @@ export function ProjectDocument({ document, showRecord }) {
               </details>
             )}
             {item.children.map(section)}
-          </React.Fragment>
+          </Fragment>
         ) : (
           section(item)
         ),

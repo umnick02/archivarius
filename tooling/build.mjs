@@ -31,7 +31,8 @@ for (const entry of await fs.readdir(new URL('src/', root), {
         loader: 'jsx',
         format: 'esm',
         target: 'es2022',
-        jsx: 'transform',
+        jsx: 'automatic',
+        jsxImportSource: 'react',
       })
     ).code;
   }
@@ -56,7 +57,13 @@ css.walkAtRules(/keyframes$/, (rule) => {
 css.walkRules((rule) => {
   if (rule.parent.type === 'atrule' && /keyframes$/.test(rule.parent.name))
     return;
-  rule.selectors = rule.selectors.map((selector) => '.archivarius ' + selector);
+  rule.selectors = rule.selectors.map((selector) => {
+    // A vendored selector outside the mount point cannot be scoped, so an
+    // upgrade that introduces one fails the build instead of leaking globally.
+    if (/^(:root\b|html\b|body\b|\*(\s|$|,))/.test(selector.trim()))
+      throw new Error('UNSCOPABLE_VENDOR_SELECTOR: ' + selector);
+    return '.archivarius ' + selector;
+  });
 });
 const own = await read('src/styles.css');
 await fs.writeFile(

@@ -4,3 +4,4 @@ docs/
 .runtime/
 package-lock.json
 src/generated/
+README.md

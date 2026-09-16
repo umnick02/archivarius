@@ -1,4 +1,3 @@
-import React from 'react';
 import { BaseEdge, EdgeLabelRenderer, useViewport } from '@xyflow/react';
 import { relationCount, useArchitecture } from './context.jsx';
 import { edgeImplementationPoint, kindColors } from './view.mjs';

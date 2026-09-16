@@ -8,7 +8,7 @@ const escape = (value) =>
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
-    .replace(/([\\`*_[\]{}()#+.!|~\-])/g, '\\$1')
+    .replace(/([\\`*_[\]{}()#+.!|~-])/g, '\\$1')
     .replace(/\r\n?/g, '\n');
 const inline = (value) => escape(value).replaceAll('\n', ' ');
 

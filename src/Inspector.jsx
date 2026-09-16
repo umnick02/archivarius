@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { relationCount, useArchitecture } from './context.jsx';
 import { renderDocumentation } from './document.mjs';
 import { ProjectInspector, ProjectConfirmation } from './ProjectInspector.jsx';
@@ -143,6 +143,9 @@ export function Inspector({
       : target
     )?.focus({ preventScroll: true });
     if (changed) target.scrollTop = panel.scroll || 0;
+    // Restoration belongs to the history entry: disclosures, search focus and
+    // scroll are read for the entry being entered, never on later edits of it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [panel?.entryId, hidden]);
   if (!panel) return null;
   const node = panel.type === 'node' ? graph.nodes.get(panel.key) : null;
