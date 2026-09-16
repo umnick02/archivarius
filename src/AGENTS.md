@@ -26,9 +26,14 @@ Invariants:
 - The root modules are export surfaces: behavior lives in a layer, so `core.mjs`
   re-exports `model/parse.mjs` instead of holding the parser.
 - The browser surface displays validated model facts and keeps only presentation
-  state (zoom, focus, selection). `ui/load.mjs` is the sole `fetch` caller.
+  state (zoom, focus, selection). ESLint bans `fetch`, `XMLHttpRequest`,
+  `WebSocket` and `EventSource` everywhere in `src/` except `ui/load.mjs`, so a
+  component cannot grow a request that skips its parse and validation.
 - Render model content as literal text — no executable Markdown or active-content
   links.
+- `ui/Inspector.jsx` is the panel shell: it holds the navigation and dispatches on
+  `panel.type` to one module per panel. A second panel that shows the same facts
+  reuses that panel's component and passes its own wrapper attributes.
 - `generated/` is compiled from `assets/model.schema.json`; regenerate with
   `npm run generate`, never hand-edit it.
 - `model/project-architecture.mjs` projects the `component` and `interaction`

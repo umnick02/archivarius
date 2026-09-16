@@ -3,6 +3,9 @@ import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';
 
 const browser = { ...globals.browser, ...globals.es2024 };
+const network = ['fetch', 'XMLHttpRequest', 'WebSocket', 'EventSource'].map(
+  (name) => ({ name, message: 'Only src/ui/load.mjs reads over the network.' }),
+);
 const node = { ...globals.node, ...globals.es2024 };
 
 export default [
@@ -55,6 +58,21 @@ export default [
           ],
         },
       ],
+      'no-restricted-globals': [
+        'error',
+        {
+          name: 'process',
+          message: 'Only src/io/, src/node.mjs and src/cli.mjs do I/O.',
+        },
+        ...network,
+      ],
+    },
+  },
+  {
+    // The one module that fetches a model over the network, so a component
+    // cannot grow its own request and bypass the parse and validation it does.
+    files: ['src/ui/load.mjs'],
+    rules: {
       'no-restricted-globals': [
         'error',
         {
