@@ -8,7 +8,7 @@ import { recordSummary } from '../src/model/project-view.mjs';
 import { renderReadme, readCopy } from '../docs/scripts/readme.mjs';
 
 const model = JSON.parse(
-  await fs.readFile(new URL('../docs/project.json', import.meta.url), 'utf8'),
+  await fs.readFile(new URL('../project.json', import.meta.url), 'utf8'),
 );
 const copy = await readCopy();
 // A heading or a note is wording the map already shows, never a word of the

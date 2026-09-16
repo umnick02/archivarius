@@ -1,6 +1,6 @@
 # Documentation model
 
-[project.json](project.json) is the sole editable documentation source for
+[../project.json](../project.json) is the sole editable documentation source for
 Archivarius. Requirements, criteria, decisions, components, interfaces,
 interactions, tasks and checks own their definitions; nothing here is prose in
 separate Markdown files. Code, agent instructions and actual evidence remain

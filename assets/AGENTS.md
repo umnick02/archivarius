@@ -2,7 +2,7 @@
 
 These files are the library's versioned contract, packaged into `dist/assets/` and
 loaded at runtime by `src/`. They are consumer-facing artifacts, not this project's
-own documentation — internal docs live in [docs/project.json](../docs/project.json)
+own documentation — internal docs live in [project.json](../project.json)
 (see the [JSON reading route](../docs/AGENTS.md)).
 
 Invariants:

@@ -8,7 +8,7 @@ by LLM agents. Read the directory instructions before editing.
 
 ## Authority
 
-- [docs/project.json](docs/project.json) is the sole editable documentation model.
+- [project.json](project.json) is the sole editable documentation model.
   Read focused records through `docs:read`, capture receipts with
   `docs:context --output`, edit with `docs:apply`, and serve the local viewer with
   `docs:serve`. Agents and the viewer read the JSON directly.
@@ -23,14 +23,14 @@ by LLM agents. Read the directory instructions before editing.
   is no locale parameter on any exported function.
 - `README.md` is generated from the documentation model by the library's own `docs`
   command (`npm run docs:readme`), including its Mermaid architecture diagram.
-  Never hand-edit it; change `docs/project.json` and regenerate. `npm run check`
+  Never hand-edit it; change `project.json` and regenerate. `npm run check`
   fails on drift, and Prettier ignores it.
 
 ## Find the owner
 
 | Subject                                   | Entry point                              | Instructions                                     |
 | ----------------------------------------- | ---------------------------------------- | ------------------------------------------------ |
-| Requirements, decisions, plan             | `docs/project.json`                      | [docs/AGENTS.md](docs/AGENTS.md)                 |
+| Requirements, decisions, plan             | `project.json`                           | [docs/AGENTS.md](docs/AGENTS.md)                 |
 | Browser map, mount, panels                | `src/index.jsx`, `src/ui/`               | [src/AGENTS.md](src/AGENTS.md)                   |
 | Validation, parse, document render        | `src/core.mjs`, `src/model/`             | [src/AGENTS.md](src/AGENTS.md)                   |
 | File reads, CLI, project check            | `src/node.mjs`, `src/cli.mjs`, `src/io/` | [src/AGENTS.md](src/AGENTS.md)                   |
@@ -65,10 +65,10 @@ Use the Node version in `.nvmrc`; run commands from the repository root.
 | `npm run docs:read -- --focus <key>` | Read a subject's definitions without edit metadata                            |
 | `npm run docs:readme`                | Regenerate `README.md` from the model                                         |
 | `npm run docs:serve`                 | Local documentation viewer at `http://127.0.0.1:4174/`                        |
-| `npm run format:check`               | Prettier check (`docs/project.json` is ignored; it is validated JSON)         |
+| `npm run format:check`               | Prettier check (`project.json` is ignored; it is validated JSON)         |
 
 ## Repository hygiene
 
 Keep instructions concise: no README clones, no prose documentation outside
-`docs/project.json`, no stale previews or copied contracts. Historical design is in
+`project.json`, no stale previews or copied contracts. Historical design is in
 Git. Format before committing.

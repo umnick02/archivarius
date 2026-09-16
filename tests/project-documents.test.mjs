@@ -79,7 +79,7 @@ test('diagram identifiers never collide with Mermaid keywords', async () => {
     'default',
   ];
   const model = JSON.parse(
-    await fs.readFile(new URL('../docs/project.json', import.meta.url), 'utf8'),
+    await fs.readFile(new URL('../project.json', import.meta.url), 'utf8'),
   );
   assert(
     model.records.some(

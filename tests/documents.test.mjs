@@ -126,7 +126,7 @@ test('the help text and the documented CLI record name the same commands', async
   );
   assert(commands.length > 1, 'the help must list the command surface');
   const project = JSON.parse(
-    await fs.readFile(new URL('docs/project.json', root), 'utf8'),
+    await fs.readFile(new URL('project.json', root), 'utf8'),
   );
   const summary = project.records.find(
     (record) => record.key === 'cli',
