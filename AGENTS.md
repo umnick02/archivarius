@@ -58,6 +58,7 @@ Use the Node version in `.nvmrc`; run commands from the repository root.
 | `npm run test:browser`               | Headless render checks (own Chrome and server; needs `dist`)                  |
 | `npm run test:package`               | Pack the tarball and validate an installed consumer                           |
 | `npm run lint:package`               | publint and attw: export map and type resolution                              |
+| `npm run lint:types`                 | `tsc --checkJs` over `src/model/` against the JSDoc types                     |
 | `npm run check`                      | Everything above plus `format:check`, `docs:validate` and `docs:readme:check` |
 | `npm run generate`                   | Regenerate the contract validators/types in `src/generated/`                  |
 | `npm run docs:validate`              | Validate the whole documentation model                                        |

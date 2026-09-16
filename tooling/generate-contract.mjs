@@ -61,9 +61,11 @@ for (const [file, name, validatorName, typeName] of [
     bannerComment: '',
     style: { singleQuote: true },
   });
+  // The bundle is ajv's output, so it is neither formatted nor typed by hand:
+  // `npm run lint:types` reads the shape from checkStructure's JSDoc instead.
   await fs.writeFile(
     new URL(validatorName, output),
-    bundled.outputFiles[0].text,
+    '// @ts-nocheck\n' + bundled.outputFiles[0].text,
   );
   await fs.writeFile(new URL(typeName, output), types);
   if (name === 'ProjectModel') {

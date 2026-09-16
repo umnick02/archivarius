@@ -42,6 +42,11 @@ Invariants:
 - `model/documents.mjs` owns the single Markdown escaper every renderer uses; it
   neutralizes structure, not punctuation.
 - `ui/context.jsx` pluralizes with `one`/`other` against `assets/strings.json`.
+- `npm run lint:types` type-checks `model/` with `tsc --checkJs` against JSDoc,
+  so a boundary that types cannot infer is described where it is produced —
+  `errors.mjs` owns the `Diagnostic` shape every validator returns. Add the next
+  layer to `tsconfig.json` `include` by annotating it, never by loosening the
+  compiler options.
 
 Co-locate behavior with its owner, add tests in [tests/](../tests/AGENTS.md), and
 run `npm test` + `npm run test:browser` from the root.

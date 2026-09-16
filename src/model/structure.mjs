@@ -4,6 +4,15 @@ import validateProject from '../generated/validate-project.mjs';
 const pointer = (value) =>
   String(value).replaceAll('~', '~0').replaceAll('/', '~1');
 
+/**
+ * @typedef {{ instancePath: string, keyword: string, schemaPath: string,
+ *   params: Record<string, string | undefined> }} SchemaError
+ * @typedef {((model: unknown) => boolean) & { errors?: SchemaError[] | null }}
+ *   SchemaValidator
+ * @param {{ version?: unknown }} model any parsed JSON, shape unverified
+ * @param {SchemaValidator} [validator]
+ * @returns {import('./errors.mjs').Diagnostic[]}
+ */
 export function checkStructure(
   model,
   validator = model?.version === 4 ? validateProject : validate,
