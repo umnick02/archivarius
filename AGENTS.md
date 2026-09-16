@@ -49,23 +49,24 @@ proves a supported product behavior on its own.
 
 Use the Node version in `.nvmrc`; run commands from the repository root.
 
-| Command                              | Scope                                                                         |
-| ------------------------------------ | ----------------------------------------------------------------------------- |
-| `npm run build`                      | Compile `src/` and copy `assets/` into `dist/`                                |
-| `npm test`                           | Node test suites in `tests/*.test.mjs` (regenerates contract, builds `dist`)  |
-| `npm run test:coverage`              | The same suites with `src/` coverage floors enforced                          |
-| `npm run lint`                       | ESLint: hook rules, unused code and the no-I/O module boundary                |
-| `npm run test:browser`               | Headless render checks (own Chrome and server; needs `dist`)                  |
-| `npm run test:package`               | Pack the tarball and validate an installed consumer                           |
-| `npm run lint:package`               | publint and attw: export map and type resolution                              |
-| `npm run lint:types`                 | `tsc --checkJs` over `src/model/` against the JSDoc types                     |
-| `npm run check`                      | Everything above plus `format:check`, `docs:validate` and `docs:readme:check` |
-| `npm run generate`                   | Regenerate the contract validators/types in `src/generated/`                  |
-| `npm run docs:validate`              | Validate the whole documentation model                                        |
-| `npm run docs:read -- --focus <key>` | Read a subject's definitions without edit metadata                            |
-| `npm run docs:readme`                | Regenerate `README.md` from the model                                         |
-| `npm run docs:serve`                 | Local documentation viewer at `http://127.0.0.1:4174/`                        |
-| `npm run format:check`               | Prettier check (`project.json` is ignored; it is validated JSON)              |
+| Command                              | Scope                                                                                            |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| `npm run build`                      | Compile `src/` and copy `assets/` into `dist/`                                                   |
+| `npm test`                           | Node test suites in `tests/*.test.mjs` (regenerates contract, builds `dist`)                     |
+| `npm run test:coverage`              | The same suites with `src/` coverage floors enforced                                             |
+| `npm run lint`                       | ESLint: hook rules, unused code and the no-I/O module boundary                                   |
+| `npm run test:browser`               | Headless render checks (own Chrome and server; needs `dist`)                                     |
+| `npm run test:package`               | Pack the tarball and validate an installed consumer                                              |
+| `npm run lint:package`               | publint and attw: export map and type resolution                                                 |
+| `npm run lint:types`                 | `tsc --checkJs` over `src/model/` against the JSDoc types                                        |
+| `npm run check`                      | Everything above plus `format:check`, `docs:bind:check`, `docs:validate` and `docs:readme:check` |
+| `npm run generate`                   | Regenerate the contract validators/types in `src/generated/`                                     |
+| `npm run docs:validate`              | Validate the whole documentation model                                                           |
+| `npm run docs:read -- --focus <key>` | Read a subject's definitions without edit metadata                                               |
+| `npm run docs:readme`                | Regenerate `README.md` from the model                                                            |
+| `npm run docs:bind`                  | Recompute the file bindings of the described parts from disk                                     |
+| `npm run docs:serve`                 | Local documentation viewer at `http://127.0.0.1:4174/`                                           |
+| `npm run format:check`               | Prettier check (`project.json` is ignored; it is validated JSON)                                 |
 
 ## Repository hygiene
 

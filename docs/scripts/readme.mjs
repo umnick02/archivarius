@@ -62,8 +62,33 @@ const table = (copy, type, entries, extra = []) => {
   ];
 };
 
-export function renderReadme(model, copy) {
-  assertProject(model);
+// A part this repository does not bind to a file is a part it does not carry
+// yet, and a landing page that shows it promises code a reader cannot open. The
+// map and the full documentation still hold it, with the reasons it is missing.
+const carried = (model) => {
+  const bound = (key) => Boolean(model.bindings[key]);
+  const gone = new Set();
+  for (let settled = false; !settled; ) {
+    settled = true;
+    for (const record of model.records) {
+      if (gone.has(record.key)) continue;
+      const links = [record.parent, record.from, record.to, record.contract];
+      if (
+        (['component', 'interaction', 'interface'].includes(record.type) &&
+          !bound(record.key)) ||
+        links.some((key) => key && gone.has(key))
+      ) {
+        gone.add(record.key);
+        settled = false;
+      }
+    }
+  }
+  return { ...model, records: model.records.filter((r) => !gone.has(r.key)) };
+};
+
+export function renderReadme(whole, copy) {
+  assertProject(whole);
+  const model = carried(whole);
   const records = (type) => model.records.filter((r) => r.type === type);
   const scope = records('scope')[0];
   const architecture = projectArchitecture(model);
@@ -82,7 +107,7 @@ export function renderReadme(model, copy) {
   // overview and the full documentation carry the gaps with their keys. Here it
   // would only be an aggregate about this file's own bookkeeping.
   const confirmed = new Set(
-    analyzeProject(model).completion[scope.key].progress.confirmedCriteria,
+    analyzeProject(whole).completion[scope.key].progress.confirmedCriteria,
   );
   return [
     '# ' + scope.title,

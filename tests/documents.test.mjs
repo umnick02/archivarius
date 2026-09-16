@@ -5,6 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { generateDocumentation, readArchitectureFile } from '../src/node.mjs';
 import { renderDocumentation } from '../src/model/document.mjs';
 import { ArchitectureGraph } from '../src/model/graph.mjs';
+import { hashBytes } from '../src/model/digest.mjs';
 
 const root = new URL('../', import.meta.url);
 const model = await readArchitectureFile(
@@ -139,4 +140,25 @@ test('the help text and the documented CLI record name the same commands', async
     [],
     'the cli record omits a command the help offers',
   );
+});
+
+// A binding is a claim about bytes on disk. Left to hand editing it rots into a
+// digest of a file nobody has today, so the repository proves it instead.
+test('every described part of this repository is bound to the file that carries it', async () => {
+  const project = JSON.parse(
+    await fs.readFile(new URL('project.json', root), 'utf8'),
+  );
+  const described = project.records
+    .filter((record) =>
+      ['scope', 'component', 'interaction', 'interface'].includes(record.type),
+    )
+    .map((record) => record.key)
+    .sort();
+  assert.deepEqual(Object.keys(project.bindings).sort(), described);
+  for (const [key, binding] of Object.entries(project.bindings))
+    assert.equal(
+      hashBytes(new Uint8Array(await fs.readFile(new URL(binding.path, root)))),
+      binding.digest,
+      key + ' names bytes this repository does not have',
+    );
 });

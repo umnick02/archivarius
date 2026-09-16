@@ -169,6 +169,28 @@ test('the readme states what every part does and what crosses every edge', () =>
     );
 });
 
+test('the readme states only the parts whose realization the model binds', () => {
+  const record = model.records.find((r) => r.key === 'inspector');
+  assert(renderReadme(model, copy).includes(recordSummary(record)));
+  const unbound = structuredClone(model);
+  delete unbound.bindings.inspector;
+  const readme = renderReadme(unbound, copy);
+  assert(
+    !readme.includes(recordSummary(record)),
+    'an unbound part still states what it does',
+  );
+  assert(!readme.includes('c-inspector'), 'an unbound part is still drawn');
+  assert(
+    !readme.includes(
+      recordSummary({
+        ...model.records.find((r) => r.key === 'record-detail'),
+        type: 'interface',
+      }),
+    ),
+    'an edge into an unbound part survived it',
+  );
+});
+
 test('the generator never names a field of the schema', async () => {
   const source = await fs.readFile(
     new URL('../docs/scripts/readme.mjs', import.meta.url),
