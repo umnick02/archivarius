@@ -1,5 +1,5 @@
 import { Position } from '@xyflow/react';
-import { ArchitectureGraph } from './graph.mjs';
+import { ArchitectureGraph } from '../model/graph.mjs';
 
 export const colors = [
   '#5779a6',

@@ -1,5 +1,5 @@
 import { Fragment } from 'react';
-import { documentValue, documentData } from './documents.mjs';
+import { documentValue, documentData } from '../model/documents.mjs';
 import { useArchitecture } from './context.jsx';
 
 export function ProjectDocument({ document, showRecord }) {

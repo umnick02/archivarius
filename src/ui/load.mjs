@@ -1,12 +1,16 @@
-import { ArchitectureGraph } from './graph.mjs';
+import { ArchitectureGraph } from '../model/graph.mjs';
 import {
   ArchitectureError,
   parseArchitecture,
   validateArchitecture,
-} from './core.mjs';
-import { analyzeProject, projectArchitecture } from './project.mjs';
-import { verifyProjectEvidence, relativeArtifactPath } from './evidence.mjs';
-import { legacyCompletion } from './implementation.mjs';
+} from '../core.mjs';
+import { analyzeProject } from '../model/project-analysis.mjs';
+import { projectArchitecture } from '../model/project-architecture.mjs';
+import {
+  verifyProjectEvidence,
+  relativeArtifactPath,
+} from '../model/evidence.mjs';
+import { legacyCompletion } from '../model/implementation.mjs';
 
 export async function readArchitecture(source, { signal } = {}) {
   signal?.throwIfAborted();
@@ -42,9 +46,9 @@ export async function readArchitecture(source, { signal } = {}) {
 }
 
 const resourceURLs = {
-  strings: new URL('../assets/strings.json', import.meta.url),
-  contracts: new URL('../assets/contracts.json', import.meta.url),
-  project: new URL('../assets/project.json', import.meta.url),
+  strings: new URL('../../assets/strings.json', import.meta.url),
+  contracts: new URL('../../assets/contracts.json', import.meta.url),
+  project: new URL('../../assets/project.json', import.meta.url),
 };
 
 export async function readResources({ assetsBaseUrl, signal } = {}) {
@@ -111,7 +115,7 @@ export async function prepareArchitecture(source, { signal } = {}) {
         layoutPasses: 0,
       },
     };
-  const { buildLayout, checkLayout } = await import('./layout/layout.mjs');
+  const { buildLayout, checkLayout } = await import('../layout/layout.mjs');
   const layout = await buildLayout(model, { signal });
   signal?.throwIfAborted();
   const errors = checkLayout(model, layout);

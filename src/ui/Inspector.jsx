@@ -1,10 +1,10 @@
 import { useLayoutEffect, useRef } from 'react';
 import { relationCount, useArchitecture } from './context.jsx';
-import { renderDocumentation } from './document.mjs';
+import { renderDocumentation } from '../model/document.mjs';
 import { ProjectInspector, ProjectConfirmation } from './ProjectInspector.jsx';
 import { ProjectOverview } from './ProjectOverview.jsx';
 import { groupInteractions } from './view.mjs';
-import { aggregateImplementation } from './implementation.mjs';
+import { aggregateImplementation } from '../model/implementation.mjs';
 import { ImplementationMark } from './ImplementationMark.jsx';
 
 function Implementation({ state, evidence, explain = true }) {

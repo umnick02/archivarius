@@ -1,18 +1,20 @@
-import { ArchitectureGraph } from './graph.mjs';
+import { ArchitectureGraph } from './model/graph.mjs';
 import { visit } from 'jsonc-parser';
-import { ArchitectureError } from './errors.mjs';
-import { validateProject } from './project.mjs';
-export { ArchitectureError } from './errors.mjs';
+import { ArchitectureError } from './model/errors.mjs';
+import { validateProject } from './model/project-contract.mjs';
+export { ArchitectureError } from './model/errors.mjs';
+export { analyzeProject } from './model/project-analysis.mjs';
 export {
-  validateProject,
-  analyzeProject,
+  applyProjectChanges,
   projectContext,
   projectRead,
-  dependencyDigest,
-  applyProjectChanges,
+} from './model/project-authoring.mjs';
+export { validateProject } from './model/project-contract.mjs';
+export {
   contractDigest,
+  dependencyDigest,
   realizationDigest,
-} from './project.mjs';
+} from './model/project-digest.mjs';
 
 export function validateArchitecture(model) {
   if (model?.version === 4) return validateProject(model);
@@ -90,4 +92,4 @@ export function parseArchitecture(text) {
   return model;
 }
 
-export { renderDocument } from './documents.mjs';
+export { renderDocument } from './model/documents.mjs';

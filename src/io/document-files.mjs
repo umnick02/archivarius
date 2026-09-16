@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { assertProject } from './project.mjs';
-import { renderDocument } from './documents.mjs';
+import { assertProject } from '../model/project-contract.mjs';
+import { renderDocument } from '../model/documents.mjs';
 
 // Preflight every destination before writing. Never follow a document path through
 // a symlink, even when it currently happens to resolve inside the output root.

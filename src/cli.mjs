@@ -12,7 +12,8 @@ import {
   writeAtomic,
   archiveProjectFile,
 } from './node.mjs';
-import { projectContext, projectRead, analyzeProject } from './project.mjs';
+import { analyzeProject } from './model/project-analysis.mjs';
+import { projectContext, projectRead } from './model/project-authoring.mjs';
 import { parseJSON } from './core.mjs';
 
 async function main() {

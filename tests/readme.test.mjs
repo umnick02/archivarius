@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generatedNotice } from '../src/model/documents.mjs';
-import { projectArchitecture } from '../src/model/project.mjs';
+import { projectArchitecture } from '../src/model/project-architecture.mjs';
 import prose from '../src/generated/prose.mjs';
 import { renderReadme, readCopy } from '../docs/scripts/readme.mjs';
 

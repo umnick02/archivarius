@@ -1,8 +1,5 @@
-import {
-  assertProject,
-  contractDigest,
-  realizationDigest,
-} from './project.mjs';
+import { assertProject } from './project-contract.mjs';
+import { contractDigest, realizationDigest } from './project-digest.mjs';
 import { hashBytes } from './digest.mjs';
 import { canonical } from './digest.mjs';
 

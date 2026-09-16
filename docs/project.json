@@ -1,4 +1,5 @@
 {
+  "$schema": "../assets/model.schema.json",
   "version": 4,
   "title": "Archivarius",
   "root": "archivarius",

@@ -1,10 +1,8 @@
-import {
-  assertProject,
-  analyzeProject,
-  recordReferences,
-  projectArchitecture,
-  digest,
-} from './project.mjs';
+import { digest } from './digest.mjs';
+import { analyzeProject } from './project-analysis.mjs';
+import { projectArchitecture } from './project-architecture.mjs';
+import { assertProject } from './project-contract.mjs';
+import { recordReferences } from './records.mjs';
 
 import { renderDocument, generatedNotice } from './documents.mjs';
 

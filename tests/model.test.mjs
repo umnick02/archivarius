@@ -2,10 +2,10 @@ import fs from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import Ajv from 'ajv/dist/2020.js';
-import { ArchitectureGraph as Graph } from '../src/graph.mjs';
+import { ArchitectureGraph as Graph } from '../src/model/graph.mjs';
 import { validateArchitecture, parseArchitecture } from '../src/core.mjs';
-import { readArchitecture } from '../src/load.mjs';
-import { legacyCompletion } from '../src/implementation.mjs';
+import { readArchitecture } from '../src/ui/load.mjs';
+import { legacyCompletion } from '../src/model/implementation.mjs';
 
 const read = (name) =>
   JSON.parse(fs.readFileSync(new URL('../' + name, import.meta.url), 'utf8'));

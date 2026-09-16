@@ -26,21 +26,22 @@ by LLM agents. Read the directory instructions before editing.
 
 ## Find the owner
 
-| Subject                                   | Entry point                                | Instructions                                     |
-| ----------------------------------------- | ------------------------------------------ | ------------------------------------------------ |
-| Requirements, decisions, plan             | `docs/project.json`                        | [docs/AGENTS.md](docs/AGENTS.md)                 |
-| Browser map, mount, panels                | `src/index.jsx`, `src/ArchitectureMap.jsx` | [src/AGENTS.md](src/AGENTS.md)                   |
-| Validation, parse, document render        | `src/core.mjs`                             | [src/AGENTS.md](src/AGENTS.md)                   |
-| File reads, CLI, project check            | `src/node.mjs`, `src/cli.mjs`              | [src/AGENTS.md](src/AGENTS.md)                   |
-| Shipped contract, schemas, strings        | `assets/model.schema.json`                 | [assets/AGENTS.md](assets/AGENTS.md)             |
-| Build, contract generation, package check | `tooling/build.mjs`, `tooling/*.mjs`       | [tooling/AGENTS.md](tooling/AGENTS.md)           |
-| Tests and consumer fixture                | `tests/*.test.mjs`, `tests/consumer/`      | [tests/AGENTS.md](tests/AGENTS.md)               |
-| Documentation validators and viewer       | `docs/scripts/`                            | [docs/scripts/AGENTS.md](docs/scripts/AGENTS.md) |
+| Subject                                   | Entry point                              | Instructions                                     |
+| ----------------------------------------- | ---------------------------------------- | ------------------------------------------------ |
+| Requirements, decisions, plan             | `docs/project.json`                      | [docs/AGENTS.md](docs/AGENTS.md)                 |
+| Browser map, mount, panels                | `src/index.jsx`, `src/ui/`               | [src/AGENTS.md](src/AGENTS.md)                   |
+| Validation, parse, document render        | `src/core.mjs`, `src/model/`             | [src/AGENTS.md](src/AGENTS.md)                   |
+| File reads, CLI, project check            | `src/node.mjs`, `src/cli.mjs`, `src/io/` | [src/AGENTS.md](src/AGENTS.md)                   |
+| Shipped contract, schemas, strings        | `assets/model.schema.json`               | [assets/AGENTS.md](assets/AGENTS.md)             |
+| Build, contract generation, package check | `tooling/build.mjs`, `tooling/*.mjs`     | [tooling/AGENTS.md](tooling/AGENTS.md)           |
+| Tests and consumer fixture                | `tests/*.test.mjs`, `tests/consumer/`    | [tests/AGENTS.md](tests/AGENTS.md)               |
+| Documentation validators and viewer       | `docs/scripts/`                          | [docs/scripts/AGENTS.md](docs/scripts/AGENTS.md) |
 
-The browser surface renders model facts and holds only presentation state; only
-`src/node.mjs` touches the filesystem. Inspect real consumers and test coverage
-before moving or removing a module. No exported component or fixture proves a
-supported product behavior on its own.
+The browser surface renders model facts and holds only presentation state; file
+access lives in `src/io/` and the two entry points that own it (`src/node.mjs`,
+`src/cli.mjs`), and ESLint enforces that by path. Inspect real consumers and test
+coverage before moving or removing a module. No exported component or fixture
+proves a supported product behavior on its own.
 
 ## Development and verification
 

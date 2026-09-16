@@ -37,32 +37,35 @@ export default [
     files: ['src/**/*.{jsx,mjs}'],
     languageOptions: { globals: browser },
     rules: {
-      // Only the file-owning modules do I/O; the browser and core surfaces
-      // must stay loadable in a bundler with no Node builtins.
+      // The browser and model surfaces must stay loadable in a bundler with no
+      // Node builtins. src/io/ and the two entry points below own all file
+      // access, so the boundary is the path, not a list of file names.
       'no-restricted-imports': [
         'error',
         {
           patterns: [
             {
               group: ['node:*'],
-              message: 'Browser and core modules do no I/O.',
+              message: 'Only src/io/, src/node.mjs and src/cli.mjs do I/O.',
+            },
+            {
+              group: ['**/io/*'],
+              message: 'Reach src/io/ through src/node.mjs, not directly.',
             },
           ],
         },
       ],
       'no-restricted-globals': [
         'error',
-        { name: 'process', message: 'Browser and core modules do no I/O.' },
+        {
+          name: 'process',
+          message: 'Only src/io/, src/node.mjs and src/cli.mjs do I/O.',
+        },
       ],
     },
   },
   {
-    files: [
-      'src/cli.mjs',
-      'src/node.mjs',
-      'src/document-files.mjs',
-      'src/project-storage.mjs',
-    ],
+    files: ['src/io/**/*.mjs', 'src/node.mjs', 'src/cli.mjs'],
     languageOptions: { globals: node },
     rules: {
       'no-restricted-imports': 'off',

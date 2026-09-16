@@ -3,24 +3,26 @@ import { test } from 'node:test';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { digest } from '../src/model/digest.mjs';
+import { analyzeProject } from '../src/model/project-analysis.mjs';
 import {
-  projectContext,
-  validateProject,
-  dependencyDigest,
-  digest,
-  projectRead,
   applyProjectChanges,
-  analyzeProject,
+  projectContext,
+  projectRead,
+} from '../src/model/project-authoring.mjs';
+import { validateProject } from '../src/model/project-contract.mjs';
+import {
   contractDigest,
+  dependencyDigest,
   realizationDigest,
-} from '../src/project.mjs';
+} from '../src/model/project-digest.mjs';
 import {
   readArchitectureFile,
   archiveProjectFile,
   updateProjectFile,
   writeAtomic,
 } from '../src/node.mjs';
-import { storeProjectStorage } from '../src/project-storage.mjs';
+import { storeProjectStorage } from '../src/io/project-storage.mjs';
 const example = JSON.parse(
   await fs.readFile(
     new URL('../examples/basic/public/project.json', import.meta.url),

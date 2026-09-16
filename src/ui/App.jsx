@@ -21,7 +21,7 @@ import { ArchitectureEdge } from './ArchitectureEdge.jsx';
 import { ImplementationMark } from './ImplementationMark.jsx';
 import { Inspector } from './Inspector.jsx';
 import { usePanelNavigation } from './usePanelNavigation.jsx';
-import { ArchitectureGraph } from './graph.mjs';
+import { ArchitectureGraph } from '../model/graph.mjs';
 import {
   kindColors,
   expandedAt,

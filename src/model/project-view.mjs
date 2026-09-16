@@ -1,4 +1,4 @@
-import { applicableRequirements, recordReferences } from './project.mjs';
+import { applicableRequirements, recordReferences } from './records.mjs';
 
 export const primaryFields = {
   document: ['stage'],

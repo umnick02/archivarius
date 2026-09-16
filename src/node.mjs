@@ -3,17 +3,20 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { ArchitectureError, parseArchitecture, parseJSON } from './core.mjs';
-import { renderDocumentation } from './document.mjs';
+import { renderDocumentation } from './model/document.mjs';
+import { analyzeProject } from './model/project-analysis.mjs';
+import { applyProjectChanges } from './model/project-authoring.mjs';
+import { assertProject } from './model/project-contract.mjs';
+import { contractDigest, realizationDigest } from './model/project-digest.mjs';
 import {
-  assertProject,
-  analyzeProject,
-  applyProjectChanges,
-  contractDigest,
-  realizationDigest,
-} from './project.mjs';
-import { verifyProjectEvidence, relativeArtifactPath } from './evidence.mjs';
-import { loadProjectStorage, storeProjectStorage } from './project-storage.mjs';
-import { digest, hashBytes } from './digest.mjs';
+  verifyProjectEvidence,
+  relativeArtifactPath,
+} from './model/evidence.mjs';
+import {
+  loadProjectStorage,
+  storeProjectStorage,
+} from './io/project-storage.mjs';
+import { digest, hashBytes } from './model/digest.mjs';
 
 export async function readArchitectureFile(file) {
   file = await fs.realpath(file);
@@ -181,4 +184,4 @@ export async function executeProjectCheck(
   return record;
 }
 
-export { exportProjectDocuments } from './document-files.mjs';
+export { exportProjectDocuments } from './io/document-files.mjs';

@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { useArchitecture, format } from './context.jsx';
 import { ProjectConfirmation } from './ProjectInspector.jsx';
-import { digest } from './project.mjs';
-import { searchRecord, viewTypes } from './project-view.mjs';
+import { digest } from '../model/digest.mjs';
+import { searchRecord, viewTypes } from '../model/project-view.mjs';
 
 export function ProjectOverview({
   panel,

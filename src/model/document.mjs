@@ -1,5 +1,5 @@
 import { ArchitectureGraph } from './graph.mjs';
-import { ArchitectureError } from './core.mjs';
+import { ArchitectureError } from '../core.mjs';
 import { renderProjectDocumentation } from './project-document.mjs';
 
 // Model prose is plain text. Only the renderer creates Markdown structure.

@@ -4,13 +4,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import example from '../examples/basic/public/project.json' with { type: 'json' };
 import documents from './fixtures/documents.json' with { type: 'json' };
+import { analyzeProject } from '../src/model/project-analysis.mjs';
 import {
-  validateProject,
-  projectContext,
   applyProjectChanges,
-  analyzeProject,
-} from '../src/project.mjs';
-import { renderDocument, documentSections } from '../src/documents.mjs';
+  projectContext,
+} from '../src/model/project-authoring.mjs';
+import { validateProject } from '../src/model/project-contract.mjs';
+import { renderDocument, documentSections } from '../src/model/documents.mjs';
 import { exportProjectDocuments } from '../src/node.mjs';
 const model = () => ({
   ...structuredClone(example),

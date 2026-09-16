@@ -2,7 +2,8 @@ import { writeFile, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { architectureDiagram } from '../../src/model/project-document.mjs';
 import { generatedNotice } from '../../src/model/documents.mjs';
-import { assertProject, projectArchitecture } from '../../src/model/project.mjs';
+import { projectArchitecture } from '../../src/model/project-architecture.mjs';
+import { assertProject } from '../../src/model/project-contract.mjs';
 import prose from '../../src/generated/prose.mjs';
 import { root, input } from './framework.mjs';
 

@@ -3,9 +3,9 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ArchitectureError, parseJSON } from './core.mjs';
-import { checkStructure } from './structure.mjs';
-import { digest } from './digest.mjs';
+import { ArchitectureError, parseJSON } from '../core.mjs';
+import { checkStructure } from '../model/structure.mjs';
+import { digest } from '../model/digest.mjs';
 
 const filename = (file) => (file instanceof URL ? fileURLToPath(file) : file);
 const archiveDirectory = (file) => filename(file) + '.history';

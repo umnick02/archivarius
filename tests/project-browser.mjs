@@ -2,8 +2,9 @@ import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import { pause } from './cdp.mjs';
 import { startHarness } from './harness.mjs';
-import { analyzeProject, contractDigest } from '../src/project.mjs';
-import { hashBytes } from '../src/digest.mjs';
+import { analyzeProject } from '../src/model/project-analysis.mjs';
+import { contractDigest } from '../src/model/project-digest.mjs';
+import { hashBytes } from '../src/model/digest.mjs';
 import { executeProjectCheck } from '../src/node.mjs';
 
 const project = JSON.parse(

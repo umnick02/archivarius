@@ -1,6 +1,7 @@
 import { ProjectDocument } from './ProjectDocument.jsx';
 import { useArchitecture, format } from './context.jsx';
-import { recordReferences, digest } from './project.mjs';
+import { digest } from '../model/digest.mjs';
+import { recordReferences } from '../model/records.mjs';
 import { ImplementationMark } from './ImplementationMark.jsx';
 import {
   confirmationGroups,
@@ -8,7 +9,7 @@ import {
   primaryFields,
   relatedGroups,
   technicalFields,
-} from './project-view.mjs';
+} from '../model/project-view.mjs';
 
 export function ProjectConfirmation({
   recordKey,

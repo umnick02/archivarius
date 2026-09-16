@@ -1,8 +1,11 @@
 import fs from 'node:fs/promises';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { analyzeProject } from '../src/project.mjs';
-import { confirmationGroups, searchRecord } from '../src/project-view.mjs';
+import { analyzeProject } from '../src/model/project-analysis.mjs';
+import {
+  confirmationGroups,
+  searchRecord,
+} from '../src/model/project-view.mjs';
 
 const project = JSON.parse(
   await fs.readFile(

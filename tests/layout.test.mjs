@@ -2,13 +2,13 @@ import fs from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildLayout, checkLayout } from '../src/layout/layout.mjs';
-import { ArchitectureGraph as Graph } from '../src/graph.mjs';
+import { ArchitectureGraph as Graph } from '../src/model/graph.mjs';
 import {
   expandedAt,
   groupInteractions,
   isVisible,
   projectedEdges,
-} from '../src/view.mjs';
+} from '../src/ui/view.mjs';
 
 const model = JSON.parse(
   fs.readFileSync(

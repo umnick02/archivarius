@@ -5,25 +5,27 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { parseArchitecture } from '../src/core.mjs';
+import { digest } from '../src/model/digest.mjs';
+import { analyzeProject } from '../src/model/project-analysis.mjs';
+import { projectArchitecture } from '../src/model/project-architecture.mjs';
 import {
-  validateProject,
-  analyzeProject,
-  projectContext,
-  projectArchitecture,
   applyProjectChanges,
+  projectContext,
+} from '../src/model/project-authoring.mjs';
+import { validateProject } from '../src/model/project-contract.mjs';
+import {
   contractDigest,
   realizationDigest,
-  digest,
-} from '../src/project.mjs';
+} from '../src/model/project-digest.mjs';
 import {
   executeProjectCheck,
   verifyProjectFiles,
   updateProjectFile,
   generateDocumentation,
 } from '../src/node.mjs';
-import { hashBytes } from '../src/digest.mjs';
-import { generatedNotice } from '../src/documents.mjs';
-import { readArchitecture, prepareArchitecture } from '../src/load.mjs';
+import { hashBytes } from '../src/model/digest.mjs';
+import { generatedNotice } from '../src/model/documents.mjs';
+import { readArchitecture, prepareArchitecture } from '../src/ui/load.mjs';
 
 const example = JSON.parse(
   await fs.readFile(

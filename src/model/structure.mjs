@@ -1,5 +1,5 @@
-import validate from './generated/validate.mjs';
-import validateProject from './generated/validate-project.mjs';
+import validate from '../generated/validate.mjs';
+import validateProject from '../generated/validate-project.mjs';
 
 const pointer = (value) =>
   String(value).replaceAll('~', '~0').replaceAll('/', '~1');

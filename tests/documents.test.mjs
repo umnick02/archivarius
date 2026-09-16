@@ -3,8 +3,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { generateDocumentation, readArchitectureFile } from '../src/node.mjs';
-import { renderDocumentation } from '../src/document.mjs';
-import { ArchitectureGraph } from '../src/graph.mjs';
+import { renderDocumentation } from '../src/model/document.mjs';
+import { ArchitectureGraph } from '../src/model/graph.mjs';
 
 const root = new URL('../', import.meta.url);
 const model = await readArchitectureFile(

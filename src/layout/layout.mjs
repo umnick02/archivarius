@@ -1,6 +1,6 @@
 import ELK from 'elkjs/lib/elk.bundled.js';
-import { ArchitectureGraph } from '../graph.mjs';
-import { digest } from '../digest.mjs';
+import { ArchitectureGraph } from '../model/graph.mjs';
+import { digest } from '../model/digest.mjs';
 import { createConnectors } from './connectors.mjs';
 
 // Geometry depends only on the node tree and the relations, so an unchanged

@@ -1,8 +1,8 @@
 import { createRoot } from 'react-dom/client';
-import { ArchitectureMap } from './ArchitectureMap.jsx';
+import { ArchitectureMap } from './ui/ArchitectureMap.jsx';
 import { ArchitectureError } from './core.mjs';
 
-export { ArchitectureMap } from './ArchitectureMap.jsx';
+export { ArchitectureMap } from './ui/ArchitectureMap.jsx';
 export {
   ArchitectureError,
   parseArchitecture,

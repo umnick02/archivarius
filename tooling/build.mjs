@@ -19,7 +19,9 @@ for (const entry of await fs.readdir(new URL('src/', root), {
   recursive: true,
   withFileTypes: true,
 })) {
-  if (!entry.isFile() || entry.name.endsWith('.css')) continue;
+  // Stylesheets are scoped and concatenated below; agent instructions are
+  // project-internal and must not reach a consumer's node_modules.
+  if (!entry.isFile() || /\.(?:css|md)$/.test(entry.name)) continue;
   const absolute = path.join(entry.parentPath, entry.name);
   const relative = path.relative(new URL('src/', root).pathname, absolute);
   const output = new URL('dist/src/' + relative.replace(/\.jsx$/, '.js'), root);
@@ -65,7 +67,7 @@ css.walkRules((rule) => {
     return '.archivarius ' + selector;
   });
 });
-const own = await read('src/styles.css');
+const own = await read('src/ui/styles.css');
 await fs.writeFile(
   new URL('dist/style.css', root),
   css.toString() + '\n' + own,
