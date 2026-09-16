@@ -7,6 +7,8 @@ form a connected interaction with a concrete entry. An unused exchange
 contract remains a visible gap; its participants need not be invented.
 Types and the structural validator are generated from the schemas. `x-targets` defines the allowed
 endpoint types of references; `x-history` permits a reference to a stored historical record.
+Both are annotations no validator implements, so compile the schemas with ajv
+`strict: false`; these two are the only extensions they carry.
 
 | Data            | Purpose                                                                        |
 | --------------- | ------------------------------------------------------------------------------ |

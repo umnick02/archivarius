@@ -18,6 +18,9 @@ Invariants:
   describe; declare a new export instead of relaxing the parity assertion.
 - `layout.test.mjs` proves ELK determinism through the uncached `buildLayout`
   option; the memoized path must never be the only one exercised.
+- `artifacts.test.mjs` compiles the shipped schemas the way a consumer does and
+  pins their extension surface to `x-targets` and `x-history`; a new `x-` keyword
+  must be documented in `contract.md` before the test accepts it.
 - `layers.test.mjs` proves the `src/` import graph is a DAG that only points down
   the layers the folders name; move a module instead of widening `allowed`.
 - `cdp.mjs` never sleeps for a render: `clicker` waits two frames, `waiter` and

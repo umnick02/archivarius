@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import postcss from 'postcss';
+import Ajv2020 from 'ajv/dist/2020.js';
 
 const root = new URL('../', import.meta.url);
 const read = (name) => fs.readFile(new URL(name, root), 'utf8');
@@ -55,4 +56,30 @@ test('packaged CSS is confined to map containers, including animations', async (
   css.walkAtRules(/keyframes$/, (rule) =>
     assert(rule.params.startsWith('archivarius-')),
   );
+});
+
+test('a consumer can compile the shipped schemas, extensions and all', async () => {
+  // The schemas carry two annotations that no validator implements, so a
+  // consumer needs ajv's strict mode off. Pin that surface: a third extension
+  // would break every consumer that followed contract.md and passed only this.
+  const schemas = ['model', 'change'].map((name) => name + '.schema.json');
+  const extensions = new Set();
+  const collect = (value) => {
+    if (Array.isArray(value)) return value.forEach(collect);
+    if (!value || typeof value !== 'object') return;
+    for (const [key, child] of Object.entries(value)) {
+      if (key.startsWith('x-')) extensions.add(key);
+      collect(child);
+    }
+  };
+  const ajv = new Ajv2020({ strict: false });
+  for (const name of schemas) {
+    const schema = JSON.parse(await read('dist/assets/' + name));
+    collect(schema);
+    ajv.addSchema(schema, name);
+  }
+  for (const name of schemas) ajv.compile({ $ref: name });
+  assert.deepEqual([...extensions].sort(), ['x-history', 'x-targets']);
+  const documented = await read('dist/assets/contract.md');
+  for (const keyword of extensions) assert(documented.includes(keyword));
 });
