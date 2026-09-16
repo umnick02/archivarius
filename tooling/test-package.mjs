@@ -97,7 +97,15 @@ run(
   ],
   consumer,
 );
-assert(pack.files.some((file) => file.path === 'dist/assets/authoring.md'));
+for (const shipped of ['dist/assets/authoring.md', 'dist/assets/contract.md'])
+  assert(
+    pack.files.some((file) => file.path === shipped),
+    shipped,
+  );
+assert(
+  !pack.files.some((file) => file.path.endsWith('AGENTS.md')),
+  'agent instructions must not ship',
+);
 assert(pack.files.some((file) => file.path === 'dist/example.json'));
 run('node', ['node_modules/vite/bin/vite.js', 'build'], consumer);
 const files = await fs.readdir(path.join(consumer, 'dist/assets'));

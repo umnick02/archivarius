@@ -40,7 +40,7 @@ export function recordSummary(record) {
   );
 }
 
-export function searchEntries(project, record, copy) {
+function searchEntries(project, record, copy) {
   const refs = recordReferences(record);
   const flatten = (value, path) => {
     if (Array.isArray(value)) return value.flatMap((v) => flatten(v, path));

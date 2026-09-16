@@ -76,7 +76,6 @@
   "snapshot": "Snapshot",
   "basisNote": "Confirmation applies to this contract and accessible check artifacts. Reload after data changes.",
   "conservative": "Until dependency coverage is established, a definition change requires reconsidering the whole project.",
-  "attention": "Needs attention",
   "yes": "Yes",
   "no": "No",
   "implemented": "Full implementation confirmed",

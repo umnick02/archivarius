@@ -21,13 +21,13 @@ cloned framework. Build once with `npm run build`, then:
   (loopback only); reload to read and validate the current JSON, stop with
   Ctrl+C.
 
-| Subject                     | Record key     |
-| --------------------------- | -------------- |
-| Purpose and scope           | `archivarius`  |
-| Model and contract          | `model`        |
-| Node API and CLI            | `node-api`     |
-| Map rendering               | `render`       |
-| Replacement/implementation  | task keys      |
+| Subject                    | Record key    |
+| -------------------------- | ------------- |
+| Purpose and scope          | `archivarius` |
+| Model and contract         | `model`       |
+| Node API and CLI           | `node-api`    |
+| Map rendering              | `render`      |
+| Replacement/implementation | task keys     |
 
 Edit each rule in its sole owner and update affected criteria, scenarios,
 decisions, tasks and checks together. A validated `review` records provenance

@@ -81,3 +81,34 @@ test('declared value exports match the exports of their module', async () => {
     );
   }
 });
+
+// One export, one owner. The browser entry may republish only the parse surface
+// a host needs to feed a map and catch its failures; anything else it shares with
+// the validation surface is an arbitrary second front door.
+test('the browser entry republishes only what mounting a map needs', async () => {
+  const values = async (module) => {
+    const bundled = await build({
+      entryPoints: [new URL('src/' + module, root).pathname],
+      bundle: false,
+      write: false,
+      metafile: true,
+      outdir: 'exports',
+      format: 'esm',
+      logLevel: 'silent',
+    });
+    return new Set(
+      Object.values(bundled.metafile.outputs).flatMap(
+        (output) => output.exports,
+      ),
+    );
+  };
+  const core = await values('core.mjs');
+  const shared = [...(await values('index.jsx'))]
+    .filter((name) => core.has(name))
+    .sort();
+  assert.deepEqual(shared, [
+    'ArchitectureError',
+    'parseArchitecture',
+    'validateArchitecture',
+  ]);
+});

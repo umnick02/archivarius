@@ -8,8 +8,12 @@ const root = new URL('../', import.meta.url);
 const read = (name) => fs.readFile(new URL(name, root), 'utf8');
 await fs.rm(new URL('dist/', root), { recursive: true, force: true });
 await fs.mkdir(new URL('dist/', root), { recursive: true });
+// Agent instructions are project-internal and must not reach a consumer's
+// node_modules, in `assets/` any more than in `src/`.
+const shipped = (source) => !source.endsWith('AGENTS.md');
 await fs.cp(new URL('assets/', root), new URL('dist/assets/', root), {
   recursive: true,
+  filter: shipped,
 });
 await fs.copyFile(
   new URL('examples/basic/public/project.json', root),
@@ -19,8 +23,8 @@ for (const entry of await fs.readdir(new URL('src/', root), {
   recursive: true,
   withFileTypes: true,
 })) {
-  // Stylesheets are scoped and concatenated below; agent instructions are
-  // project-internal and must not reach a consumer's node_modules.
+  // Stylesheets are scoped and concatenated below; no Markdown belongs in
+  // compiled output.
   if (!entry.isFile() || /\.(?:css|md)$/.test(entry.name)) continue;
   const absolute = path.join(entry.parentPath, entry.name);
   const relative = path.relative(new URL('src/', root).pathname, absolute);

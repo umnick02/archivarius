@@ -13,10 +13,12 @@ Invariants:
   projects every v4 model into that shape before the map draws it, and the same
   schema accepts prior-format input files. Only `legacyCompletion` is
   prior-format-only.
-- Changing either schema requires regenerating `contracts.json` and `src/generated/`
-  with `npm run generate`, then updating the documentation model and its checks
-  together.
+- Changing either schema requires regenerating `src/generated/` with
+  `npm run generate`, then updating the documentation model and its checks
+  together. `contracts.json` is hand-maintained and read only for prior-format
+  input; the v4 panel copy lives in `project.json`.
 - `strings.json` and `project.json` are UI copy for the map and project surfaces —
-  not sample models. `strings.json` keeps `"locale":"en"`; plurals are `one`/`other`.
-- `authoring.md` and `contract.md` are the only prose files that legitimately ship
-  to consumers. Do not add project-internal prose here.
+  not sample models. Plurals are `one`/`other`.
+- `authoring.md` and `contract.md` are the only prose files that ship to
+  consumers. `AGENTS.md` is project-internal and `build.mjs` keeps it out of
+  `dist/assets/`. Do not add project-internal prose here.

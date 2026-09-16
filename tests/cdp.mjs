@@ -82,3 +82,65 @@ export async function connectBrowser(endpoint) {
 
 export const pause = (ms = 500) =>
   new Promise((resolve) => setTimeout(resolve, ms));
+
+// Click the centre of a control the way a user does, through real input events.
+// A control that is absent or collapsed to nothing fails the suite instead of
+// swallowing the click, so a broken selector cannot pass as a working one.
+export const clicker =
+  (browser, { settle = 400 } = {}) =>
+  async (selector, count = 1) => {
+    const point = await browser.evaluate((selector) => {
+      const element = document.querySelector(selector);
+      if (!element) throw new Error('CONTROL_MISSING');
+      element.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      const rect = element.getBoundingClientRect();
+      if (!rect.width || !rect.height) throw new Error('CONTROL_HIDDEN');
+      return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+    }, selector);
+    for (const type of ['mousePressed', 'mouseReleased'])
+      await browser.call('Input.dispatchMouseEvent', {
+        type,
+        ...point,
+        button: 'left',
+        clickCount: count,
+      });
+    await pause(settle);
+  };
+
+// Wait for the state the page is supposed to reach instead of guessing how long
+// a render takes. A condition that never holds fails with what it last saw, so a
+// slow machine cannot flake the suite and a broken transition cannot pass by
+// outlasting a sleep.
+export const waiter =
+  (browser, { timeout = 5000, interval = 25 } = {}) =>
+  async (fn, ...args) => {
+    const deadline = Date.now() + timeout;
+    for (;;) {
+      const value = await browser.evaluate(fn, ...args);
+      if (value) return value;
+      if (Date.now() > deadline)
+        throw new Error(
+          'WAIT_TIMEOUT: ' + JSON.stringify(value) + ' from ' + fn.toString(),
+        );
+      await pause(interval);
+    }
+  };
+
+// Wait for an animated value — a camera, a relayout — to stop moving. There is
+// no single state to assert here, so the end of the movement is the signal.
+export const settler =
+  (browser, { timeout = 5000, interval = 50, quiet = 2 } = {}) =>
+  async (fn, ...args) => {
+    const deadline = Date.now() + timeout;
+    let previous,
+      still = 0;
+    for (;;) {
+      const value = JSON.stringify(await browser.evaluate(fn, ...args));
+      still = value === previous ? still + 1 : 0;
+      previous = value;
+      if (still >= quiet) return JSON.parse(value);
+      if (Date.now() > deadline)
+        throw new Error('SETTLE_TIMEOUT: ' + value + ' from ' + fn.toString());
+      await pause(interval);
+    }
+  };

@@ -99,8 +99,4 @@ export default [
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
   },
-  {
-    // TypeScript declaration usage is checked by the packaged-consumer tsc run.
-    ignores: ['tests/consumer/types.tsx'],
-  },
 ];

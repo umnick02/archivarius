@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import { pause } from './cdp.mjs';
+import { clicker, settler, waiter } from './cdp.mjs';
 import { startHarness } from './harness.mjs';
 import { analyzeProject } from '../src/model/project-analysis.mjs';
 import { contractDigest } from '../src/model/project-digest.mjs';
@@ -22,28 +22,9 @@ const evidenceDirectory = new URL(
   '../.runtime/consumer/dist/implementation-fixture/',
   import.meta.url,
 );
-const click = async (selector) => {
-  const point = await b.evaluate((selector) => {
-    const element = document.querySelector(selector);
-    element.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-    const rect = element.getBoundingClientRect();
-    if (!rect.width || !rect.height) throw new Error('CONTROL_HIDDEN');
-    return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
-  }, selector);
-  await b.call('Input.dispatchMouseEvent', {
-    type: 'mousePressed',
-    ...point,
-    button: 'left',
-    clickCount: 1,
-  });
-  await b.call('Input.dispatchMouseEvent', {
-    type: 'mouseReleased',
-    ...point,
-    button: 'left',
-    clickCount: 1,
-  });
-  await pause(150);
-};
+const click = clicker(b, { settle: 150 });
+const until = waiter(b);
+const settled = settler(b);
 try {
   await b.call('Emulation.setDeviceMetricsOverride', {
     width: 1440,
@@ -54,7 +35,7 @@ try {
   await b.call('Page.navigate', {
     url: harness.url,
   });
-  await pause(1000);
+  await until(() => Boolean(window.consumer));
   await b.evaluate(async () => {
     await window.consumer.ready;
     await window.consumer.first.load(
@@ -84,7 +65,9 @@ try {
     select.value = 'requirement';
     select.dispatchEvent(new Event('change', { bubbles: true }));
   });
-  await pause(100);
+  await until(
+    () => document.querySelectorAll('#first [data-record]').length === 3,
+  );
   assert.equal(
     await b.evaluate(
       () => document.querySelectorAll('#first [data-record]').length,
@@ -115,7 +98,11 @@ try {
     'requirement',
   );
   await b.evaluate(() => window.consumer.first.inspect('implement-export'));
-  await pause(100);
+  await until(
+    () =>
+      document.querySelector('#first [data-record-title]')?.dataset
+        .recordTitle === 'implement-export',
+  );
   await click('#first [data-record-link=within-limit]');
   await click('#first [data-record-link=row-limit]');
   const order = await b.evaluate(() => {
@@ -178,7 +165,7 @@ try {
   assert.deepEqual(after.nodeGeometry, before.nodeGeometry);
   assert.deepEqual(after.viewport, before.viewport);
   await b.evaluate(() => window.consumer.first.focus('writer'));
-  await pause(350);
+  await settled(() => window.consumer.first.snapshot().viewport);
   await click('#first [data-disclosure=links-decision] > summary');
   await click('#first .project-links [data-record-link=streaming]');
   assert.equal(
@@ -195,7 +182,9 @@ try {
     deviceScaleFactor: 1,
     mobile: true,
   });
-  await pause(300);
+  await until(() =>
+    Boolean(document.querySelector('#first [data-control=project]')),
+  );
   await click('#first [data-control=project]');
   await click('#first [data-project-view=work]');
   await click('#first [data-record=implement-export]');
@@ -251,7 +240,11 @@ try {
     await window.consumer.first.load(model);
     window.consumer.first.inspect('row-limit');
   }, malicious);
-  await pause(200);
+  await until(
+    () =>
+      document.querySelector('#first [data-record-title]')?.dataset
+        .recordTitle === 'row-limit',
+  );
   assert.equal(
     await b.evaluate(
       () =>
@@ -290,7 +283,9 @@ try {
   await b.capture('project-overview-desktop');
   await click('#first [data-control=record-search]');
   await b.call('Input.insertText', { text: '1000' });
-  await pause(100);
+  await until(
+    () => document.querySelectorAll('#first [data-record]').length === 1,
+  );
   assert.equal(
     await b.evaluate(() => document.activeElement.dataset.control),
     'record-search',
@@ -318,7 +313,9 @@ try {
     ).set.call(input, '');
     input.dispatchEvent(new Event('input', { bubbles: true }));
   });
-  await pause(100);
+  await until(() =>
+    Boolean(document.querySelector('#first [data-record=implement-export]')),
+  );
   await b.evaluate(() =>
     document
       .querySelector('#first [data-record=implement-export]')
@@ -384,7 +381,9 @@ try {
     await window.consumer.first.load(model);
     window.consumer.first.inspect('export');
   }, grouped);
-  await pause(150);
+  // The grouping assertions read the bundles, so wait for the map and not the
+  // panel: the inspector titles the record before the graph has re-bundled.
+  await settled(() => window.consumer.first.snapshot().relations);
   const beforeGrouping = await b.evaluate(() =>
     window.consumer.first.snapshot(),
   );
@@ -534,7 +533,12 @@ try {
       await window.consumer.first.focus('writer');
       window.consumer.first.inspect('writer');
     });
-    await pause(150);
+    // The evidence recheck repaints the marks, so settle on what is asserted.
+    await settled(() =>
+      [...document.querySelectorAll('#first [data-node]')].map(
+        (node) => node.dataset.implementationState,
+      ),
+    );
     const status = await b.evaluate(() => ({
       nodes: [...document.querySelectorAll('#first [data-node]')].map(
         (node) => ({
@@ -645,7 +649,11 @@ try {
     await window.consumer.first.load(model);
     window.consumer.first.inspect('doc-rules');
   }, withDocuments);
-  await pause();
+  await until(
+    () =>
+      document.querySelectorAll('#first .project-document > details').length ===
+      2,
+  );
   assert.equal(
     await b.evaluate(
       () =>

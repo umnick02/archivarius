@@ -14,24 +14,12 @@ export type {
   ArchitectureRelation,
   Implementation,
   ArchitectureInput,
-  ProjectModel,
-  ProjectRecord,
-  ProjectChange,
-  ProjectContext,
-  ProjectAnalysis,
-  ProjectCompletion,
   ImplementationState,
 } from './core.mjs';
 export {
   ArchitectureError,
   parseArchitecture,
   validateArchitecture,
-  validateProject,
-  analyzeProject,
-  projectContext,
-  projectRead,
-  dependencyDigest,
-  applyProjectChanges,
 } from './core.mjs';
 
 export type ArchitectureSource = string | URL | Blob | ArchitectureInput;

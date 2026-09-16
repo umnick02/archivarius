@@ -36,7 +36,9 @@ export async function generateDocumentation(model) {
   return renderDocumentation(model, copy);
 }
 
-export async function readProjectArtifact(directory, name) {
+// Reads an artifact only from inside the project directory. Internal: evidence
+// verification is the supported entry point, not raw artifact bytes.
+async function readProjectArtifact(directory, name) {
   if (!relativeArtifactPath(name)) throw new ArchitectureError('ARTIFACT_PATH');
   const root = await fs.realpath(directory),
     actual = await fs.realpath(path.resolve(root, name));

@@ -22,7 +22,7 @@ function intersects(a, b, r) {
 
 // Connect ELK's boundary port to a descendant through the free corridors of
 // that region. This runs at build time; it never changes sibling placement.
-export function connect(start, end, region, obstacles) {
+function connect(start, end, region, obstacles) {
   const xs = new Set([start.x, end.x, region.x, region.x + region.width]);
   const ys = new Set([start.y, end.y, region.y, region.y + region.height]);
   for (const r of obstacles) {

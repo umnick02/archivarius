@@ -31,11 +31,12 @@ Invariants:
   links.
 - `generated/` is compiled from `assets/model.schema.json`; regenerate with
   `npm run generate`, never hand-edit it.
-- `model/project-document.mjs` generates the architecture diagram from the
-  `component` and `interaction` records; there is no hand-drawn second copy of the
-  graph.
-- English only: no locale parameter on any export, and `ui/context.jsx` pluralizes
-  with `one`/`other` against `assets/strings.json` (`"locale":"en"`).
+- `model/project-architecture.mjs` projects the `component` and `interaction`
+  records into the graph the map draws and the readme embeds; there is no
+  hand-drawn second copy.
+- `model/documents.mjs` owns the single Markdown escaper every renderer uses; it
+  neutralizes structure, not punctuation.
+- `ui/context.jsx` pluralizes with `one`/`other` against `assets/strings.json`.
 
 Co-locate behavior with its owner, add tests in [tests/](../tests/AGENTS.md), and
 run `npm test` + `npm run test:browser` from the root.

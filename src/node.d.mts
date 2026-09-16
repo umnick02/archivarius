@@ -10,10 +10,6 @@ import type {
 export function readArchitectureFile(
   path: string | URL,
 ): Promise<ArchitectureInput>;
-export function readProjectArtifact(
-  directory: string,
-  name: string,
-): Promise<Uint8Array>;
 export function writeAtomic(
   file: string,
   contents: string | Uint8Array,

@@ -141,7 +141,7 @@ function RecordLinks({ keys, showRecord }) {
   );
 }
 
-export function ProjectLinks({ recordKey, showRecord }) {
+function ProjectLinks({ recordKey, showRecord }) {
   const { project, projectCopy: copy } = useArchitecture();
   const groups = relatedGroups(project, recordKey);
   return (

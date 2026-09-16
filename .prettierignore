@@ -1,6 +1,6 @@
 node_modules/
 dist/
-docs/
+docs/project.json
 .runtime/
 package-lock.json
 src/generated/

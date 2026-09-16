@@ -6,10 +6,7 @@ import { root, input } from './framework.mjs';
 
 // Serve the local viewer against this repository's built library and the
 // documentation model. Bind to loopback only.
-export async function createDocumentationServer({
-  port = 4174,
-  modelPath = input,
-} = {}) {
+export async function createDocumentationServer() {
   const viewer = fileURLToPath(new URL('./viewer/', import.meta.url));
   const dist = path.join(root, 'dist');
   return createServer({
@@ -30,7 +27,7 @@ export async function createDocumentationServer({
     },
     server: {
       host: '127.0.0.1',
-      port,
+      port: 4174,
       strictPort: true,
       fs: { allow: [viewer, dist, path.join(root, 'node_modules')] },
     },
@@ -55,7 +52,7 @@ export async function createDocumentationServer({
               response.end(
                 request.method === 'HEAD'
                   ? undefined
-                  : await readFile(modelPath, 'utf8'),
+                  : await readFile(input, 'utf8'),
               );
             });
           };

@@ -7,11 +7,19 @@ const root = new URL('../', import.meta.url);
 const read = (name) => fs.readFile(new URL(name, root), 'utf8');
 
 test('package retains external data resources and project-independent scripts', async () => {
-  for (const file of await fs.readdir(new URL('assets/', root)))
+  const shipped = await fs.readdir(new URL('dist/assets/', root));
+  assert(
+    !shipped.includes('AGENTS.md'),
+    'agent instructions must not reach a consumer',
+  );
+  for (const file of await fs.readdir(new URL('assets/', root))) {
+    if (file === 'AGENTS.md') continue;
+    assert(shipped.includes(file), file);
     assert.equal(
       await read('assets/' + file),
       await read('dist/assets/' + file),
     );
+  }
   const model = JSON.parse(
     await read('examples/basic/public/architecture.json'),
   );

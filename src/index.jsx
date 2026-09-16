@@ -3,16 +3,13 @@ import { ArchitectureMap } from './ui/ArchitectureMap.jsx';
 import { ArchitectureError } from './core.mjs';
 
 export { ArchitectureMap } from './ui/ArchitectureMap.jsx';
+// The browser entry adds the map to the parse surface a host needs to feed and
+// catch it. Project authoring, analysis and digests stay on `archivarius/core`;
+// republishing a few of them here would only make the split arbitrary.
 export {
   ArchitectureError,
   parseArchitecture,
   validateArchitecture,
-  validateProject,
-  analyzeProject,
-  projectContext,
-  projectRead,
-  dependencyDigest,
-  applyProjectChanges,
 } from './core.mjs';
 
 const mounts = new WeakSet();

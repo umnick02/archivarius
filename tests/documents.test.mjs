@@ -26,17 +26,16 @@ test('documentation uses every component and original interaction, with stable l
   assert.equal(markdown, await generateDocumentation(model));
   for (const node of graph.nodes.values()) {
     assert(markdown.includes('<a id="node-' + node.key + '"></a>'));
-    assert(markdown.includes(node.summary.replaceAll('.', '\\.')));
-    for (const rule of node.rules)
-      assert(markdown.includes(rule.text.replaceAll('.', '\\.')));
+    assert(markdown.includes(node.summary));
+    for (const rule of node.rules) assert(markdown.includes(rule.text));
   }
   for (const edge of model.relations) {
     assert.equal(
       markdown.split('<a id="relation-' + edge.key + '"></a>').length,
       2,
     );
-    assert(markdown.includes(edge.payload.replaceAll('.', '\\.')));
-    assert(markdown.includes(edge.meaning.replaceAll('.', '\\.')));
+    assert(markdown.includes(edge.payload));
+    assert(markdown.includes(edge.meaning));
   }
   const anchors = new Set(
     [...markdown.matchAll(/<a id="([^"]+)"><\/a>/g)].map((m) => m[1]),
@@ -56,8 +55,9 @@ test('documentation preserves boundaries and evidence, escapes markup, and refus
   assert(!doc.includes('![x]'));
   assert(!doc.includes('\n# injected'));
   assert(doc.includes('&lt;script&gt;'));
-  assert(doc.includes('rev\\-123'));
-  assert(doc.includes(data.nodes[0].detailNote.replaceAll('.', '\\.')));
+  assert(doc.includes('rev-123'), 'evidence must stay readable, not escaped');
+  assert(doc.includes(data.nodes[0].detailNote));
+  assert(!doc.includes('\\.'), 'sentence periods must not be escaped');
   data.relations[0].to = 'absent';
   await assert.rejects(generateDocumentation(data), { code: 'INVALID_MODEL' });
 });
@@ -115,4 +115,28 @@ test('CLI validates whole models, detects documentation drift and preserves file
   } finally {
     await fs.rm(directory, { recursive: true, force: true });
   }
+});
+
+// The help text is what a user reads and the model record is what an agent
+// reads; a command that reaches one and not the other is drift nobody notices.
+test('the help text and the documented CLI record name the same commands', async () => {
+  const help = await fs.readFile(new URL('assets/cli-help.txt', root), 'utf8');
+  const commands = [...help.matchAll(/^\s+archivarius (\w[\w-]*)/gm)].map(
+    (match) => match[1],
+  );
+  assert(commands.length > 1, 'the help must list the command surface');
+  const project = JSON.parse(
+    await fs.readFile(new URL('docs/project.json', root), 'utf8'),
+  );
+  const summary = project.records.find(
+    (record) => record.key === 'cli',
+  ).summary;
+  const named = [...summary.matchAll(/\b([a-z]+)\b/g)]
+    .map((match) => match[1])
+    .filter((word) => commands.includes(word));
+  assert.deepEqual(
+    commands.filter((command) => !named.includes(command)),
+    [],
+    'the cli record omits a command the help offers',
+  );
 });

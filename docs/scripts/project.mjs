@@ -43,7 +43,8 @@ try {
     );
 } catch (error) {
   process.stdout.write(
-    JSON.stringify({ outcome: 'fail', errors: [error.message] }, null, 2) + '\n',
+    JSON.stringify({ outcome: 'fail', errors: [error.message] }, null, 2) +
+      '\n',
   );
   process.exitCode = 1;
 }

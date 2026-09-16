@@ -14,9 +14,11 @@ by LLM agents. Read the directory instructions before editing.
   `docs:serve`. Agents and the viewer read the JSON directly.
   [docs/AGENTS.md](docs/AGENTS.md) owns the reading and editing routes.
 - The public API is `src/index.jsx` (browser), `src/core.mjs` (validation) and
-  `src/node.mjs` (files/CLI). `assets/model.schema.json` is the versioned contract;
-  `src/generated/` holds its compiled validators and types — do not hand-edit them,
-  regenerate with `npm run generate`.
+  `src/node.mjs` (files/CLI); each export has one owner, and the browser entry
+  republishes only the parse surface a host needs to feed a map and catch its
+  failures. `assets/model.schema.json` is the versioned contract; `src/generated/`
+  holds its compiled validators and types — do not hand-edit them, regenerate with
+  `npm run generate`.
 - English is the only language. `assets/strings.json` keeps `"locale":"en"`; there
   is no locale parameter on any exported function.
 - `README.md` is generated from the documentation model by the library's own `docs`
@@ -47,25 +49,24 @@ proves a supported product behavior on its own.
 
 Use the Node version in `.nvmrc`; run commands from the repository root.
 
-| Command                              | Scope                                                            |
-| ------------------------------------ | ---------------------------------------------------------------- |
-| `npm run build`                      | Compile `src/` and copy `assets/` into `dist/`                   |
-| `npm test`                           | Node test suites in `tests/*.test.mjs` (regenerates contract)    |
-| `npm run lint`                       | ESLint: hook rules, unused code and the no-I/O module boundary   |
-| `npm run test:browser`               | Headless render checks (own Chrome and server; needs `dist`)     |
-| `npm run test:package`               | Pack the tarball and validate an installed consumer              |
-| `npm run lint:package`               | publint and attw: export map and type resolution                 |
-| `npm run check`                      | Everything above plus `format:check` and `docs:readme:check`     |
-| `npm run generate`                   | Regenerate the contract validators/types in `src/generated/`     |
-| `npm run docs:validate`              | Validate the whole documentation model                           |
-| `npm run docs:read -- --focus <key>` | Read a subject's definitions without edit metadata               |
-| `npm run docs:readme`                | Regenerate `README.md` from the model                            |
-| `npm run docs:serve`                 | Local documentation viewer at `http://127.0.0.1:4174/`           |
-| `npm run format:check`               | Prettier check (`docs/` is ignored; the model is validated JSON) |
+| Command                              | Scope                                                                         |
+| ------------------------------------ | ----------------------------------------------------------------------------- |
+| `npm run build`                      | Compile `src/` and copy `assets/` into `dist/`                                |
+| `npm test`                           | Node test suites in `tests/*.test.mjs` (regenerates contract)                 |
+| `npm run lint`                       | ESLint: hook rules, unused code and the no-I/O module boundary                |
+| `npm run test:browser`               | Headless render checks (own Chrome and server; needs `dist`)                  |
+| `npm run test:package`               | Pack the tarball and validate an installed consumer                           |
+| `npm run lint:package`               | publint and attw: export map and type resolution                              |
+| `npm run check`                      | Everything above plus `format:check`, `docs:validate` and `docs:readme:check` |
+| `npm run generate`                   | Regenerate the contract validators/types in `src/generated/`                  |
+| `npm run docs:validate`              | Validate the whole documentation model                                        |
+| `npm run docs:read -- --focus <key>` | Read a subject's definitions without edit metadata                            |
+| `npm run docs:readme`                | Regenerate `README.md` from the model                                         |
+| `npm run docs:serve`                 | Local documentation viewer at `http://127.0.0.1:4174/`                        |
+| `npm run format:check`               | Prettier check (`docs/project.json` is ignored; it is validated JSON)         |
 
 ## Repository hygiene
 
 Keep instructions concise: no README clones, no prose documentation outside
 `docs/project.json`, no stale previews or copied contracts. Historical design is in
-Git. Never hand-edit `src/generated/` or `README.md`; regenerate them. Format
-before committing.
+Git. Format before committing.

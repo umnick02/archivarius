@@ -541,8 +541,15 @@ test('diagram identifiers never collide with Mermaid keywords', async () => {
 
 test('documentation omits fields without a value instead of printing them', async () => {
   const model = clone();
-  const record = model.records.find((r) => r.basis === null);
-  assert(record, 'fixture needs a record with an unrecorded basis');
+  // The suite creates the empty field itself rather than depending on the
+  // fixture still happening to carry one, so populating a basis cannot retire
+  // this oracle.
+  for (const record of model.records)
+    if ('basis' in record) record.basis = null;
+  assert(
+    model.records.some((r) => r.basis === null),
+    'the model must have a record that can hold a basis',
+  );
   const markdown = await generateDocumentation(model);
   assert(!/^null$/m.test(markdown), 'a null field leaked into the output');
 });

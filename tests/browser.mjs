@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
-import { pause } from './cdp.mjs';
+import { clicker, pause, settler, waiter } from './cdp.mjs';
 import { startHarness } from './harness.mjs';
 import { generateDocumentation } from '../src/node.mjs';
 
@@ -17,31 +17,14 @@ const harness = await startHarness();
 const b = harness.browser;
 const state = (name = 'first') =>
   b.evaluate((name) => window.consumer[name].snapshot(), name);
+const until = waiter(b);
+const settled = settler(b);
+const camera = () => window.consumer.first.snapshot().viewport;
 const focus = async (key) => {
   await b.evaluate((key) => window.consumer.first.focus(key), key);
-  await pause(150);
+  await settled(camera);
 };
-const click = async (selector, count = 1) => {
-  const point = await b.evaluate((selector) => {
-    const element = document.querySelector(selector);
-    element.scrollIntoView({ block: 'nearest' });
-    const r = element.getBoundingClientRect();
-    return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
-  }, selector);
-  await b.call('Input.dispatchMouseEvent', {
-    type: 'mousePressed',
-    ...point,
-    button: 'left',
-    clickCount: count,
-  });
-  await b.call('Input.dispatchMouseEvent', {
-    type: 'mouseReleased',
-    ...point,
-    button: 'left',
-    clickCount: count,
-  });
-  await pause(400);
-};
+const click = clicker(b);
 const load = (data) =>
   b.evaluate(async (data) => {
     await window.consumer.first.load(
@@ -87,7 +70,7 @@ try {
   await b.call('Page.navigate', {
     url: harness.url,
   });
-  await pause(1500);
+  await until(() => Boolean(window.consumer));
   assert(
     await b.evaluate(async () => {
       await Promise.race([
@@ -163,7 +146,7 @@ try {
   await focus('engine');
   assert((await state()).visible.includes('ranking'));
   await b.evaluate(() => window.consumer.first.inspect('engine'));
-  await pause(150);
+  await until(() => window.consumer.first.snapshot().panel !== null);
   assert.equal(
     await b.evaluate(
       () =>
@@ -216,11 +199,12 @@ try {
   await b.evaluate(() => document.querySelector('#host-input').focus());
   const before = (await state()).viewport;
   await b.call('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Home' });
+  // Nothing should happen, so a settled camera is the only available signal.
   await pause(350);
   assert.deepEqual((await state()).viewport, before);
   await b.evaluate(() => document.querySelector('#first .map-app').focus());
   await b.call('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Home' });
-  await pause(350);
+  await until(() => window.consumer.first.snapshot().expanded.length === 0);
   assert.equal((await state()).expanded.length, 0);
   assert.deepEqual((await state('second')).viewport, other.viewport);
 
@@ -237,7 +221,7 @@ try {
       deltaX: 0,
       deltaY: -160,
     });
-    await pause(200);
+    await settled(camera);
   }
   assert((await state()).visible.includes('gateway'));
   await b.evaluate(() => window.consumer.first.home());
@@ -249,7 +233,7 @@ try {
     select.value = 'data';
     select.dispatchEvent(new Event('change', { bubbles: true }));
   });
-  await pause();
+  await until(() => window.consumer.first.snapshot().layer === 'data');
   assert.equal((await state()).relations.length, interactions);
   assert.equal((await state()).layer, 'data');
   assert.equal((await state('second')).layer, 'all');
@@ -354,7 +338,9 @@ try {
   }, broken);
   assert.equal(invalid.code, 'INVALID_MODEL');
   assert(invalid.issues.includes('INTERACTION_REQUIRED:publisher'));
-  await pause();
+  await until(
+    () => document.querySelectorAll('#first [data-node]').length === 0,
+  );
   assert.equal(
     await b.evaluate(
       () => document.querySelectorAll('#first [data-node]').length,
@@ -433,7 +419,7 @@ try {
     }
   }, broken);
   assert.equal(badReact, 'INVALID_MODEL');
-  await pause();
+  await until(() => window.consumer.reactRef.current === null);
   assert.equal(await b.evaluate(() => window.consumer.reactRef.current), null);
   await b.evaluate(async (data) => {
     await window.consumer.renderReact(data);
@@ -513,7 +499,7 @@ try {
     deviceScaleFactor: 1,
     mobile: true,
   });
-  await pause();
+  await settled(camera);
   await focus('engine');
   assert((await state()).visible.includes('ranking'));
   assert.equal(
