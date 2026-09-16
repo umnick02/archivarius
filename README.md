@@ -2,6 +2,31 @@
 
 One validated JSON file - a snapshot - holds a project's whole description as small linked records: its parts, the rules they must satisfy, the decisions behind them, the work left and the checks that confirm it. A React library draws that file as an architecture map that reveals more detail as it is zoomed.
 
+```json
+{
+  "key": "task-model",
+  "type": "task",
+  "title": "Maintain the model and contract",
+  "scope": "archivarius",
+  "change": "Keep the schema, graph references, digest and validated-change path consistent.",
+  "affects": [
+    "core",
+    "graph",
+    "digest"
+  ],
+  "covers": [
+    "validated-change-c",
+    "conservative-freshness-c"
+  ],
+  "needs": [],
+  "uses": [
+    "basis-digest",
+    "edit-and-render"
+  ],
+  "basis": null
+}
+```
+
 ```mermaid
 flowchart TD
     subgraph c-model["Model and contract"]

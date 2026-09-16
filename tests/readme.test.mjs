@@ -80,13 +80,17 @@ test('the readme carries no text of its own', () => {
     .map((r) => Object.values(r).join('\n'))
     .join('\n');
   // Every prose line must come from the model, so the generator cannot smuggle
-  // in a sentence that no record states.
-  const diagram = readme.match(/```mermaid\n([\s\S]*?)\n```/)[1];
+  // in a sentence that no record states. A fenced block is quoted data, checked
+  // below against the records it claims to show.
+  let fenced = false;
   for (const line of readme.split('\n')) {
+    if (line.startsWith('```')) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced) continue;
     if (!line.trim() || line.startsWith('#') || line.startsWith('<!--'))
       continue;
-    if (line.startsWith('```')) continue;
-    if (diagram.includes(line)) continue;
     if (line.startsWith('|')) {
       // A row is structure; every cell it carries must still come from a record.
       const cells = line
@@ -208,4 +212,16 @@ test('rendering the same model twice gives the same readme', () => {
     renderReadme(model, copy),
     renderReadme(structuredClone(model), copy),
   );
+});
+
+test('a quoted record is a record of the model, verbatim', () => {
+  const readme = renderReadme(model, copy);
+  const blocks = [...readme.matchAll(/```json\n([\s\S]*?)\n```/g)];
+  assert(blocks.length, 'no record is shown');
+  for (const [, block] of blocks) {
+    const shown = JSON.parse(block);
+    const record = model.records.find((r) => r.key === shown.key);
+    assert(record, 'no such record: ' + shown.key);
+    assert.deepEqual(shown, record, 'the shown record was edited on the way');
+  }
 });
