@@ -23,20 +23,12 @@ export async function readArchitectureFile(file) {
   return parseArchitecture(JSON.stringify(raw));
 }
 
-export async function generateDocumentation(model, { locale = 'ru' } = {}) {
-  if (!['ru', 'en'].includes(locale))
-    throw new ArchitectureError('UNSUPPORTED_LOCALE');
+export async function generateDocumentation(model) {
   const copy = JSON.parse(
-    await readFile(
-      new URL('../assets/' + locale + '.json', import.meta.url),
-      'utf8',
-    ),
+    await readFile(new URL('../assets/strings.json', import.meta.url), 'utf8'),
   );
   copy.project = JSON.parse(
-    await readFile(
-      new URL('../assets/project.' + locale + '.json', import.meta.url),
-      'utf8',
-    ),
+    await readFile(new URL('../assets/project.json', import.meta.url), 'utf8'),
   );
   return renderDocumentation(model, copy);
 }

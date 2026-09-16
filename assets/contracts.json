@@ -1,54 +1,54 @@
 [
   [
-    "Полная реализация — один признак",
-    "У каждого блока и исходной связи есть implemented: true или false. В интерфейсе это «Полностью реализовано: да / нет». Да означает подтверждённую реализацию всего описанного контракта. Нет означает, что полная реализация не подтверждена: часть кода может существовать. Неизученный код получает false. Процентов и промежуточных статусов нет."
+    "One flag for full implementation",
+    "Every node and original interaction has implemented: true or false. The inspector shows Fully implemented: yes / no. Yes confirms the whole described contract. No means full implementation has not been confirmed; some code may exist. Unstudied code receives false. There are no percentages or intermediate statuses."
   ],
   [
-    "Для «да» нужны работающий контракт и проверка",
-    "Все описанные обязанности, правила, входы, выходы и предусмотренные отказы работают в достижимом пути приложения. Файл, интерфейс, заглушка или отдельно прошедший тест этого не доказывают. Для связи проверяется реальная передача описанного содержимого между указанными участниками; готовность одного участника не подтверждает связь. Для внешнего провайдера оценивается предусмотренное взаимодействие приложения с ним. При true обязательно implementationEvidence: краткое объяснение проверенного пути, версии кода и проверок с результатом. После затрагивающего контракт или реализацию изменения подтверждение пересматривается; без повторного подтверждения — false. Проверка структуры доказательств не заменяет проверку самого поведения."
+    "Yes requires working behavior and verification",
+    "All described responsibilities, rules, inputs, outputs and specified refusals work through a reachable application path. A file, interface, stub or isolated passing test is insufficient. For an interaction, verify the actual transfer between its participants; a completed participant does not prove a completed interaction. External participants are assessed through the application's required integration. True requires implementationEvidence explaining the verified path, code revision and checks with results. Reassess evidence after relevant code or contract changes; use false without renewed confirmation. Structural checks cannot prove that evidence is truthful."
   ],
   [
-    "Родитель и общая стрелка не скрывают неготовые части",
-    "Блок может иметь true только при подтверждённой реализации своего полного контракта и всех своих входящих, исходящих и внутренних связей. Для родителя дополнительно требуется true у всех вложенных блоков. Готовность детей сама по себе не подтверждает полноту родителя: нужен проверенный контракт всей подсистемы, включая нераскрытые обязанности. Граница детализации не сужает этот контракт. Общая стрелка имеет true только если true у каждой исходной связи в её составе. Зум и выделение типа не меняют результат."
+    "Parents and aggregates cannot conceal unfinished parts",
+    "A node can be true only when its complete contract and all incoming, outgoing and internal interactions are confirmed. A parent also requires true for every descendant. Completed children do not automatically confirm the enclosing contract: verify the whole subsystem, including responsibilities omitted from the visual decomposition. A detail boundary does not narrow that contract. An aggregate arrow is true only when every original transfer is true. Zoom and type emphasis do not change this result."
   ],
   [
-    "Компонент обязан иметь взаимодействия",
-    "Каждый показанный компонент, хранилище и внешний участник имеет объяснённые входящие или исходящие связи и связан с остальной системой. Отдельная связанная пара тоже не может висеть островом. Вложенность не засчитывается как взаимодействие."
+    "Participants must interact",
+    "Every component, store and external participant has explained incoming or outgoing interactions and belongs to the connected system. Even a connected pair cannot form a separate island. Containment does not count as interaction."
   ],
   [
-    "Состав не подменяет устройство",
-    "Вложенные блоки — реальные участники взаимодействий, чьи обязанности мы понимаем. Правила, данные состояния и этапы одной обязанности описываются в свойствах ответственного компонента. Свойство не становится отдельным компонентом только ради детализации."
+    "Containment describes real responsibilities",
+    "Nested blocks are actual participants whose responsibilities are understood. Rules, state fields and steps within one responsibility belong in the responsible component's properties. A property is not a separate component merely to increase detail."
   ],
   [
-    "У каждой стрелки есть контракт",
-    "Зафиксированы источник, получатель, направление, тип, передаваемые данные или команда и смысл взаимодействия. Формальная стрелка ради связанности недопустима. Данные показывают логическую передачу между ответственностями; стрелки сами по себе не обещают прямой вызов или порядок выполнения."
+    "Every arrow has a contract",
+    "Source, target, direction, kind, payload and meaning are explicit. Decorative arrows added just for connectivity are invalid. Data arrows show logical transfers between responsibilities; they do not imply direct calls or execution order."
   ],
   [
-    "Границы раскрываются до известных участников",
-    "Исходная связь указывает на конкретных участников самого глубокого описанного уровня. На общем масштабе их представляет родитель. При раскрытии стрелка приходит к известному внутреннему участнику; привязка к расплывчатому родителю не заменяет эту работу."
+    "Resolve boundaries to known participants",
+    "Original interactions address the deepest described leaf participants. A collapsed parent represents them at overview scale. Revealing its parts exposes the known endpoint; vague container endpoints are not a substitute."
   ],
   [
-    "Неизвестное ограничивает детализацию",
-    "Если внутренние взаимодействия не поняты, детализация заканчивается на компоненте с понятным внешним контрактом. Причина остановки написана в его пояснении. Несвязанные заготовки и предполагаемые модули не публикуются как готовая архитектура."
+    "Unknown internals limit detail",
+    "When internals are not understood, decomposition stops at a component with an understood external contract and an explanation of that boundary. Disconnected placeholders and guessed modules are not published as established architecture."
   ],
   [
-    "Одна модель и постоянная геометрия",
-    "Название можно менять, сохраняя идентичность и связи. Вложенность не содержит циклов и дубликатов. Зум раскрывает известные части в постоянных границах; разные ветки могут иметь разную глубину."
+    "One model with stable geometry",
+    "Names may change without changing identity or interactions. Containment has no cycles or duplicates. Geometry is calculated for a model and stays fixed during zoom. Different branches may have different depths."
   ],
   [
-    "Состав общей стрелки доступен",
-    "На общем масштабе объединяются только одинаковые направление, тип и явно заданный общий канал взаимодействия. Подпись обозначает этот канал, а список раскрывает точные исходные передачи. Транзитивные взаимодействия не выдумываются."
+    "Aggregate membership stays accessible",
+    "Only matching direction, kind, explicit channel and label are aggregated. The label names the channel, and the inspector exposes the original transfers. Transitive interactions are not invented."
   ],
   [
-    "Выделение сохраняет контекст",
-    "Выбор данных, команд или состояния выделяет нужные стрелки; остальные остаются видимыми. Компонент не превращается в изолированную коробку из-за фильтра. Панель показывает все его входы и выходы независимо от масштаба и выделения."
+    "Emphasis preserves context",
+    "Selecting data, commands or state emphasizes that type while retaining all other arrows. A filter must not create visually isolated participants. A component inspector lists every input and output independently of zoom and emphasis."
   ],
   [
-    "Проверки блокируют структурные пробелы",
-    "Сборка и загрузка отвергают компонент без взаимодействий, отдельный остров, несвязанный контейнер, стрелку к неуточнённой группе, отсутствующего участника и пустой контракт передачи. Также отклоняются отсутствие булева implemented, true без объяснения проверки и true у блока с неподтверждёнными частями или связями. Эти проверки дополняют изучение архитектуры, но не доказывают правдивость написанного смысла."
+    "Validation rejects structural gaps",
+    "Validation rejects participants without interactions, disconnected islands or containers, non-leaf endpoints, missing participants and empty transfer contracts. It also rejects missing boolean implementation flags, unsupported positive claims and positive nodes with unconfirmed parts or interactions. These checks complement architectural study but do not establish semantic truth."
   ],
   [
-    "Это целевая архитектура",
-    "Карта отражает изученное целевое устройство и выбранные границы объяснения. Наличие блока или стрелки не подтверждает реализацию: это выражает только отдельный признак implemented в пределах проверенного контракта. Он не означает полноту архитектурной модели или готовность релиза. ID документов и автоматическая привязка к коду пока не вводятся."
+    "The model describes target architecture",
+    "The map is an interpretation of a target system with chosen explanation boundaries. A node or arrow does not itself prove implementation; only the separate implemented flag makes that claim within its verified contract. It does not prove model completeness or release readiness. Document identifiers and automatic code bindings are not part of this version."
   ]
 ]

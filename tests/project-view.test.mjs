@@ -11,10 +11,7 @@ const project = JSON.parse(
   ),
 );
 const copy = JSON.parse(
-  await fs.readFile(
-    new URL('../assets/project.ru.json', import.meta.url),
-    'utf8',
-  ),
+  await fs.readFile(new URL('../assets/project.json', import.meta.url), 'utf8'),
 );
 const get = (key) => project.records.find((r) => r.key === key);
 

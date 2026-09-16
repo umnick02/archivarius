@@ -23,7 +23,6 @@ async function main() {
       options: {
         json: { type: 'boolean' },
         output: { type: 'string' },
-        locale: { type: 'string' },
         check: { type: 'boolean' },
         help: { type: 'boolean' },
         focus: { type: 'string', multiple: true },
@@ -45,7 +44,7 @@ async function main() {
     const [command] = positionals;
     const allowed = {
       validate: ['json'],
-      docs: ['output', 'locale', 'check'],
+      docs: ['output', 'check'],
       documents: ['output', 'check', 'json'],
       context: ['focus', 'json', 'output'],
       read: ['focus', 'json'],
@@ -75,11 +74,7 @@ async function main() {
         (values.focus?.length !== 1 || !values.result || !values.evidence)) ||
       (command === 'docs' && (!values.output || values.json)) ||
       (command === 'documents' && !values.output) ||
-      (command === 'validate' &&
-        (values.output !== undefined ||
-          values.locale !== undefined ||
-          values.check)) ||
-      (values.locale !== undefined && !['ru', 'en'].includes(values.locale))
+      (command === 'validate' && (values.output !== undefined || values.check))
     )
       throw new Error('INVALID_ARGUMENTS');
   } catch {
@@ -183,9 +178,7 @@ async function main() {
         inputStat.dev === outputStat.dev)
     )
       throw new Error('OUTPUT_IS_MODEL');
-    const markdown = await generateDocumentation(model, {
-      locale: values.locale,
-    });
+    const markdown = await generateDocumentation(model);
     if (values.check) {
       const existing = await fs.readFile(output, 'utf8').catch((error) => {
         if (error.code !== 'ENOENT') throw error;

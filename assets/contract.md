@@ -1,78 +1,78 @@
-# Контракт v4
+# Contract v4
 
-Точная структура: `model.schema.json`; вход правки: `change.schema.json`.
-Если архитектура ещё не изучена, `entry: null` и отсутствие компонентов позволяют
-просматривать требования и другие записи. Первые добавленные компоненты уже должны
-образовывать связанное взаимодействие с конкретным входом. Неиспользуемый контракт
-обмена остаётся видимым пробелом, его участников не нужно выдумывать.
-Типы и структурный валидатор генерируются из схем. `x-targets` задаёт допустимые
-типы концов ссылок; `x-history` разрешает ссылку на сохранённую историческую запись.
+Exact structure: `model.schema.json`; edit input: `change.schema.json`.
+If the architecture has not yet been studied, `entry: null` and the absence of components allow
+browsing requirements and other records. The first added components must already
+form a connected interaction with a concrete entry. An unused exchange
+contract remains a visible gap; its participants need not be invented.
+Types and the structural validator are generated from the schemas. `x-targets` defines the allowed
+endpoint types of references; `x-history` permits a reference to a stored historical record.
 
-| Данные          | Назначение                                                                    |
-| --------------- | ----------------------------------------------------------------------------- |
-| `records`       | Текущие определения с уникальными `key` и `type`                              |
-| `root`, `entry` | Корневая область и конечный участник входа в архитектуру                      |
-| `bindings`      | Именованные относительные пути и SHA-256 файлов реализации, проверок и входов |
-| `history`       | Прежние записи с проверяемым хешем содержимого                                |
-| `snapshots`     | Точный состав использованных редакций и привязок прежнего снимка              |
+| Data            | Purpose                                                                        |
+| --------------- | ------------------------------------------------------------------------------ |
+| `records`       | Current definitions with unique `key` and `type`                               |
+| `root`, `entry` | Root scope and the terminal participant of the entry into the architecture     |
+| `bindings`      | Named relative paths and SHA-256 of realization, verification, and entry files |
+| `history`       | Former records with a verifiable content hash                                  |
+| `snapshots`     | The exact composition of used revisions and bindings of a former snapshot      |
 
-`scope` группирует продуктовую область; `component.parent` задаёт архитектурное
-вложение. `interaction` связывает конечные компоненты через `interface`.
-Общие контракты обмена определены единожды. Все компоненты связаны с входом,
-раскрытые подсистемы имеют внешнее взаимодействие, конечные участники — `boundary`.
-Вложенность, порядок задач и основания решений не допускают циклов; runtime-обмен
-может содержать обратную связь. Текущий выбор `decision` уникален по `scope + topic`.
+`scope` groups a product area; `component.parent` defines architectural
+nesting. `interaction` connects terminal components through an `interface`.
+Shared exchange contracts are defined once. All components are connected to the entry,
+exposed subsystems have external interaction, terminal participants are `boundary`.
+Nesting, task order, and decision bases do not permit cycles; runtime exchange
+may contain feedback. The current `decision` choice is unique by `scope + topic`.
 
-Требование владеет `rule`, `when`, `exceptions` и необязательными `parameters`.
-Необязательный `label` сохраняет внешнее обозначение записи. `category` требования
-различает продуктовые правила, исключения, архитектуру и представление.
-`companions` задаёт соседние требования для чтения; `guards` — обязательные
-ограничения, участвующие и в контексте, и в выводе подтверждения.
-`appliesTo` задаёт применимость; `sources` — основания. Критерий связывается через
-`requirement`. Задача указывает `change`, `affects`, `covers`, `needs`, `uses`.
-Проверка задаёт `method`, `covers`, `scenarios`, `targets`, `level` и при наличии
-исполняемой проверки — массив аргументов `command`. Загрузка данных команду не запускает.
+A requirement owns `rule`, `when`, `exceptions`, and optional `parameters`.
+An optional `label` preserves the external designation of a record. A requirement's `category`
+distinguishes product rules, exceptions, architecture, and presentation.
+`companions` defines neighboring requirements to read; `guards` — mandatory
+constraints participating both in the context and in the confirmation output.
+`appliesTo` defines applicability; `sources` — the bases. A criterion is linked through
+`requirement`. A task specifies `change`, `affects`, `covers`, `needs`, `uses`.
+A verification defines `method`, `covers`, `scenarios`, `targets`, `level`, and, when an
+executable check is present, an array of `command` arguments. Loading data does not run the command.
 
-`basis.contract` — SHA-256 канонического представления определений: ключи объектов
-сортируются, порядок записей нормализуется, порядок массивов внутри записи значим.
-Из расчёта исключены результаты, история, `basis` и текст повторного рассмотрения.
-Все остальные изменения, включая добавление требования, снимают актуальность.
-Область проверки пока весь проект: это консервативная защита при неизвестной полноте
-зависимостей. `result.realization` отдельно фиксирует точные `bindings`.
+`basis.contract` — SHA-256 of the canonical representation of definitions: object keys
+are sorted, record order is normalized, array order within a record is significant.
+Results, history, `basis`, and the review text are excluded from the computation.
+All other changes, including adding a requirement, invalidate currency.
+The verification scope is still the whole project: this is a conservative safeguard when the completeness
+of dependencies is unknown. `result.realization` separately records the exact `bindings`.
 
-Изменение по API требует неизменного контекста; частичная запись не заменяет файл.
-`apply` сохраняет историю и манифест, а `review` требует содержательного объяснения.
-Результаты неизменяемы. Удалённый отрицательный результат с применимым основанием
-остаётся препятствием. Разрешение противоречия задаётся явно через `resolves` и
-`resolution`; оно учитывается только с доступным успешным свидетельством.
+A change via the API requires an unchanged context; a partial write does not replace the file.
+`apply` preserves history and the manifest, while `review` requires a substantive explanation.
+Results are immutable. A removed negative result with an applicable basis
+remains an obstacle. Resolution of a contradiction is specified explicitly through `resolves` and
+`resolution`; it is taken into account only with available successful evidence.
 
-Полная реализация выводится из всех применимых критериев, назначенной реализации,
-актуальных оснований, необходимых проверок и проверки целого. Вопросы, допущения,
-непокрытые требования, отсутствующие привязки и противоречия исключают «да».
-Для подтверждения результат должен иметь доступный артефакт выполнения и совпадающие
-байты всех объявленных входов. Загрузка из `File`/объекта не даёт доступа к соседним
-файлам, поэтому сама по себе не подтверждает выполнение.
+Full realization is derived from all applicable criteria, the assigned realization,
+current bases, required verifications, and verification of the whole. Questions, assumptions,
+uncovered requirements, missing bindings, and contradictions preclude a "yes".
+For confirmation, a result must have an available execution artifact and matching
+bytes of all declared inputs. Loading from a `File`/object does not grant access to neighboring
+files, and therefore by itself does not confirm execution.
 
-Хеши обнаруживают расхождения, но не удостоверяют личность автора. Владелец процесса
-доверяет исполнителю проверок и полноте объявленных входов. Пакет не доказывает смысл
-произвольного текста, полноту тестов или отсутствие незаявленных зависимостей.
-`analyzeProject(..., {verifiedResults})` — низкоуровневая граница доверия для своего
-проверяющего адаптера; обычный Node-потребитель использует `verifyProjectFiles()`.
+Hashes detect discrepancies but do not certify the author's identity. The process owner
+trusts the executor of verifications and the completeness of declared inputs. A package does not prove the meaning
+of arbitrary text, the completeness of tests, or the absence of undeclared dependencies.
+`analyzeProject(..., {verifiedResults})` — a low-level trust boundary for its own
+verifying adapter; an ordinary Node consumer uses `verifyProjectFiles()`.
 
-Браузер читает привязки и свидетельства по относительным URL рядом с моделью.
-Пути вне каталога и внешние origin не поддержаны. Подтверждение относится к загруженному
-снимку; после изменения модели или артефактов нужно выполнить повторную загрузку.
-Markdown воспроизводит определения и записанные основания; живую проверку файлов
-выполняет `verify`, а не экспорт документа.
+The browser reads bindings and evidence by relative URLs next to the model.
+Paths outside the directory and external origins are not supported. Confirmation pertains to the loaded
+snapshot; after changing the model or artifacts, a reload must be performed.
+Markdown reproduces definitions and recorded bases; live verification of files
+is performed by `verify`, not by document export.
 
-`document` хранит `stage`, относительный `path` и `format`. Для Markdown `blocks`
-содержит заголовки, абзацы, списки, таблицы, цитаты, код, комментарии и якоря.
-Содержимое строки — массив строк и ссылок `{record, field, index?}` на строковые
-поля определений. `index` выбирает элемент массива. Циклическое включение
-документов не поддерживается. В JSON-формате `data` хранит объект с такими же
-ссылками; они могут выбирать также числа, объекты и массивы. `as: "labels"`
-заменяет ключи связанными внешними обозначениями. Объект с `record` и `field`
-зарезервирован для ссылки, дополнительные неизвестные поля отклоняются.
-`subjects` связывает технический документ с его предметами. Документы учитываются
-в хеше определений, но не добавляют обязательства реализации или доказательства.
-`documents --check` проверяет точное совпадение файлов со свежим рендером.
+`document` stores `stage`, a relative `path`, and `format`. For Markdown, `blocks`
+contains headings, paragraphs, lists, tables, quotes, code, comments, and anchors.
+A line's content is an array of strings and references `{record, field, index?}` to string
+fields of definitions. `index` selects an array element. Cyclic inclusion of
+documents is not supported. In the JSON format, `data` stores an object with the same
+references; they may also select numbers, objects, and arrays. `as: "labels"`
+replaces keys with their associated external designations. An object with `record` and `field`
+is reserved for a reference; additional unknown fields are rejected.
+`subjects` links a technical document to its subjects. Documents are counted
+in the definitions hash but do not add realization obligations or proofs.
+`documents --check` verifies exact matching of files with a fresh render.

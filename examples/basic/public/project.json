@@ -1,6 +1,6 @@
 {
   "version": 4,
-  "title": "Экспорт отчёта",
+  "title": "Report Export",
   "root": "project",
   "entry": "screen",
   "bindings": {},
@@ -9,89 +9,89 @@
     {
       "key": "project",
       "type": "scope",
-      "title": "Экспорт отчёта",
-      "purpose": "Владелец сохраняет выбранные данные в файл."
+      "title": "Report Export",
+      "purpose": "The owner saves the selected data to a file."
     },
     {
       "key": "owner-intent",
       "type": "source",
-      "title": "Назначение экспорта",
+      "title": "Purpose of the export",
       "scope": "project",
       "origin": "owner",
-      "statement": "Вымышленный учебный пример: сохранить ограниченный отчёт с явным результатом операции."
+      "statement": "A fictional teaching example: save a limited report with an explicit outcome of the operation."
     },
     {
       "key": "screen",
       "type": "component",
-      "title": "Экран отчёта",
+      "title": "Report screen",
       "scope": "project",
       "kind": "component",
       "zone": "presentation",
-      "summary": "Принимает выбор данных и показывает результат сохранения.",
-      "boundary": "Внутреннее устройство экрана не рассматривается."
+      "summary": "Accepts the data selection and shows the result of saving.",
+      "boundary": "The internal workings of the screen are out of scope."
     },
     {
       "key": "export",
       "type": "component",
-      "title": "Экспорт",
+      "title": "Export",
       "scope": "project",
       "kind": "subsystem",
       "zone": "application",
-      "summary": "Проверяет допустимость отчёта и сохраняет его."
+      "summary": "Validates whether the report is allowed and saves it."
     },
     {
       "key": "admission",
       "type": "component",
-      "title": "Проверка отчёта",
+      "title": "Report validation",
       "scope": "project",
       "parent": "export",
       "kind": "component",
       "zone": "pure",
-      "summary": "Проверяет размер выбранного набора до записи.",
-      "boundary": "Алгоритм проверки размера остаётся внутри компонента."
+      "summary": "Checks the size of the selected set before writing.",
+      "boundary": "The size-checking algorithm stays inside the component."
     },
     {
       "key": "writer",
       "type": "component",
-      "title": "Запись файла",
+      "title": "File writing",
       "scope": "project",
       "parent": "export",
       "kind": "component",
       "zone": "infrastructure",
-      "summary": "Последовательно записывает принятые строки и возвращает результат.",
-      "boundary": "Конкретный файловый адаптер не выбран."
+      "summary": "Writes the accepted rows sequentially and returns the result.",
+      "boundary": "A specific file adapter has not been chosen."
     },
     {
       "key": "request-contract",
       "type": "interface",
-      "title": "Запрос экспорта",
+      "title": "Export request",
       "scope": "project",
-      "payload": "Выбранные строки и назначение файла.",
-      "meaning": "Экран передаёт запрос проверки и сохранения.",
+      "payload": "The selected rows and the file destination.",
+      "meaning": "The screen sends a request to validate and save.",
       "constraints": ["row-limit"]
     },
     {
       "key": "write-contract",
       "type": "interface",
-      "title": "Принятый отчёт",
+      "title": "Accepted report",
       "scope": "project",
-      "payload": "Проверенный набор строк и назначение файла.",
-      "meaning": "Запись начинается после проверки допустимости.",
+      "payload": "The validated set of rows and the file destination.",
+      "meaning": "Writing begins after the validity check.",
       "constraints": ["row-limit"]
     },
     {
       "key": "result-contract",
       "type": "interface",
-      "title": "Результат сохранения",
+      "title": "Save result",
       "scope": "project",
-      "payload": "Подтверждение сохранения или причина отказа.",
-      "meaning": "Экран показывает фактический результат операции.",
+      "payload": "Confirmation of saving or the reason for rejection.",
+      "meaning": "The screen shows the actual outcome of the operation.",
       "constraints": ["explicit-result"]
     },
     {
       "key": "request",
       "type": "interaction",
-      "title": "Сохранить отчёт",
+      "title": "Save report",
       "scope": "project",
       "from": "screen",
       "to": "admission",
@@ -102,7 +102,7 @@
     {
       "key": "accepted",
       "type": "interaction",
-      "title": "Записать строки",
+      "title": "Write rows",
       "scope": "project",
       "from": "admission",
       "to": "writer",
@@ -113,7 +113,7 @@
     {
       "key": "completed",
       "type": "interaction",
-      "title": "Показать результат",
+      "title": "Show result",
       "scope": "project",
       "from": "writer",
       "to": "screen",
@@ -124,7 +124,7 @@
     {
       "key": "rejected",
       "type": "interaction",
-      "title": "Показать отказ проверки",
+      "title": "Show validation rejection",
       "scope": "project",
       "from": "admission",
       "to": "screen",
@@ -135,14 +135,14 @@
     {
       "key": "row-limit",
       "type": "requirement",
-      "title": "Предел размера отчёта",
+      "title": "Report size limit",
       "scope": "project",
-      "rule": "Экспорт допускается только в пределах maxRows. При превышении файл не создаётся.",
-      "when": ["Владелец запускает экспорт."],
+      "rule": "Export is allowed only within maxRows. If exceeded, the file is not created.",
+      "when": ["The owner starts the export."],
       "exceptions": [],
       "parameters": {
         "maxRows": 1000,
-        "unit": "строки"
+        "unit": "rows"
       },
       "appliesTo": ["admission", "write-contract"],
       "sources": ["owner-intent"]
@@ -150,18 +150,18 @@
     {
       "key": "within-limit",
       "type": "criterion",
-      "title": "Допустимый размер",
+      "title": "Allowed size",
       "scope": "project",
       "requirement": "row-limit",
-      "assertion": "Набор размером не более maxRows принят; больший набор отклонён до записи."
+      "assertion": "A set no larger than maxRows is accepted; a larger set is rejected before writing."
     },
     {
       "key": "explicit-result",
       "type": "requirement",
-      "title": "Явный результат операции",
+      "title": "Explicit outcome of the operation",
       "scope": "project",
-      "rule": "Экран показывает успех только после успешной записи; отказ проверки и ошибка записи различимы.",
-      "when": ["Экспорт завершился или был отклонён."],
+      "rule": "The screen shows success only after a successful write; a validation rejection and a write error are distinguishable.",
+      "when": ["The export has finished or was rejected."],
       "exceptions": [],
       "appliesTo": ["project"],
       "sources": ["owner-intent"]
@@ -169,18 +169,18 @@
     {
       "key": "result-visible",
       "type": "criterion",
-      "title": "Успех и отказ различимы",
+      "title": "Success and rejection are distinguishable",
       "scope": "project",
       "requirement": "explicit-result",
-      "assertion": "При успешной записи показан успех; при превышении предела или ошибке записи показана соответствующая причина."
+      "assertion": "On a successful write, success is shown; when the limit is exceeded or a write error occurs, the corresponding reason is shown."
     },
     {
       "key": "exclude-private",
       "type": "requirement",
-      "title": "Исключить служебные поля",
+      "title": "Exclude internal fields",
       "scope": "project",
-      "rule": "Служебные поля не попадают в экспортируемый файл.",
-      "when": ["В строке присутствуют служебные поля."],
+      "rule": "Internal fields do not appear in the exported file.",
+      "when": ["A row contains internal fields."],
       "exceptions": [],
       "appliesTo": ["project"],
       "sources": ["owner-intent"]
@@ -188,13 +188,13 @@
     {
       "key": "streaming",
       "type": "decision",
-      "title": "Последовательная запись",
+      "title": "Sequential writing",
       "scope": "project",
       "topic": "write-strategy",
-      "choice": "Проверить набор, затем записывать принятые строки последовательно.",
-      "alternatives": ["Собрать вторую полную копию отчёта в памяти."],
-      "because": "Повторная полная копия данных для сохранения не нужна.",
-      "consequences": ["Ошибка записи должна возвращаться на экран."],
+      "choice": "Validate the set, then write the accepted rows sequentially.",
+      "alternatives": ["Build a second full copy of the report in memory."],
+      "because": "A second full copy of the data for saving is not needed.",
+      "consequences": ["A write error must be returned to the screen."],
       "affects": ["writer"],
       "uses": ["row-limit", "explicit-result"],
       "basis": null
@@ -202,29 +202,29 @@
     {
       "key": "export-flow",
       "type": "scenario",
-      "title": "Сохранение и отказ",
+      "title": "Saving and rejection",
       "scope": "project",
-      "actor": "Владелец отчёта",
-      "given": ["Выбран набор строк."],
+      "actor": "Report owner",
+      "given": ["A set of rows is selected."],
       "steps": [
-        "Запустить экспорт.",
-        "Проверить допустимость набора.",
-        "Сохранить принятые данные.",
-        "Показать результат."
+        "Start the export.",
+        "Check whether the set is allowed.",
+        "Save the accepted data.",
+        "Show the result."
       ],
       "uses": ["row-limit", "explicit-result"],
       "then": ["within-limit", "result-visible"],
       "failures": [
-        "Превышение предела останавливает операцию до записи.",
-        "Ошибка записи возвращается владельцу с причиной."
+        "Exceeding the limit stops the operation before writing.",
+        "A write error is returned to the owner with a reason."
       ]
     },
     {
       "key": "implement-export",
       "type": "task",
-      "title": "Реализовать проверку и сохранение",
+      "title": "Implement validation and saving",
       "scope": "project",
-      "change": "Соединить проверку размера, последовательную запись и показ результата.",
+      "change": "Connect size validation, sequential writing, and showing the result.",
       "affects": ["admission", "writer", "screen"],
       "covers": ["within-limit", "result-visible"],
       "needs": [],
@@ -234,9 +234,9 @@
     {
       "key": "export-check",
       "type": "check",
-      "title": "Экспорт через пользовательский сценарий",
+      "title": "Export via the user scenario",
       "scope": "project",
-      "method": "Проверить границу размера, отказ до записи и ошибку записи через достижимый путь экрана.",
+      "method": "Verify the size boundary, rejection before writing, and a write error through a reachable screen path.",
       "covers": ["within-limit", "result-visible"],
       "scenarios": ["export-flow"],
       "targets": ["project", "export", "screen", "admission", "writer"],

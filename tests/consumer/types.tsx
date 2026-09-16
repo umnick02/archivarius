@@ -26,7 +26,6 @@ const element = (
   <ArchitectureMap
     source={source}
     ref={ref}
-    locale="en"
     onReady={(map) => {
       void map.home();
       map.snapshot().relations.map((edge) => edge.implemented);
@@ -57,10 +56,7 @@ declare const requirement: Extract<ProjectRecord, { type: 'requirement' }>;
 requirement.rule.toUpperCase();
 // @ts-expect-error project implementation is derived, not a manual status field
 requirement.implemented = true;
-// @ts-expect-error unsupported locale must not silently select another language
-const invalid = <ArchitectureMap source={source} locale="xx" />;
 void element;
-void invalid;
 
 declare const node: ArchitectureNode;
 if (node.detail === 'mapped') {

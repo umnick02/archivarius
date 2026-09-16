@@ -50,6 +50,11 @@
     "test:browser": "node tests/browser.mjs && node tests/project-browser.mjs",
     "test:package": "node tooling/test-package.mjs",
     "check": "npm run build && npm test && npm run test:package",
+    "docs:validate": "node docs/scripts/project.mjs validate --json",
+    "docs:read": "node docs/scripts/project.mjs read",
+    "docs:context": "node docs/scripts/project.mjs context",
+    "docs:apply": "node docs/scripts/project.mjs apply",
+    "docs:serve": "node docs/scripts/project.mjs serve",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "npm run build"

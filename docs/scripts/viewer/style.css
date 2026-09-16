@@ -1,0 +1,39 @@
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  font-family: system-ui, sans-serif;
+  color: #243529;
+  background: #f5f6f2;
+}
+
+header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 12px 20px;
+  font-weight: 600;
+  border-bottom: 1px solid #dde3d7;
+}
+
+header span {
+  color: #657060;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+#documentation {
+  flex: 1;
+  min-height: 0;
+}
+
+/* This viewer offers direct model reading without the library's MD download. */
+#documentation [data-control='download-docs'],
+#documentation [data-control='download-docs'] + p {
+  display: none;
+}

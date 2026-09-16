@@ -1,7 +1,7 @@
 Archivarius
 
   archivarius validate <model.json> [--json]
-  archivarius docs <model.json> --output <architecture.md> [--locale ru|en] [--check]
+  archivarius docs <model.json> --output <architecture.md> [--check]
   archivarius documents <project.json> --output <directory> [--check] [--json]
   archivarius read <project.json> --focus <key> [--focus <key>]
   archivarius context <project.json> --focus <key> [--focus <key>] [--output <receipt.json>]

@@ -1,29 +1,29 @@
 {
   "version": 3,
   "scope": "target",
-  "title": "Поиск по каталогу",
+  "title": "Catalog search",
   "entry": "portal",
   "nodes": [
     {
       "key": "portal",
-      "title": "Интерфейс поиска",
-      "summary": "Принимает запрос и показывает найденные записи.",
+      "title": "Search interface",
+      "summary": "Accepts a query and displays the records found.",
       "kind": "component",
       "zone": "presentation",
       "rules": [
         {
-          "title": "Пустой запрос",
-          "text": "Пустой запрос не запускает поиск."
+          "title": "Empty query",
+          "text": "An empty query does not trigger a search."
         }
       ],
       "detail": "boundary",
-      "detailNote": "В этом примере компоненты экрана не раскрываются.",
+      "detailNote": "In this example the screen components are not expanded.",
       "implemented": false
     },
     {
       "key": "search",
-      "title": "Поиск",
-      "summary": "Проверяет запрос, находит записи и возвращает упорядоченный результат.",
+      "title": "Search service",
+      "summary": "Validates the query, finds records and returns an ordered result.",
       "kind": "subsystem",
       "zone": "application",
       "rules": [],
@@ -32,24 +32,24 @@
       "children": [
         {
           "key": "gateway",
-          "title": "Обработка запросов",
-          "summary": "Проверяет параметры, передаёт запрос вычислению и формирует ответ.",
+          "title": "Request handling",
+          "summary": "Validates parameters, passes the query to computation and builds the response.",
           "kind": "component",
           "zone": "application",
           "rules": [
             {
-              "title": "Ограничение выдачи",
-              "text": "Число возвращаемых записей ограничено параметром запроса."
+              "title": "Result limit",
+              "text": "The number of returned records is limited by a query parameter."
             }
           ],
           "detail": "boundary",
-          "detailNote": "Протокол транспорта не уточняется в примере.",
+          "detailNote": "The transport protocol is not specified in the example.",
           "implemented": false
         },
         {
           "key": "engine",
-          "title": "Поисковое вычисление",
-          "summary": "Получает кандидатов из индекса и ранжирует их по запросу.",
+          "title": "Search computation",
+          "summary": "Retrieves candidates from the index and ranks them by the query.",
           "kind": "subsystem",
           "zone": "application",
           "rules": [],
@@ -58,29 +58,29 @@
           "children": [
             {
               "key": "query",
-              "title": "Получение кандидатов",
-              "summary": "Запрашивает подходящие записи каталога и передаёт их ранжированию.",
+              "title": "Candidate retrieval",
+              "summary": "Requests matching catalog records and passes them to ranking.",
               "kind": "component",
               "zone": "application",
               "rules": [],
               "detail": "boundary",
-              "detailNote": "Конкретный язык запросов к индексу не выбран.",
+              "detailNote": "A specific index query language is not chosen.",
               "implemented": false
             },
             {
               "key": "ranking",
-              "title": "Ранжирование",
-              "summary": "Вычисляет порядок кандидатов по тексту и параметрам запроса.",
+              "title": "Ranking",
+              "summary": "Computes the candidate order by the query text and parameters.",
               "kind": "component",
               "zone": "pure",
               "rules": [
                 {
-                  "title": "Одинаковые оценки",
-                  "text": "При равных оценках сохраняется определённый порядок по ключу записи."
+                  "title": "Equal scores",
+                  "text": "When scores are equal, a deterministic order by record key is preserved."
                 }
               ],
               "detail": "boundary",
-              "detailNote": "Внутренняя формула оценки находится за границей примера.",
+              "detailNote": "The internal scoring formula is beyond the scope of the example.",
               "implemented": false
             }
           ]
@@ -89,24 +89,24 @@
     },
     {
       "key": "archive",
-      "title": "Индекс каталога",
-      "summary": "Сохраняет опубликованные записи и отдаёт кандидатов по запросу.",
+      "title": "Catalog index",
+      "summary": "Stores published records and returns candidates for a query.",
       "kind": "store",
       "zone": "infrastructure",
       "rules": [],
       "detail": "boundary",
-      "detailNote": "Конкретная технология хранения не выбрана.",
+      "detailNote": "A specific storage technology is not chosen.",
       "implemented": false
     },
     {
       "key": "publisher",
-      "title": "Поставщик каталога",
-      "summary": "Публикует подготовленные записи в индекс через согласованный интерфейс записи.",
+      "title": "Catalog provider",
+      "summary": "Publishes prepared records into the index through an agreed write interface.",
       "kind": "external",
       "zone": "external",
       "rules": [],
       "detail": "boundary",
-      "detailNote": "Внешняя система описана только в пределах публикации записей.",
+      "detailNote": "The external system is described only within the scope of publishing records.",
       "implemented": false
     }
   ],
@@ -117,9 +117,9 @@
       "to": "gateway",
       "kind": "command",
       "channel": "search",
-      "label": "Найти записи",
-      "payload": "Текст запроса, фильтры и предел числа результатов.",
-      "meaning": "Владелец инициирует поиск через интерфейс.",
+      "label": "Find records",
+      "payload": "Query text, filters and result count limit.",
+      "meaning": "The owner initiates a search through the interface.",
       "implemented": false
     },
     {
@@ -128,9 +128,9 @@
       "to": "query",
       "kind": "data",
       "channel": "request-input",
-      "label": "Проверенный запрос",
-      "payload": "Нормализованный текст и фильтры отбора кандидатов.",
-      "meaning": "Получение кандидатов использует проверенные параметры запроса.",
+      "label": "Validated query",
+      "payload": "Normalized text and filters for candidate selection.",
+      "meaning": "Candidate retrieval uses the validated query parameters.",
       "implemented": false
     },
     {
@@ -139,9 +139,9 @@
       "to": "ranking",
       "kind": "data",
       "channel": "request-input",
-      "label": "Проверенный запрос",
-      "payload": "Нормализованный текст и параметры сортировки.",
-      "meaning": "Ранжирование использует контекст того же запроса.",
+      "label": "Validated query",
+      "payload": "Normalized text and sorting parameters.",
+      "meaning": "Ranking uses the context of the same query.",
       "implemented": false
     },
     {
@@ -150,9 +150,9 @@
       "to": "archive",
       "kind": "command",
       "channel": "lookup",
-      "label": "Отбор записей",
-      "payload": "Критерии поиска и максимальный размер набора кандидатов.",
-      "meaning": "Компонент запрашивает кандидатов из индекса.",
+      "label": "Record selection",
+      "payload": "Search criteria and the maximum candidate set size.",
+      "meaning": "The component requests candidates from the index.",
       "implemented": false
     },
     {
@@ -161,9 +161,9 @@
       "to": "query",
       "kind": "data",
       "channel": "candidates",
-      "label": "Кандидаты",
-      "payload": "Записи, соответствующие критериям отбора.",
-      "meaning": "Индекс возвращает найденные записи для дальнейшей обработки.",
+      "label": "Candidates",
+      "payload": "Records matching the selection criteria.",
+      "meaning": "The index returns the records found for further processing.",
       "implemented": false
     },
     {
@@ -172,9 +172,9 @@
       "to": "ranking",
       "kind": "data",
       "channel": "ranking",
-      "label": "Записи для оценки",
-      "payload": "Кандидаты и их доступные признаки.",
-      "meaning": "Кандидаты передаются вычислению порядка выдачи.",
+      "label": "Records to score",
+      "payload": "Candidates and their available features.",
+      "meaning": "Candidates are passed to the result ordering computation.",
       "implemented": false
     },
     {
@@ -183,9 +183,9 @@
       "to": "gateway",
       "kind": "data",
       "channel": "ranked",
-      "label": "Упорядоченные записи",
-      "payload": "Ключи записей и их оценки в порядке выдачи.",
-      "meaning": "Обработчик получает результат вычисления и формирует ответ.",
+      "label": "Ordered records",
+      "payload": "Record keys and their scores in result order.",
+      "meaning": "The handler receives the computation result and builds the response.",
       "implemented": false
     },
     {
@@ -194,9 +194,9 @@
       "to": "portal",
       "kind": "data",
       "channel": "response",
-      "label": "Результат поиска",
-      "payload": "Ограниченный список найденных записей с данными для отображения.",
-      "meaning": "Интерфейс показывает результат запроса.",
+      "label": "Search result",
+      "payload": "A limited list of records found with display data.",
+      "meaning": "The interface shows the query result.",
       "implemented": false
     },
     {
@@ -205,9 +205,9 @@
       "to": "archive",
       "kind": "data",
       "channel": "publication",
-      "label": "Записи каталога",
-      "payload": "Подготовленные записи с устойчивыми ключами.",
-      "meaning": "Поставщик обновляет содержимое индекса через интерфейс записи.",
+      "label": "Catalog records",
+      "payload": "Prepared records with stable keys.",
+      "meaning": "The provider updates the index contents through the write interface.",
       "implemented": false
     },
     {
@@ -216,9 +216,9 @@
       "to": "publisher",
       "kind": "state",
       "channel": "publication-result",
-      "label": "Состояние публикации",
-      "payload": "Идентификатор принятой публикации или явный отказ.",
-      "meaning": "Поставщик узнаёт, принят ли переданный набор записей.",
+      "label": "Publication state",
+      "payload": "The identifier of the accepted publication or an explicit rejection.",
+      "meaning": "The provider learns whether the submitted set of records was accepted.",
       "implemented": false
     }
   ]

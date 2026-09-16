@@ -1,0 +1,561 @@
+{
+  "version": 4,
+  "title": "Archivarius",
+  "root": "archivarius",
+  "entry": "map",
+  "bindings": {},
+  "history": [],
+  "records": [
+    {
+      "key": "archivarius",
+      "type": "scope",
+      "title": "Archivarius",
+      "purpose": "A single validated JSON snapshot describes a project's architecture, requirements, decisions, scenarios, tasks and checks, and a React library renders it as an architecture map with semantic zoom."
+    },
+    {
+      "key": "owner-intent",
+      "type": "source",
+      "title": "Purpose of the library",
+      "scope": "archivarius",
+      "origin": "owner",
+      "statement": "An owner understands a system's structure, the grounds for decisions, the remaining work and the effect of changes from one snapshot; an LLM reads and edits the same records."
+    },
+    {
+      "key": "contract-basis",
+      "type": "source",
+      "title": "Provenance and freshness model",
+      "scope": "archivarius",
+      "origin": "assumption",
+      "statement": "Revisions, used context and check results are distinct from ordinary references so that stale grounds and superseded evidence cannot pass as current confirmation."
+    },
+    {
+      "key": "model",
+      "type": "component",
+      "title": "Model and contract",
+      "scope": "archivarius",
+      "kind": "subsystem",
+      "zone": "pure",
+      "summary": "Owns the v4 JSON schema, record types, graph references, history, snapshots and the validated-change contract."
+    },
+    {
+      "key": "core",
+      "type": "component",
+      "title": "Core",
+      "scope": "archivarius",
+      "parent": "model",
+      "kind": "component",
+      "zone": "pure",
+      "summary": "Parses and validates a model, projects a v4 project to an architecture, and analyzes freshness and completion.",
+      "boundary": "Layout and rendering stay outside the core."
+    },
+    {
+      "key": "graph",
+      "type": "component",
+      "title": "Graph references",
+      "scope": "archivarius",
+      "parent": "model",
+      "kind": "component",
+      "zone": "pure",
+      "summary": "Validates typed relations between records and reports reverse links and coverage.",
+      "boundary": "Reference semantics are fixed by the schema targets."
+    },
+    {
+      "key": "digest",
+      "type": "component",
+      "title": "Canonical digest",
+      "scope": "archivarius",
+      "parent": "model",
+      "kind": "component",
+      "zone": "pure",
+      "summary": "Computes the SHA-256 basis over a canonical representation of the definitions.",
+      "boundary": "The canonicalization rules are internal to the digest."
+    },
+    {
+      "key": "node-api",
+      "type": "component",
+      "title": "Node API",
+      "scope": "archivarius",
+      "kind": "subsystem",
+      "zone": "infrastructure",
+      "summary": "Reads a model file, verifies evidence artifacts by bytes, applies validated changes, and generates documentation."
+    },
+    {
+      "key": "cli",
+      "type": "component",
+      "title": "CLI",
+      "scope": "archivarius",
+      "parent": "node-api",
+      "kind": "component",
+      "zone": "infrastructure",
+      "summary": "Exposes validate, read, context, apply, documents, verify, run and archive over the model file.",
+      "boundary": "Argument parsing and file paths stay inside the CLI."
+    },
+    {
+      "key": "evidence",
+      "type": "component",
+      "title": "Evidence verification",
+      "scope": "archivarius",
+      "parent": "node-api",
+      "kind": "component",
+      "zone": "infrastructure",
+      "summary": "Matches declared binding bytes against files and records actual check outcomes.",
+      "boundary": "Executing checks is performed by the run command, not by loading a model."
+    },
+    {
+      "key": "render",
+      "type": "component",
+      "title": "Map rendering",
+      "scope": "archivarius",
+      "kind": "subsystem",
+      "zone": "presentation",
+      "summary": "Mounts an interactive architecture map with semantic zoom and an inspector for records."
+    },
+    {
+      "key": "map",
+      "type": "component",
+      "title": "Architecture map",
+      "scope": "archivarius",
+      "parent": "render",
+      "kind": "component",
+      "zone": "presentation",
+      "summary": "Lays out components and interactions and reveals detail as the map is zoomed.",
+      "boundary": "Layout geometry stays inside the map."
+    },
+    {
+      "key": "inspector",
+      "type": "component",
+      "title": "Inspector and overview",
+      "scope": "archivarius",
+      "parent": "render",
+      "kind": "component",
+      "zone": "presentation",
+      "summary": "Shows a record's meaning, links, implementation outcome and the reasons requiring attention.",
+      "boundary": "Project data and UI copy stay external resources."
+    },
+    {
+      "key": "model-source",
+      "type": "interface",
+      "title": "Model source",
+      "scope": "archivarius",
+      "payload": "A v4 JSON snapshot as a URL, File, Blob or parsed object.",
+      "meaning": "The rendering subsystem loads a snapshot to display.",
+      "constraints": [
+        "single-snapshot"
+      ]
+    },
+    {
+      "key": "change-input",
+      "type": "interface",
+      "title": "Change input",
+      "scope": "archivarius",
+      "payload": "A context receipt and a change with put and remove sets.",
+      "meaning": "The node API applies a validated change against an unchanged context.",
+      "constraints": [
+        "validated-change"
+      ]
+    },
+    {
+      "key": "evidence-artifact",
+      "type": "interface",
+      "title": "Evidence artifact",
+      "scope": "archivarius",
+      "payload": "Relative binding paths and the bytes they resolve to.",
+      "meaning": "Evidence verification compares declared inputs against actual files.",
+      "constraints": [
+        "byte-exact-evidence"
+      ]
+    },
+    {
+      "key": "reference-set",
+      "type": "interface",
+      "title": "Reference set",
+      "scope": "archivarius",
+      "payload": "The typed relations between records.",
+      "meaning": "The core asks the graph to validate references and report coverage.",
+      "constraints": [
+        "single-snapshot"
+      ]
+    },
+    {
+      "key": "basis-value",
+      "type": "interface",
+      "title": "Basis value",
+      "scope": "archivarius",
+      "payload": "The canonical definitions and their SHA-256 basis.",
+      "meaning": "The core asks the digest for the freshness basis.",
+      "constraints": [
+        "single-snapshot"
+      ]
+    },
+    {
+      "key": "record-detail",
+      "type": "interface",
+      "title": "Record detail",
+      "scope": "archivarius",
+      "payload": "A selected record with its links and implementation outcome.",
+      "meaning": "The map opens a record in the inspector.",
+      "constraints": [
+        "single-snapshot"
+      ]
+    },
+    {
+      "key": "load-model",
+      "type": "interaction",
+      "title": "Load a snapshot",
+      "scope": "archivarius",
+      "from": "map",
+      "to": "core",
+      "kind": "data",
+      "channel": "load",
+      "contract": "model-source"
+    },
+    {
+      "key": "check-references",
+      "type": "interaction",
+      "title": "Validate references",
+      "scope": "archivarius",
+      "from": "core",
+      "to": "graph",
+      "kind": "command",
+      "channel": "validate",
+      "contract": "reference-set"
+    },
+    {
+      "key": "compute-basis",
+      "type": "interaction",
+      "title": "Compute the basis",
+      "scope": "archivarius",
+      "from": "core",
+      "to": "digest",
+      "kind": "command",
+      "channel": "digest",
+      "contract": "basis-value"
+    },
+    {
+      "key": "inspect-record",
+      "type": "interaction",
+      "title": "Open a record",
+      "scope": "archivarius",
+      "from": "map",
+      "to": "inspector",
+      "kind": "state",
+      "channel": "inspect",
+      "contract": "record-detail"
+    },
+    {
+      "key": "apply-change",
+      "type": "interaction",
+      "title": "Apply a change",
+      "scope": "archivarius",
+      "from": "cli",
+      "to": "core",
+      "kind": "command",
+      "channel": "apply",
+      "contract": "change-input"
+    },
+    {
+      "key": "verify-evidence",
+      "type": "interaction",
+      "title": "Verify evidence",
+      "scope": "archivarius",
+      "from": "cli",
+      "to": "evidence",
+      "kind": "data",
+      "channel": "verify",
+      "contract": "evidence-artifact"
+    },
+    {
+      "key": "single-snapshot",
+      "type": "requirement",
+      "title": "One snapshot, one set of definitions",
+      "scope": "archivarius",
+      "rule": "Every statement has a single definition; all views render the one selected snapshot.",
+      "when": [
+        "A model is loaded or rendered."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "core",
+        "render"
+      ],
+      "sources": [
+        "owner-intent"
+      ]
+    },
+    {
+      "key": "single-snapshot-c",
+      "type": "criterion",
+      "title": "Views agree with the snapshot",
+      "scope": "archivarius",
+      "requirement": "single-snapshot",
+      "assertion": "The map, inspector and generated documentation all reflect the same loaded snapshot and definitions."
+    },
+    {
+      "key": "validated-change",
+      "type": "requirement",
+      "title": "Changes are validated against an unchanged context",
+      "scope": "archivarius",
+      "rule": "A change requires an unchanged context receipt; a stale context, unknown field or broken reference is rejected and the source file is preserved.",
+      "when": [
+        "A change is applied through the API or CLI."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "node-api",
+        "core"
+      ],
+      "sources": [
+        "contract-basis"
+      ]
+    },
+    {
+      "key": "validated-change-c",
+      "type": "criterion",
+      "title": "Stale or invalid changes are refused",
+      "scope": "archivarius",
+      "requirement": "validated-change",
+      "assertion": "A stale context, unknown field or broken reference is rejected and the input model is left unmodified."
+    },
+    {
+      "key": "byte-exact-evidence",
+      "type": "requirement",
+      "title": "Confirmation needs byte-exact evidence",
+      "scope": "archivarius",
+      "rule": "A check outcome confirms only with an available execution artifact and matching bytes for every declared input; missing or stale evidence does not confirm.",
+      "when": [
+        "An implementation outcome is derived."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "evidence"
+      ],
+      "sources": [
+        "contract-basis"
+      ]
+    },
+    {
+      "key": "byte-exact-evidence-c",
+      "type": "criterion",
+      "title": "Stale and missing evidence cannot confirm",
+      "scope": "archivarius",
+      "requirement": "byte-exact-evidence",
+      "assertion": "A result confirms only when its artifact exists and every declared input's bytes match; otherwise the criterion is not confirmed."
+    },
+    {
+      "key": "conservative-freshness",
+      "type": "requirement",
+      "title": "Conservative freshness",
+      "scope": "archivarius",
+      "rule": "Changing any definition conservatively marks dependent decisions, tasks and checks as requiring review; the current review scope is the whole project.",
+      "when": [
+        "A definition changes."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "core"
+      ],
+      "sources": [
+        "contract-basis"
+      ]
+    },
+    {
+      "key": "conservative-freshness-c",
+      "type": "criterion",
+      "title": "Dependents are marked for review",
+      "scope": "archivarius",
+      "requirement": "conservative-freshness",
+      "assertion": "After a definition changes, decisions, tasks and checks depending on it report their basis as no longer current."
+    },
+    {
+      "key": "basis-digest",
+      "type": "decision",
+      "title": "Canonical digest for the basis",
+      "scope": "archivarius",
+      "topic": "freshness-basis",
+      "choice": "Compute basis.contract as a SHA-256 over a canonical representation of the definitions, excluding results, history and review text.",
+      "alternatives": [
+        "Track freshness by timestamps or manual review flags."
+      ],
+      "because": "A content digest detects real definition changes without trusting order or edit metadata.",
+      "consequences": [
+        "Any definition change, including additions, drops the current basis."
+      ],
+      "affects": [
+        "digest"
+      ],
+      "uses": [
+        "conservative-freshness",
+        "validated-change"
+      ],
+      "basis": null
+    },
+    {
+      "key": "external-resources",
+      "type": "decision",
+      "title": "Project data and copy stay external",
+      "scope": "archivarius",
+      "topic": "resource-loading",
+      "choice": "Load model data and UI copy as external resources rather than bundling them into the library.",
+      "alternatives": [
+        "Embed a default model and copy in the shipped scripts."
+      ],
+      "because": "The format stays independent of any project, repository or build, and shipped scripts do not carry project data.",
+      "consequences": [
+        "A consumer supplies the model source and container."
+      ],
+      "affects": [
+        "render"
+      ],
+      "uses": [
+        "single-snapshot"
+      ],
+      "basis": null
+    },
+    {
+      "key": "edit-and-render",
+      "type": "scenario",
+      "title": "Edit a definition and re-render",
+      "scope": "archivarius",
+      "actor": "LLM agent",
+      "given": [
+        "A validated snapshot is loaded."
+      ],
+      "steps": [
+        "Read a focused record's context.",
+        "Apply a validated change against the unchanged context.",
+        "Re-validate the whole snapshot.",
+        "Re-render the map and inspector."
+      ],
+      "uses": [
+        "validated-change",
+        "conservative-freshness"
+      ],
+      "then": [
+        "validated-change-c",
+        "conservative-freshness-c"
+      ],
+      "failures": [
+        "A stale context is rejected and the model is preserved.",
+        "A broken reference fails validation."
+      ]
+    },
+    {
+      "key": "task-model",
+      "type": "task",
+      "title": "Maintain the model and contract",
+      "scope": "archivarius",
+      "change": "Keep the schema, graph references, digest and validated-change path consistent.",
+      "affects": [
+        "core",
+        "graph",
+        "digest"
+      ],
+      "covers": [
+        "validated-change-c",
+        "conservative-freshness-c"
+      ],
+      "needs": [],
+      "uses": [
+        "basis-digest",
+        "edit-and-render"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-render",
+      "type": "task",
+      "title": "Render the snapshot",
+      "scope": "archivarius",
+      "change": "Mount the map and inspector from one loaded snapshot.",
+      "affects": [
+        "map",
+        "inspector"
+      ],
+      "covers": [
+        "single-snapshot-c"
+      ],
+      "needs": [],
+      "uses": [
+        "external-resources"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-evidence",
+      "type": "task",
+      "title": "Verify evidence and outcomes",
+      "scope": "archivarius",
+      "change": "Match declared binding bytes and record actual check outcomes.",
+      "affects": [
+        "evidence",
+        "cli"
+      ],
+      "covers": [
+        "byte-exact-evidence-c"
+      ],
+      "needs": [],
+      "uses": [],
+      "basis": null
+    },
+    {
+      "key": "check-model",
+      "type": "check",
+      "title": "Model and change validation",
+      "scope": "archivarius",
+      "method": "Validate models and reject stale contexts, unknown fields, broken references and forged bases.",
+      "covers": [
+        "validated-change-c",
+        "conservative-freshness-c"
+      ],
+      "scenarios": [
+        "edit-and-render"
+      ],
+      "targets": [
+        "core",
+        "graph",
+        "digest"
+      ],
+      "level": "integration",
+      "basis": null
+    },
+    {
+      "key": "check-render",
+      "type": "check",
+      "title": "Rendering from one snapshot",
+      "scope": "archivarius",
+      "method": "Render the map, inspector and documentation from a single snapshot and confirm they agree.",
+      "covers": [
+        "single-snapshot-c"
+      ],
+      "scenarios": [
+        "edit-and-render"
+      ],
+      "targets": [
+        "render",
+        "map",
+        "inspector"
+      ],
+      "level": "integration",
+      "basis": null
+    },
+    {
+      "key": "check-evidence",
+      "type": "check",
+      "title": "Byte-exact evidence",
+      "scope": "archivarius",
+      "method": "Confirm outcomes only with an available artifact and matching declared-input bytes.",
+      "covers": [
+        "byte-exact-evidence-c"
+      ],
+      "scenarios": [
+        "edit-and-render"
+      ],
+      "targets": [
+        "evidence"
+      ],
+      "level": "integration",
+      "basis": null
+    }
+  ],
+  "snapshots": []
+}

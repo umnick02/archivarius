@@ -12,7 +12,6 @@ export function readArchitectureFile(
 ): Promise<ArchitectureInput>;
 export function generateDocumentation(
   model: ArchitectureInput,
-  options?: { locale?: 'ru' | 'en' },
 ): Promise<string>;
 export function verifyProjectFiles(
   model: ProjectModel,

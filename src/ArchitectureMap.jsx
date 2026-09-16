@@ -25,27 +25,19 @@ class MapBoundary extends React.Component {
 }
 
 export const ArchitectureMap = forwardRef(function ArchitectureMap(
-  {
-    source,
-    locale = 'ru',
-    assetsBaseUrl,
-    className = '',
-    style,
-    onReady,
-    onError,
-  },
+  { source, assetsBaseUrl, className = '', style, onReady, onError },
   ref,
 ) {
-  const [state, setState] = useState({ source, locale, assetsBaseUrl });
+  const [state, setState] = useState({ source, assetsBaseUrl });
   const callbacks = useRef({ onReady, onError });
   callbacks.current = { onReady, onError };
   const instanceId = 'archivarius-' + useId().replace(/[^a-zA-Z0-9-]/g, '');
   useEffect(() => {
     const controller = new AbortController();
-    const identity = { source, locale, assetsBaseUrl };
+    const identity = { source, assetsBaseUrl };
     setState(identity);
     let resources;
-    readResources({ locale, assetsBaseUrl, signal: controller.signal })
+    readResources({ assetsBaseUrl, signal: controller.signal })
       .then(async (value) => {
         resources = value;
         const prepared = await prepareArchitecture(source, {
@@ -61,11 +53,9 @@ export const ArchitectureMap = forwardRef(function ArchitectureMap(
         callbacks.current.onError?.(error);
       });
     return () => controller.abort();
-  }, [source, locale, assetsBaseUrl]);
+  }, [source, assetsBaseUrl]);
   const current =
-    state.source === source &&
-    state.locale === locale &&
-    state.assetsBaseUrl === assetsBaseUrl;
+    state.source === source && state.assetsBaseUrl === assetsBaseUrl;
   const value = current && state.value;
   const error = current && state.error;
   const rootColors =

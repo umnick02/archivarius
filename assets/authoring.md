@@ -1,72 +1,72 @@
-# Артефакт проекта для LLM
+# Project artifact for the LLM
 
-Источник — JSON v4 по `archivarius/model.schema.json`.
-Пример: `archivarius/example.json`. Правка: `archivarius/assets/change.schema.json`.
+Source — JSON v4 per `archivarius/model.schema.json`.
+Example: `archivarius/example.json`. Change: `archivarius/assets/change.schema.json`.
 
-1. Получите контекст: `archivarius context project.json --focus task-key`.
-   Сохраните ответ как `context.json`. Он содержит точные записи и прочитанные
-   редакции. `omitted` показывает, сколько записей осталось вне выборки.
-   `documents` содержит разделы, в которых определён выбранный предмет, включая
-   вложенные изменения, тесты и условия выхода задачи. Это выдержки для чтения;
-   для изменения самого документа запросите контекст с его ключом.
-2. Подготовьте `change.json`: `put` содержит целиком новые или изменённые записи,
-   `remove` — ключи удаляемых записей. `bindings` заменяет объявленные привязки.
-   Ключ сохраняется при переименовании.
-   Не копируйте правила в задачи: используйте `covers`, `uses`, `affects`.
-3. Содержательно пересмотрите затронутые решения, задачи и определения проверок.
-   Укажите их ключи в `review`, результат разбора — в `reason`.
-   Не вычисляйте и не переписывайте `basis` вручную.
-4. Примените: `archivarius apply project.json --context context.json --change change.json`.
-   Устаревший контекст, неизвестное поле и разрыв ссылки отклоняются.
-   При отказе исходный файл сохраняется. Получите новый контекст и разберите конфликт.
-5. Проверьте целое: `archivarius validate project.json --json`.
-   Валидность допускает открытые вопросы и пробелы покрытия.
+1. Obtain context: `archivarius context project.json --focus task-key`.
+   Save the response as `context.json`. It contains the exact records and read
+   revisions. `omitted` shows how many records were left out of the selection.
+   `documents` contains the sections in which the selected subject is defined, including
+   nested changes, tests, and the task's exit conditions. These are excerpts for reading;
+   to modify the document itself, request context with its key.
+2. Prepare `change.json`: `put` contains the wholly new or changed records,
+   `remove` — the keys of records to delete. `bindings` replaces the declared bindings.
+   The key is preserved on rename.
+   Do not copy rules into tasks: use `covers`, `uses`, `affects`.
+3. Substantively re-review the affected decisions, tasks, and check definitions.
+   List their keys in `review`, and the analysis result in `reason`.
+   Do not compute or rewrite `basis` by hand.
+4. Apply: `archivarius apply project.json --context context.json --change change.json`.
+   Stale context, an unknown field, and a broken reference are rejected.
+   On rejection the source file is preserved. Obtain new context and resolve the conflict.
+5. Validate the whole: `archivarius validate project.json --json`.
+   Validity permits open questions and coverage gaps.
 
-Определение записи — короткое и точное; условия и исключения сохраняются полностью.
-Критерий ссылается на требование. Общий параметр определён у требования один раз.
-Текст сценария или проверки использует это определение. Применимость к области
-распространяется на её состав. Требование без реализации остаётся видимым пробелом.
+A record's definition is short and precise; conditions and exceptions are preserved in full.
+A criterion references a requirement. A shared parameter is defined once at the requirement.
+The text of a scenario or check uses this definition. Applicability to a scope
+extends to its composition. A requirement without implementation remains a visible gap.
 
-`implemented` отсутствует во входе v4. Для выполнения проверки нужна её явная
-`command`; она запускается только командой `archivarius run`, никогда при загрузке
-модели. `bindings` фиксирует файлы реализации, проверки и существенных входов.
-`run` записывает фактический исход, команду, версии и журнал; `verify` читает
-артефакты и сопоставляет их байты. Не создавайте успешные результаты вручную.
+`implemented` is absent from the v4 input. Executing a check requires its explicit
+`command`; it is run only by the `archivarius run` command, never on loading the
+model. `bindings` records the files of the implementation, the check, and the material inputs.
+`run` records the actual outcome, the command, the versions, and the log; `verify` reads
+the artifacts and matches their bytes. Do not create successful results by hand.
 
-Статус вычисляется: `confirmed` — весь описанный объём подтверждён, `partial` —
-есть актуальные подтверждённые критерии и остаются пробелы, `unconfirmed` — таких
-подтверждений нет. Не добавляйте эти поля или проценты в записи JSON. Критерии
-должны выражать самостоятельные проверяемые утверждения; не дробите их ради счётчика.
-Все unit-проверки критерия должны иметь актуальное успешное подтверждение. Если
-unit-проверок нет, используются покрывающие интеграционные проверки. Отрицательный
-неразрешённый исход любой покрывающей проверки опровергает критерий; полная реализация
-компонента или области дополнительно требует проверки целого.
+Status is computed: `confirmed` — the entire described scope is confirmed, `partial` —
+there are current confirmed criteria and gaps remain, `unconfirmed` — no such
+confirmations exist. Do not add these fields or percentages to the JSON records. Criteria
+must express self-contained verifiable assertions; do not split them for the sake of a counter.
+All of a criterion's unit checks must have a current successful confirmation. If
+there are no unit checks, the covering integration checks are used. A negative,
+unresolved outcome of any covering check refutes the criterion; a full implementation
+of a component or scope additionally requires a check of the whole.
 
-Пробелы распространяются по составу, применимым требованиям, контрактам взаимодействий
-и явно назначенным решениям/задачам с их зависимостями. Соседство на карте само по себе
-не переносит все пробелы одного компонента на другой. Область учитывает весь свой
-состав, включая неназначенные требования и вопросы. Код, тесты и свидетельства остаются
-в отдельных файлах; определения требований, решений и задач хранятся в JSON один раз.
+Gaps propagate through composition, applicable requirements, interaction contracts,
+and explicitly assigned decisions/tasks with their dependencies. Adjacency on the map by itself
+does not carry all of one component's gaps over to another. A scope accounts for its entire
+composition, including unassigned requirements and questions. Code, tests, and evidence remain
+in separate files; the definitions of requirements, decisions, and tasks are stored in JSON once.
 
-При изменении файла обновите его привязку в новом согласованном снимке. Изменения
-произвольного внешнего окружения, полнота `bindings` и смысл утверждений требуют
-проверки в процессе проекта: JSON Schema их не доказывает.
+When a file changes, update its binding in the new agreed snapshot. Changes
+to an arbitrary external environment, the completeness of `bindings`, and the meaning of assertions require
+verification over the course of the project: JSON Schema does not prove them.
 
-Markdown — необязательный экспорт для чтения. LLM редактирует записи JSON.
-Запись `document` хранит структуру разделов, списков, таблиц и примеров. Текст
-правила или задачи в документе заменяется ссылкой `{record, field}`, поэтому
-изменение определения обновляет все его представления. JSON-документы также
-поддерживают такие ссылки; `as: "labels"` выводит стабильные обозначения записей.
-Не копируйте текст правила в абзац, если он уже принадлежит другой записи.
-`companions` и `guards` требования задают связанный контекст; `guards` дополнительно
-учитываются как обязательные ограничения при подтверждении.
-`archivarius documents project.json --output .` генерирует пакет; та же команда
-с `--check` отклоняет отсутствующий или изменённый вручную файл. Относительные пути
-не могут выходить из каталога назначения или проходить через символические ссылки.
-Документы не являются свидетельствами реализации. Существующие отчёты и код
-остаются отдельными файлами с собственными основаниями и проверками.
+Markdown is an optional export for reading. The LLM edits the JSON records.
+A `document` record holds the structure of sections, lists, tables, and examples. The text
+of a rule or task in a document is replaced by a `{record, field}` reference, so that
+changing a definition updates all of its representations. JSON documents also
+support such references; `as: "labels"` outputs stable record labels.
+Do not copy a rule's text into a paragraph if it already belongs to another record.
+A requirement's `companions` and `guards` set the related context; `guards` are additionally
+counted as mandatory constraints upon confirmation.
+`archivarius documents project.json --output .` generates the package; the same command
+with `--check` rejects a missing or manually changed file. Relative paths
+cannot leave the destination directory or pass through symbolic links.
+Documents are not evidence of implementation. Existing reports and code
+remain separate files with their own bases and checks.
 
-История и манифесты прежних снимков сохраняются при `apply`; их нельзя удалять
-ради восстановления актуальности. Изменение любого определения пока консервативно
-пересматривает основания всего проекта. Прежние v3-карты поддержаны для просмотра,
-их ручные отметки не являются подтверждениями v4.
+History and the manifests of prior snapshots are preserved on `apply`; they cannot be deleted
+for the sake of restoring currency. Changing any definition still conservatively
+re-reviews the bases of the entire project. Prior v3 maps are supported for viewing,
+their manual marks are not v4 confirmations.

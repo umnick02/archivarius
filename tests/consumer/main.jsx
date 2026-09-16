@@ -14,7 +14,6 @@ const first = mountArchitectureMap(document.querySelector('#first'), {
 });
 const second = mountArchitectureMap(document.querySelector('#second'), {
   source,
-  locale: 'en',
 });
 const reactRoot = createRoot(document.querySelector('#react-map'));
 const reactRef = createRef();
@@ -28,7 +27,6 @@ const renderReact = (source, extra = {}) =>
       <React.StrictMode>
         <ArchitectureMap
           source={source}
-          locale="en"
           ref={reactRef}
           onReady={() => reactReady()}
           onError={(error) => reactError(error)}

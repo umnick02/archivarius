@@ -42,31 +42,14 @@ export async function readArchitecture(source, { signal } = {}) {
 }
 
 const resourceURLs = {
-  ru: new URL('../assets/ru.json', import.meta.url),
-  en: new URL('../assets/en.json', import.meta.url),
+  strings: new URL('../assets/strings.json', import.meta.url),
   contracts: new URL('../assets/contracts.json', import.meta.url),
-  contractsEn: new URL('../assets/contracts.en.json', import.meta.url),
-  projectRu: new URL('../assets/project.ru.json', import.meta.url),
-  projectEn: new URL('../assets/project.en.json', import.meta.url),
+  project: new URL('../assets/project.json', import.meta.url),
 };
 
-export async function readResources({
-  locale = 'ru',
-  assetsBaseUrl,
-  signal,
-} = {}) {
-  if (!['ru', 'en'].includes(locale))
-    throw new ArchitectureError('UNSUPPORTED_LOCALE');
-  const names = [
-    locale,
-    locale === 'en' ? 'contractsEn' : 'contracts',
-    locale === 'en' ? 'projectEn' : 'projectRu',
-  ];
-  const files = [
-    locale + '.json',
-    locale === 'en' ? 'contracts.en.json' : 'contracts.json',
-    'project.' + locale + '.json',
-  ];
+export async function readResources({ assetsBaseUrl, signal } = {}) {
+  const names = ['strings', 'contracts', 'project'];
+  const files = ['strings.json', 'contracts.json', 'project.json'];
   const [copy, contracts, projectCopy] = await Promise.all(
     names.map(async (name, i) => {
       const url = assetsBaseUrl

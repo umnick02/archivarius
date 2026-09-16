@@ -101,7 +101,9 @@ assert(pack.files.some((file) => file.path === 'dist/assets/authoring.md'));
 assert(pack.files.some((file) => file.path === 'dist/example.json'));
 run('node', ['node_modules/vite/bin/vite.js', 'build'], consumer);
 const files = await fs.readdir(path.join(consumer, 'dist/assets'));
-assert(files.some((file) => file.startsWith('ru-') && file.endsWith('.json')));
+assert(
+  files.some((file) => file.startsWith('strings-') && file.endsWith('.json')),
+);
 assert(
   files.some((file) => file.startsWith('contracts-') && file.endsWith('.json')),
 );
@@ -116,7 +118,7 @@ const model = JSON.parse(
   await fs.readFile(path.join(consumer, 'public/architecture.json'), 'utf8'),
 );
 const copy = JSON.parse(
-  await fs.readFile(path.join(root, 'assets/ru.json'), 'utf8'),
+  await fs.readFile(path.join(root, 'assets/strings.json'), 'utf8'),
 );
 assert(!scripts.includes(model.nodes[0].title));
 assert(!scripts.includes(copy.interpretationNote));

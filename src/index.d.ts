@@ -72,7 +72,6 @@ export interface MapNavigation {
 }
 export interface ArchitectureMapProps {
   source: ArchitectureSource;
-  locale?: 'ru' | 'en';
   assetsBaseUrl?: string | URL;
   className?: string;
   style?: CSSProperties;

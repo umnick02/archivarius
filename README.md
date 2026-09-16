@@ -1,31 +1,31 @@
 # Archivarius
 
-Библиотека архитектурных карт с семантическим зумом и связанных записей проекта.
-Один JSON v4 содержит архитектуру, требования, решения, сценарии, задачи и проверки.
-При приближении раскрываются компоненты и конкретные взаимодействия;
-геометрия остаётся неподвижной. Кнопка **«Проект»** открывает обзор устройства,
-требований и решений, оставшейся работы и подтверждений. Общий поиск находит
-названия, параметры, условия и содержание проверок; полный реестр также доступен.
+A library for architecture maps with semantic zoom and linked project records.
+A single JSON v4 holds architecture, requirements, decisions, scenarios, tasks, and checks.
+Zooming in reveals components and specific interactions;
+the geometry stays fixed. The **"Project"** button opens an overview of the structure,
+requirements and decisions, remaining work, and confirmations. Global search finds
+names, parameters, conditions, and check contents; the full registry is also available.
 
-[Пример данных](examples/basic/public/project.json) ·
+[Sample data](examples/basic/public/project.json) ·
 [JSON Schema](assets/model.schema.json) ·
-[Правила контракта](assets/contract.md) ·
-[Работа LLM](assets/authoring.md)
+[Contract rules](assets/contract.md) ·
+[LLM workflow](assets/authoring.md)
 
-Данные проекта и подписи UI остаются внешними ресурсами. Формат не зависит от языка,
-репозитория или сборки проекта. Координаты передавать не нужно. Старые карты v3
-продолжают открываться по [своей схеме](assets/legacy.schema.json); их ручные отметки
-не переносятся в вычисляемое подтверждение v4.
+Project data and UI labels remain external resources. The format does not depend on the language,
+repository, or build of the project. You do not need to supply coordinates. Older v3 maps
+keep opening under [their own schema](assets/legacy.schema.json); their manual marks
+are not carried over into the computed v4 confirmation.
 
-## Подключение
+## Installation
 
-Пакет устанавливается из Git; в npm registry не опубликован:
+The package is installed from Git; it is not published to the npm registry:
 
 ```sh
 npm install git+ssh://git@github.com/umnick02/archivarius.git react@19 react-dom@19
 ```
 
-Для установки без запуска скриптов соберите архив в клоне:
+To install without running scripts, build a tarball inside a clone:
 
 ```sh
 npm ci --ignore-scripts
@@ -33,8 +33,8 @@ npm run build
 npm pack --ignore-scripts
 ```
 
-Установите полученный `.tgz` в свой проект. Это ESM-пакет для браузерного сборщика;
-проверены React 19 и Vite 8. Контейнер должен иметь ненулевой размер.
+Install the resulting `.tgz` into your project. This is an ESM package for a browser bundler;
+React 19 and Vite 8 are verified. The container must have a non-zero size.
 
 ```js
 import { mountArchitectureMap } from 'archivarius';
@@ -42,95 +42,88 @@ import 'archivarius/style.css';
 
 const map = mountArchitectureMap(document.getElementById('map'), {
   source: '/project.json',
-  locale: 'ru',
 });
 await map.ready;
 await map.focus(componentKey);
 map.inspect(requirementKey);
 ```
 
-`source` принимает URL, `File`, `Blob` или разобранный объект. Контейнер должен быть
-пустым. `load(source)` заменяет модель, `home()` возвращает обзор, `snapshot()`
-возвращает состояние навигации, `destroy()` освобождает контейнер. Незавершённая
-заменённая загрузка отклоняется с `AbortError`. Обработайте отклонение `ready`;
-`onError` получает ошибку, которая также отображается в карте.
+`source` accepts a URL, `File`, `Blob`, or a parsed object. The container must be
+empty. `load(source)` replaces the model, `home()` returns to the overview, `snapshot()`
+returns the navigation state, `destroy()` releases the container. An unfinished
+load that gets replaced is rejected with `AbortError`. Handle the rejection of `ready`;
+`onError` receives the error, which is also shown in the map.
 
-React-компонент предоставляет те же методы через `ref`:
+The React component exposes the same methods through a `ref`:
 
 ```jsx
 import { ArchitectureMap } from 'archivarius';
 import 'archivarius/style.css';
 
 export function ProjectMap() {
-  return (
-    <ArchitectureMap
-      source="/project.json"
-      locale="ru"
-      style={{ height: 720 }}
-    />
-  );
+  return <ArchitectureMap source="/project.json" style={{ height: 720 }} />;
 }
 ```
 
-Несколько экземпляров имеют отдельную навигацию и обработчики. Стили ограничены
-`.archivarius`; адаптация зависит от ширины контейнера. Локали — `ru` и `en`, язык
-самих записей сохраняется. Ссылку на объект `source` сохраняйте между рендерами,
-пока его данные не меняются.
+Multiple instances have independent navigation and handlers. Styles are scoped to
+`.archivarius`; the layout adapts to the container width. The language of the records
+themselves is preserved. Keep the reference to the `source` object stable across renders,
+as long as its data does not change.
 
-## Записи и подтверждение
+## Records and confirmation
 
-| Данные                 | Назначение                                                  |
-| ---------------------- | ----------------------------------------------------------- |
-| `records`              | Компактные определения с ключами и типизированными ссылками |
-| `root`, `entry`        | Область проекта и входной компонент                         |
-| `bindings`             | Пути и SHA-256 реализации, проверок и существенных входов   |
-| `history`, `snapshots` | Прежние записи и точный состав использованных редакций      |
+| Data                   | Purpose                                                          |
+| ---------------------- | ---------------------------------------------------------------- |
+| `records`              | Compact definitions with keys and typed references               |
+| `root`, `entry`        | Project scope and entry component                                |
+| `bindings`             | Paths and SHA-256 of implementation, checks, and material inputs |
+| `history`, `snapshots` | Prior records and the exact set of revisions used                |
 
-Требование определяет правило один раз; критерии, задачи и проверки ссылаются на
-него. Компоненты связаны содержательными взаимодействиями. Требования без
-реализации и вопросы видны в обзоре проекта. UI показывает краткие карточки;
-основания, причины отсутствия подтверждения и история раскрываются по запросу.
-«Назад» восстанавливает карточку, фильтр и положение списка. На широком экране
-панель занимает отдельную область; на узком можно переключать карту и карточку.
-`F6` переводит фокус между картой и панелью, `Esc` закрывает панель.
-Входящие и исходящие связи с общей подписью, внешним участником, типом и каналом
-собираются в раскрываемую группу со счётчиком. Внутри видны отдельные участники,
-передаваемые данные и переходы к каждому исходному контракту.
-На карте постоянно видны три отметки реализации: зелёная галочка — подтверждено
-полностью, янтарный полукруг — частично, серый пустой кружок — нет подтверждений.
-Цвета областей и типы линий сохраняют смысл. Общая стрелка подтверждена полностью
-только при подтверждении всех её связей; наличие подтверждённой связи или частичного
-подтверждения даёт частичный итог. Карточка и карта используют один расчёт.
+A requirement defines a rule once; criteria, tasks, and checks reference
+it. Components are linked by meaningful interactions. Requirements without an
+implementation and open questions appear in the project overview. The UI shows brief cards;
+the rationale, reasons for a missing confirmation, and history are revealed on demand.
+"Back" restores the card, filter, and list position. On a wide screen the
+panel occupies a separate area; on a narrow one you can switch between the map and the card.
+`F6` moves focus between the map and the panel, `Esc` closes the panel.
+Incoming and outgoing links that share a label, external participant, type, and channel
+are collected into an expandable group with a counter. Inside you can see the individual participants,
+the data exchanged, and jumps to each source contract.
+The map always shows three implementation marks: a green check — fully
+confirmed, an amber half-circle — partially, an empty gray circle — no confirmations.
+Area colors and line types keep their meaning. A shared arrow is fully confirmed
+only when all of its links are confirmed; the presence of a confirmed link or a partial
+confirmation yields a partial result. The card and the map use the same calculation.
 
-Во входе v4 нет ручного статуса или процента готовности. `analyzeProject` возвращает
-`completion[key].state`: `confirmed`, `partial` или `unconfirmed`; прежнее
-`implemented` равно `true` только для `confirmed`. `progress.criteria` и
-`progress.confirmedCriteria` перечисляют критерии и подтверждённую часть без
-повторного подсчёта общих критериев. Их соотношение не является процентом готовности.
+The v4 input has no manual status or completion percentage. `analyzeProject` returns
+`completion[key].state`: `confirmed`, `partial`, or `unconfirmed`; the former
+`implemented` is `true` only for `confirmed`. `progress.criteria` and
+`progress.confirmedCriteria` list the criteria and the confirmed part without
+recounting the total criteria. Their ratio is not a completion percentage.
 
-Итог компонента учитывает применимые требования, его состав, внутренние и граничные
-взаимодействия, назначенные решения и задачи с их явными зависимостями. Взаимодействие
-зависит от своего контракта, но не наследует все пробелы соседнего компонента. Область
-агрегирует свой состав; неназначенный вопрос остаётся пробелом области. Требование
-без критериев блокирует полное подтверждение, даже если другие критерии выполнены.
+A component's result accounts for the applicable requirements, its composition, internal and boundary
+interactions, assigned decisions, and tasks with their explicit dependencies. An interaction
+depends on its own contract but does not inherit all the gaps of a neighboring component. An area
+aggregates its composition; an unassigned question remains a gap of the area. A requirement
+without criteria blocks full confirmation, even if other criteria are met.
 
-Частичное подтверждение требует хотя бы одного актуального проверенного критерия.
-Если для критерия определены unit-проверки, требуется успешное подтверждение всех
-них; иначе используются покрывающие интеграционные проверки. Неразрешённый
-отрицательный результат любой покрывающей проверки опровергает критерий. Для полного
-подтверждения компонента или области дополнительно нужна интеграционная проверка
-целого. Поэтому все критерии могут быть подтверждены, а итог оставаться частичным.
+Partial confirmation requires at least one current verified criterion.
+If unit checks are defined for a criterion, all of them must pass;
+otherwise, covering integration checks are used. An unresolved
+negative result from any covering check refutes the criterion. For full
+confirmation of a component or area, an integration check of the whole is additionally required.
+That is why all criteria may be confirmed while the result stays partial.
 
-Новый `review` сохраняет `basis.dependencies`: отпечаток определения, его явных
-зависимостей, унаследованных ограничений области, секций владельцев и документов
-`governedBy`. Изменения этих входов требуют пересмотра; названия и независимые
-записи — нет. Для задач локальный охват задают `covers`/`uses`, для проверок —
-`covers`/`scenarios`; общие правила области добавляются автоматически.
-Прежние основания без отпечатка остаются консервативными до явного `review`.
-Результаты исполнения по-прежнему требуют точного полного `basis.contract`. Показанный итог относится к загруженному снимку; после изменений нужна
-повторная загрузка. Отсутствие подтверждений не доказывает отсутствие кода.
+The new `review` stores `basis.dependencies`: a fingerprint of the definition, its explicit
+dependencies, inherited area constraints, owner sections, and `governedBy` documents.
+Changes to these inputs require a review; names and independent
+records do not. For tasks, local scope is set by `covers`/`uses`, for checks by
+`covers`/`scenarios`; shared area rules are added automatically.
+Prior bases without a fingerprint stay conservative until an explicit `review`.
+Execution results still require an exact, complete `basis.contract`. The shown result refers to the loaded snapshot; after changes a
+reload is required. The absence of confirmations does not prove the absence of code.
 
-## Работа LLM и проверки
+## LLM workflow and checks
 
 ```sh
 archivarius validate project.json --json
@@ -142,33 +135,33 @@ archivarius run project.json --focus check-key --result run-key --evidence evide
 archivarius verify project.json
 ```
 
-LLM возвращает JSON по [схеме правки](assets/change.schema.json): `put`, `remove`,
-`review`, `reason`. `apply` проверяет исходный контекст, сохраняет прежние редакции
-и заменяет файл атомарно. Независимые правки допускаются по исходной квитанции;
-изменённые записи, документы или состав прочитанных зависимостей отклоняются. Ошибки структуры содержат JSON Pointer для исправления.
-Неизвестные поля и некорректные ссылки отклоняются. Валидная неполная модель
-просматривается, но не считается полностью реализованной.
+The LLM returns JSON per the [change schema](assets/change.schema.json): `put`, `remove`,
+`review`, `reason`. `apply` verifies the source context, preserves prior revisions,
+and replaces the file atomically. Independent edits are allowed against the original receipt;
+changed records, documents, or a changed set of read dependencies are rejected. Structural errors include a JSON Pointer for the fix.
+Unknown fields and invalid references are rejected. A valid incomplete model
+can be viewed but is not considered fully implemented.
 
-`read` выдаёт определения и секции владельцев без квитанции и повторяющихся
-оснований пересмотра. `context --output` сохраняет полную квитанцию в файл,
-а в ответе показывает тот же читаемый контекст. Добавляйте `governedBy` для
-документов, чьи правила действуют за пределами секции владельца записи.
+`read` emits definitions and owner sections without the receipt and repeated
+review bases. `context --output` saves the full receipt to a file,
+while the response shows the same readable context. Add `governedBy` for
+documents whose rules apply beyond the owner section of a record.
 
-`archive` сохраняет все исторические редакции в соседнем каталоге
-`project.json.history/`. Текущий JSON содержит прежние актуальные записи и
-хеш головы архива. Последующие применения добавляют неизменяемые сегменты;
-указатель переключается после записи сегмента. Храните каталог в Git вместе
-с моделью. `readArchitectureFile` проверяет хеши и восстанавливает полную модель;
-браузеру передавайте этот результат. Чистые API без файловой системы отклоняют
-неразвёрнутый архив. Потерянный или изменённый сегмент вызывает ошибку.
+`archive` stores all historical revisions in the adjacent directory
+`project.json.history/`. The current JSON holds the prior current records and
+the archive head hash. Subsequent applies append immutable segments;
+the pointer switches after a segment is written. Keep the directory in Git together
+with the model. `readArchitectureFile` verifies the hashes and reconstructs the full model;
+pass this result to the browser. Pure APIs without a filesystem reject
+an unexpanded archive. A lost or altered segment raises an error.
 
-`run` явно запускает записанную в проверке `command` и сохраняет фактический исход,
-команду, версии и журнал. Простая загрузка JSON ничего не исполняет. `verify`
-проверяет байты объявленных файлов и свидетельств; при неполном подтверждении
-выходит с кодом 1. Полнота объявленных входов и смысл проверок остаются
-ответственностью процесса проекта. Хеши не удостоверяют автора артефакта.
+`run` explicitly runs the `command` recorded in a check and saves the actual outcome,
+command, versions, and log. A plain JSON load executes nothing. `verify`
+checks the bytes of the declared files and evidence; on incomplete confirmation it
+exits with code 1. The completeness of the declared inputs and the meaning of the checks remain
+the responsibility of the project's process. Hashes do not attest the author of an artifact.
 
-Основной API без React и DOM:
+The core API without React and DOM:
 
 ```js
 import {
@@ -184,47 +177,47 @@ import {
 } from 'archivarius/node';
 ```
 
-`analyzeProject` вычисляет причины и итоги; `verifyProjectFiles(model, directory)`
-предоставляет проверенные результаты. Передаваемый вручную `verifiedResults` —
-граница доверия для собственного адаптера проверки, а не поле входного JSON.
+`analyzeProject` computes the reasons and results; `verifyProjectFiles(model, directory)`
+provides verified results. The manually passed `verifiedResults` is the
+trust boundary for your own check adapter, not a field of the input JSON.
 
-Markdown — необязательное воспроизводимое представление:
+Markdown is an optional reproducible representation:
 
 ```sh
 archivarius docs project.json --output project.md
 archivarius docs project.json --output project.md --check
 ```
 
-Для полного пакета документации используйте записи `document` с относительными
-путями и структурированными блоками. Требования, критерии, решения и задачи
-вставляются ссылками на их поля; таблицы и пояснения принадлежат документу.
-Markdown и JSON-индексы становятся воспроизводимыми представлениями:
+For a full documentation package, use `document` records with relative
+paths and structured blocks. Requirements, criteria, decisions, and tasks
+are inserted as references to their fields; tables and explanations belong to the document.
+Markdown and JSON indexes become reproducible representations:
 
 ```sh
 archivarius documents project.json --output .
 archivarius documents project.json --output . --check
 ```
 
-API: `renderDocument` из `archivarius/core`, `exportProjectDocuments` из
-`archivarius/node`. В UI раздел «Документация» раскрывает содержание по секциям.
-Подробности структуры и правил редактирования — в [контракте](assets/contract.md).
+API: `renderDocument` from `archivarius/core`, `exportProjectDocuments` from
+`archivarius/node`. In the UI, the "Documentation" section expands the content by sections.
+Details of the structure and editing rules are in the [contract](assets/contract.md).
 
-Экспорт доступен и в UI через «Как читать карту». Его определения, ссылки и
-записанные основания берутся из загруженного JSON. Он не заменяет живую проверку
-файлов командой `verify` и не редактируется как второй источник.
+Export is also available in the UI via "How to read the map". Its definitions, references, and
+recorded bases are taken from the loaded JSON. It does not replace a live verification of the
+files with the `verify` command and is not edited as a second source.
 
-## Размещение и разработка
+## Hosting and development
 
-Модель по URL читается через `fetch`, `File` и `Blob` — локально. Библиотека не
-отправляет данные на сервер. В URL-режиме привязки и свидетельства читаются рядом
-с моделью; из одного `File` доступ к соседним файлам отсутствует, поэтому такое
-открытие само по себе не подтверждает выполнение.
+A model loaded by URL is read via `fetch`, `File`, and `Blob` — locally. The library does not
+send data to a server. In URL mode, bindings and evidence are read next to
+the model; from a single `File` there is no access to neighboring files, so such
+opening does not by itself confirm completion.
 
-JSON Schema, пример и инструкция экспортируются как `archivarius/model.schema.json`,
-`archivarius/example.json`, `archivarius/assets/authoring.md`. При нестандартном
-сборщике сохраните `dist/assets/` и передайте `assetsBaseUrl`. Весь каталог нужен
-для локализации карты, проекта и правил. ELK загружается отдельно; раскладка
-вычисляется при загрузке модели, на основном потоке браузера.
+The JSON Schema, sample, and instructions are exported as `archivarius/model.schema.json`,
+`archivarius/example.json`, `archivarius/assets/authoring.md`. With a non-standard
+bundler, preserve `dist/assets/` and pass `assetsBaseUrl`. The whole directory is needed
+for the localization of the map, project, and rules. ELK loads separately; the layout
+is computed when the model loads, on the browser's main thread.
 
 ```sh
 npm ci --ignore-scripts
@@ -232,11 +225,11 @@ npm run check
 npm run dev
 ```
 
-`check` собирает пакет, проверяет модель, изменения, свидетельства, геометрию и
-ресурсы, затем устанавливает tarball и собирает отдельного потребителя с проверкой
-типов. `test:browser` использует preview потребителя на 44891 и Chrome CDP на 44890.
-Схемы генерируют валидаторы и типы в игнорируемый `src/generated/`.
+`check` builds the package, validates the model, changes, evidence, geometry, and
+assets, then installs the tarball and builds a separate consumer with type
+checking. `test:browser` uses the consumer preview on 44891 and Chrome CDP on 44890.
+Schemas generate validators and types into the ignored `src/generated/`.
 
-Основа: [React Flow](https://reactflow.dev/api-reference/react-flow-provider),
+Foundation: [React Flow](https://reactflow.dev/api-reference/react-flow-provider),
 [ELK.js](https://github.com/kieler/elkjs), [AJV](https://ajv.js.org/standalone.html),
 [noble-hashes](https://github.com/paulmillr/noble-hashes).

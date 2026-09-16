@@ -10,10 +10,7 @@ const model = JSON.parse(
   ),
 );
 const copy = JSON.parse(
-  await fs.readFile(new URL('../assets/ru.json', import.meta.url), 'utf8'),
-);
-const english = JSON.parse(
-  await fs.readFile(new URL('../assets/en.json', import.meta.url), 'utf8'),
+  await fs.readFile(new URL('../assets/strings.json', import.meta.url), 'utf8'),
 );
 const b = await connectBrowser();
 const state = (name = 'first') =>
@@ -59,7 +56,7 @@ const checkIds = async () => {
 };
 const downloads = new URL('../.runtime/downloads/', import.meta.url);
 await fs.mkdir(downloads, { recursive: true });
-const checkDownload = async (data, name = 'first', locale = 'ru') => {
+const checkDownload = async (data, name = 'first') => {
   const output = new URL('architecture.md', downloads);
   await fs.rm(output, { force: true });
   await b.call('Browser.setDownloadBehavior', {
@@ -74,7 +71,7 @@ const checkDownload = async (data, name = 'first', locale = 'ru') => {
     if (text !== undefined) break;
     await pause(100);
   }
-  assert.equal(text, await generateDocumentation(data, { locale }));
+  assert.equal(text, await generateDocumentation(data));
   await click('#' + name + ' [data-control=close]');
 };
 
@@ -110,7 +107,7 @@ try {
   );
   await checkIds();
   await checkDownload(model);
-  await checkDownload(model, 'second', 'en');
+  await checkDownload(model, 'second');
   assert.equal(
     await b.evaluate(
       () => document.querySelectorAll('#first [data-node]').length,
@@ -129,7 +126,7 @@ try {
       () =>
         document.querySelector('#second [data-control=contracts]').textContent,
     ),
-    english.rulesButton,
+    copy.rulesButton,
   );
   const initial = await state();
   assert.equal(
@@ -156,7 +153,7 @@ try {
           '#second [data-control=implementation-legend] strong',
         ).textContent,
     ),
-    english.mapImplementation.label,
+    copy.mapImplementation.label,
   );
   const other = await state('second');
   await focus('search');
@@ -451,7 +448,6 @@ try {
     const outcome = await pending;
     c.second = c.mountArchitectureMap(document.querySelector('#second'), {
       source: data,
-      locale: 'en',
     });
     await c.second.ready;
     let duplicate;

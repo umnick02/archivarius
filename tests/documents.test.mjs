@@ -18,11 +18,11 @@ const run = (args) =>
   });
 
 test('documentation uses every component and original interaction, with stable links and bytes', async () => {
-  const ru = JSON.parse(
-    await fs.readFile(new URL('assets/ru.json', root), 'utf8'),
+  const strings = JSON.parse(
+    await fs.readFile(new URL('assets/strings.json', root), 'utf8'),
   );
   const markdown = await generateDocumentation(model);
-  assert.equal(markdown, renderDocumentation(model, ru));
+  assert.equal(markdown, renderDocumentation(model, strings));
   assert.equal(markdown, await generateDocumentation(model));
   for (const node of graph.nodes.values()) {
     assert(markdown.includes('<a id="node-' + node.key + '"></a>'));
@@ -43,14 +43,7 @@ test('documentation uses every component and original interaction, with stable l
   );
   for (const match of markdown.matchAll(/\]\(#([^)]+)\)/g))
     assert(anchors.has(match[1]), match[1]);
-  assert(
-    (await generateDocumentation(model, { locale: 'en' })).includes(
-      'Fully implemented',
-    ),
-  );
-  await assert.rejects(generateDocumentation(model, { locale: 'xx' }), {
-    code: 'UNSUPPORTED_LOCALE',
-  });
+  assert((await generateDocumentation(model)).includes('Fully implemented'));
 });
 
 test('documentation preserves boundaries and evidence, escapes markup, and refuses invalid models', async () => {
@@ -117,10 +110,6 @@ test('CLI validates whole models, detects documentation drift and preserves file
     changed.nodes[0].summary += ' Changed.';
     await fs.writeFile(input, JSON.stringify(changed));
     assert.equal(run(['docs', input, '--output', output, '--check']).status, 1);
-    assert.equal(
-      run(['docs', input, '--output', output, '--locale', 'xx']).status,
-      2,
-    );
     assert.equal(run(['validate', input, '--unknown']).status, 2);
     assert.equal(run(['--help']).status, 0);
   } finally {
