@@ -2,7 +2,6 @@ import { writeFile, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { architectureDiagram } from '../../src/model/project-document.mjs';
 import { generatedNotice } from '../../src/model/documents.mjs';
-import { analyzeProject } from '../../src/model/project-analysis.mjs';
 import { projectArchitecture } from '../../src/model/project-architecture.mjs';
 import { assertProject } from '../../src/model/project-contract.mjs';
 import { primaryFields } from '../../src/model/project-view.mjs';
@@ -103,12 +102,6 @@ export function renderReadme(whole, copy) {
     prose[record.type].flatMap((field) =>
       value(record, field) ? [value(record, field), ''] : [],
     );
-  // Confirmation belongs where a record can be named and opened: the map's
-  // overview and the full documentation carry the gaps with their keys. Here it
-  // would only be an aggregate about this file's own bookkeeping.
-  const confirmed = new Set(
-    analyzeProject(whole).completion[scope.key].progress.confirmedCriteria,
-  );
   return [
     '# ' + scope.title,
     '',
@@ -156,21 +149,6 @@ export function renderReadme(whole, copy) {
       copy,
       'requirement',
       records('requirement').map((record) => [record.title, record]),
-      [
-        {
-          // A requirement is confirmed when every criterion under it is, which
-          // is what the map reports and what a reader wants to know here.
-          heading: copy.confirmedCriteria,
-          of: (record) => {
-            const under = records('criterion').filter(
-              (criterion) => criterion.requirement === record.key,
-            );
-            return under.length && under.every((c) => confirmed.has(c.key))
-              ? copy.yes
-              : copy.no;
-          },
-        },
-      ],
     ),
     ...table(
       copy,

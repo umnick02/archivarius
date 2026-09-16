@@ -191,6 +191,19 @@ test('the readme states only the parts whose realization the model binds', () =>
   );
 });
 
+// Evidence goes stale on every source edit by design, so a page that reported it
+// would need regenerating after every commit and would drift in CI instead.
+test('the readme reads the model, not the state of its evidence', async () => {
+  const source = await fs.readFile(
+    new URL('../docs/scripts/readme.mjs', import.meta.url),
+    'utf8',
+  );
+  assert(
+    !/analysis|analyze|completion|confirmed/i.test(source),
+    'the generator reads confirmation state',
+  );
+});
+
 test('the generator never names a field of the schema', async () => {
   const source = await fs.readFile(
     new URL('../docs/scripts/readme.mjs', import.meta.url),
