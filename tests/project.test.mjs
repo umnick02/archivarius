@@ -9,6 +9,7 @@ import {
   validateProject,
   analyzeProject,
   projectContext,
+  projectArchitecture,
   applyProjectChanges,
   contractDigest,
   realizationDigest,
@@ -476,7 +477,6 @@ test('documentation renders the architecture as a diagram generated from compone
   const diagram = fence[1];
   assert.match(diagram, /^flowchart/);
   const components = model.records.filter((r) => r.type === 'component');
-  const interactions = model.records.filter((r) => r.type === 'interaction');
   // Every component appears as a node and every subsystem groups its children.
   for (const component of components) {
     assert(
@@ -493,13 +493,12 @@ test('documentation renders the architecture as a diagram generated from compone
         'missing subgraph ' + component.key,
       );
   }
-  // Every interaction appears as an edge labelled with its channel.
-  for (const interaction of interactions)
+  // Every interaction appears as an edge carrying the label the map shows,
+  // which the projection derives even when the record states none.
+  for (const relation of projectArchitecture(model).relations)
     assert(
-      diagram.includes(interaction.from) &&
-        diagram.includes(interaction.to) &&
-        diagram.includes(interaction.channel),
-      'missing interaction ' + interaction.key,
+      diagram.includes(relation.label),
+      'missing interaction ' + relation.key,
     );
   assert.equal(markdown, await generateDocumentation(structuredClone(model)));
 });

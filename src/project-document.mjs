@@ -2,6 +2,7 @@ import {
   assertProject,
   analyzeProject,
   recordReferences,
+  projectArchitecture,
   digest,
 } from './project.mjs';
 
@@ -18,44 +19,33 @@ const escape = (value) =>
     .replace(/^(\s*)([#>+-]|\d+\.)/gm, '$1\\$2');
 const inline = (value) => escape(value).replace(/[\r\n]+/g, ' ');
 
-// The diagram is generated from the component and interaction records so that it
-// cannot drift from the model: no second hand-drawn copy of the architecture.
-function architectureDiagram(model) {
-  const components = model.records.filter((r) => r.type === 'component');
-  if (!components.length) return [];
+// The diagram is generated from the same projection the map renders, so the
+// picture cannot disagree with the UI or with the model behind it.
+export function architectureDiagram(model) {
+  const architecture = projectArchitecture(model);
+  if (!architecture.nodes.length) return [];
   const label = (value) => '"' + String(value).replaceAll('"', '#quot;') + '"';
   // Record keys are free text, so a key like "graph" or "end" would be read as
   // Mermaid syntax. Identifiers are namespaced to keep every key usable.
   const id = (key) => 'c-' + key;
-  const node = (component, depth) => {
+  const node = (entry, depth) => {
     const pad = '    '.repeat(depth + 1);
-    const children = components.filter((r) => r.parent === component.key);
+    const children = entry.children || [];
     if (!children.length)
-      return [pad + id(component.key) + '[' + label(component.title) + ']'];
+      return [pad + id(entry.key) + '[' + label(entry.title) + ']'];
     return [
-      pad +
-        'subgraph ' +
-        id(component.key) +
-        '[' +
-        label(component.title) +
-        ']',
+      pad + 'subgraph ' + id(entry.key) + '[' + label(entry.title) + ']',
       ...children.flatMap((child) => node(child, depth + 1)),
       pad + 'end',
     ];
   };
-  const roots = components.filter(
-    (r) => !components.some((other) => other.key === r.parent),
-  );
   return [
     '```mermaid',
     'flowchart TD',
-    ...roots.flatMap((root) => node(root, 0)),
-    ...model.records
-      .filter((r) => r.type === 'interaction')
-      .map(
-        (r) =>
-          '    ' + id(r.from) + ' -->|' + label(r.channel) + '| ' + id(r.to),
-      ),
+    ...architecture.nodes.flatMap((root) => node(root, 0)),
+    ...architecture.relations.map(
+      (r) => '    ' + id(r.from) + ' -->|' + label(r.label) + '| ' + id(r.to),
+    ),
     '```',
     '',
   ];
