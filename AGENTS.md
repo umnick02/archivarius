@@ -65,7 +65,7 @@ Use the Node version in `.nvmrc`; run commands from the repository root.
 | `npm run docs:read -- --focus <key>` | Read a subject's definitions without edit metadata                            |
 | `npm run docs:readme`                | Regenerate `README.md` from the model                                         |
 | `npm run docs:serve`                 | Local documentation viewer at `http://127.0.0.1:4174/`                        |
-| `npm run format:check`               | Prettier check (`project.json` is ignored; it is validated JSON)         |
+| `npm run format:check`               | Prettier check (`project.json` is ignored; it is validated JSON)              |
 
 ## Repository hygiene
 
