@@ -477,9 +477,18 @@ try {
     new URL('fixtures/evidence-check.mjs', import.meta.url),
   );
   await fs.writeFile(new URL('fixture.mjs', evidenceDirectory), checker);
-  confirmed.bindings = {
-    fixture: { path: 'fixture.mjs', digest: hashBytes(checker) },
-  };
+  confirmed.bindings = Object.fromEntries(
+    confirmed.records
+      .filter((record) =>
+        ['scope', 'component', 'interaction', 'interface'].includes(
+          record.type,
+        ),
+      )
+      .map((record) => [
+        record.key,
+        { path: 'fixture.mjs', digest: hashBytes(checker) },
+      ]),
+  );
   confirmed.records.find((record) => record.key === 'export-check').command = [
     process.execPath,
     'fixture.mjs',
