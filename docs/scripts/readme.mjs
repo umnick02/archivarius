@@ -94,12 +94,6 @@ export function renderReadme(model, copy) {
     ...statements(scope),
     ...architectureDiagram(model),
     ...records('source').flatMap(statements),
-    copy.criteriaProgress
-      .replace('{confirmed}', String(confirmed.size))
-      .replace('{total}', String(progress.progress.criteria.length)),
-    '',
-    copy.confirmationNote,
-    '',
     ...table(
       copy,
       'component',
@@ -135,9 +129,17 @@ export function renderReadme(model, copy) {
       'decision',
       records('decision').map((record) => [record.title, record]),
     ),
+    // The count closes the page next to the gaps that explain it: a bare number
+    // above the architecture invites the reading its own caveat has to deny.
+    copy.criteriaProgress
+      .replace('{confirmed}', String(confirmed.size))
+      .replace('{total}', String(progress.progress.criteria.length)),
+    '',
     ...(reasons.length
       ? [row([copy.reasons]), row(['---']), ...reasons.map((r) => row([r])), '']
       : []),
+    copy.confirmationNote,
+    '',
     generatedNotice,
     '',
   ].join('\n');
