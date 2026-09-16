@@ -4,29 +4,35 @@ import assert from 'node:assert/strict';
 import { generatedNotice } from '../src/model/documents.mjs';
 import { projectArchitecture } from '../src/model/project.mjs';
 import prose from '../src/generated/prose.mjs';
-import { renderReadme } from '../docs/scripts/readme.mjs';
+import { renderReadme, readCopy } from '../docs/scripts/readme.mjs';
 
 const model = JSON.parse(
   await fs.readFile(new URL('../docs/project.json', import.meta.url), 'utf8'),
 );
+const copy = await readCopy();
+// A heading is a label the map already shows, never a word of the generator's.
+const labels = new Set([
+  ...Object.values(copy.fields),
+  ...Object.values(copy.types),
+]);
 const record = (type) => model.records.find((r) => r.type === type);
 const records = (type) => model.records.filter((r) => r.type === type);
 
 test('the readme opens with the scope as the only heading', () => {
-  const readme = renderReadme(model);
+  const readme = renderReadme(model, copy);
   assert.equal(readme.split('\n')[0], '# ' + record('scope').title);
   assert.equal(readme.match(/^#+ /gm).length, 1);
 });
 
 test('the readme states the purpose and the sources from the model', () => {
-  const readme = renderReadme(model);
+  const readme = renderReadme(model, copy);
   assert(readme.includes(record('scope').purpose), 'missing the purpose');
   for (const source of records('source'))
     assert(readme.includes(source.statement), 'missing ' + source.key);
 });
 
 test('the readme carries the diagram the map draws, not a separate picture', () => {
-  const readme = renderReadme(model);
+  const readme = renderReadme(model, copy);
   const fence = readme.match(/```mermaid\n([\s\S]*?)\n```/);
   assert(fence, 'missing the diagram');
   const diagram = fence[1];
@@ -51,7 +57,7 @@ test('the readme carries the diagram the map draws, not a separate picture', () 
 });
 
 test('the readme carries no text of its own', () => {
-  const readme = renderReadme(model);
+  const readme = renderReadme(model, copy);
   const source = model.records
     .map((r) => Object.values(r).join('\n'))
     .join('\n');
@@ -71,7 +77,10 @@ test('the readme carries no text of its own', () => {
         .map((c) => c.trim().replaceAll('\\|', '|'));
       for (const cell of cells)
         if (cell && !/^-+$/.test(cell))
-          assert(source.includes(cell), 'text absent from the model: ' + cell);
+          assert(
+            source.includes(cell) || labels.has(cell),
+            'text absent from the model: ' + cell,
+          );
       continue;
     }
     assert(source.includes(line.trim()), 'text absent from the model: ' + line);
@@ -79,7 +88,7 @@ test('the readme carries no text of its own', () => {
 });
 
 test('the readme drops the inspector furniture and stays one screen', () => {
-  const readme = renderReadme(model);
+  const readme = renderReadme(model, copy);
   for (const furniture of ['<a id=', 'Snapshot:', '**', 'Reload after'])
     assert(!readme.includes(furniture), 'leaked ' + furniture);
   assert(
@@ -110,7 +119,7 @@ test('the prose table is derived from the schema, not written by hand', async ()
 });
 
 test('the readme states what every part does and what crosses every edge', () => {
-  const readme = renderReadme(model);
+  const readme = renderReadme(model, copy);
   const architecture = projectArchitecture(model);
   const leaves = [];
   const walk = (node) => {
@@ -151,6 +160,32 @@ test('the generator never names a field of the schema', async () => {
     );
 });
 
+test('every table states its columns with the labels the map uses', () => {
+  const readme = renderReadme(model, copy);
+  const headers = readme
+    .split('\n')
+    .filter((line, index, lines) => /^\| -+ \|/.test(lines[index + 1] || ''));
+  assert(headers.length >= 2, 'expected a heading row per table');
+  for (const header of headers)
+    for (const heading of header.split('|').map((c) => c.trim()))
+      if (heading)
+        assert(labels.has(heading), 'heading absent from the copy: ' + heading);
+});
+
+test('every prose field the schema declares has a label in the copy', () => {
+  for (const [type, fields] of Object.entries(prose)) {
+    if (copy.types[type] === undefined) continue;
+    for (const field of fields)
+      assert(
+        copy.fields[field.name],
+        'no label for ' + type + '.' + field.name,
+      );
+  }
+});
+
 test('rendering the same model twice gives the same readme', () => {
-  assert.equal(renderReadme(model), renderReadme(structuredClone(model)));
+  assert.equal(
+    renderReadme(model, copy),
+    renderReadme(structuredClone(model), copy),
+  );
 });
