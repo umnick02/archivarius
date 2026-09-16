@@ -11,7 +11,7 @@
       "key": "archivarius",
       "type": "scope",
       "title": "Archivarius",
-      "purpose": "A single validated JSON snapshot describes a project's architecture, requirements, decisions, scenarios, tasks and checks, and a React library renders it as an architecture map with semantic zoom."
+      "purpose": "One validated JSON file - a snapshot - holds a project's whole description as small linked records: its parts, the rules they must satisfy, the decisions behind them, the work left and the checks that confirm it. A React library draws that file as an architecture map that reveals more detail as it is zoomed."
     },
     {
       "key": "owner-intent",
@@ -27,7 +27,7 @@
       "title": "Provenance and freshness model",
       "scope": "archivarius",
       "origin": "assumption",
-      "statement": "Revisions, used context and check results are distinct from ordinary references so that stale grounds and superseded evidence cannot pass as current confirmation."
+      "statement": "A record keeps the definitions it was written against apart from the records it merely mentions, so when a definition changes, whatever rested on it stops counting as confirmed instead of quietly staying green."
     },
     {
       "key": "model",

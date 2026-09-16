@@ -89,6 +89,13 @@ export function renderReadme(model, copy) {
     ...statements(scope),
     ...architectureDiagram(model),
     ...records('source').flatMap(statements),
+    // A reader who does not know the vocabulary yet needs one concrete run
+    // through the system before the parts it is made of.
+    ...table(
+      copy,
+      'scenario',
+      records('scenario').map((record) => [record.title, record]),
+    ),
     ...table(
       copy,
       'component',

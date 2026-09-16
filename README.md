@@ -1,6 +1,6 @@
 # Archivarius
 
-A single validated JSON snapshot describes a project's architecture, requirements, decisions, scenarios, tasks and checks, and a React library renders it as an architecture map with semantic zoom.
+One validated JSON file - a snapshot - holds a project's whole description as small linked records: its parts, the rules they must satisfy, the decisions behind them, the work left and the checks that confirm it. A React library draws that file as an architecture map that reveals more detail as it is zoomed.
 
 ```mermaid
 flowchart TD
@@ -27,7 +27,11 @@ flowchart TD
 
 An owner understands a system's structure, the grounds for decisions, the remaining work and the effect of changes from one snapshot; an LLM reads and edits the same records.
 
-Revisions, used context and check results are distinct from ordinary references so that stale grounds and superseded evidence cannot pass as current confirmation.
+A record keeps the definitions it was written against apart from the records it merely mentions, so when a definition changes, whatever rested on it stops counting as confirmed instead of quietly staying green.
+
+| Scenario | Actor | Preconditions | Actions | Failure and recovery |
+| --- | --- | --- | --- | --- |
+| Edit a definition and re-render | LLM agent | A validated snapshot is loaded. | Read a focused record's context.<br>Apply a validated change against the unchanged context.<br>Re-validate the whole snapshot.<br>Re-render the map and inspector. | A stale context is rejected and the model is preserved.<br>A broken reference fails validation. |
 
 | Component | Responsibility |
 | --- | --- |
