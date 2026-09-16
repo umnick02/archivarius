@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { generatedNotice } from '../src/model/documents.mjs';
 import { projectArchitecture } from '../src/model/project-architecture.mjs';
 import prose from '../src/generated/prose.mjs';
+import { recordSummary } from '../src/model/project-view.mjs';
 import { renderReadme, readCopy } from '../docs/scripts/readme.mjs';
 
 const model = JSON.parse(
@@ -143,28 +144,25 @@ test('the prose table is derived from the schema, not written by hand', async ()
 test('the readme states what every part does and what crosses every edge', () => {
   const readme = renderReadme(model, copy);
   const architecture = projectArchitecture(model);
-  const leaves = [];
+  const nodes = [];
   const walk = (node) => {
-    if (node.children?.length) for (const child of node.children) walk(child);
-    else leaves.push(node);
+    nodes.push(node);
+    for (const child of node.children || []) walk(child);
   };
   for (const node of architecture.nodes) walk(node);
-  for (const node of leaves) {
+  // The line the map shows when a record is collapsed is the floor: no part and
+  // no edge may reach the readme without saying what it is.
+  for (const node of nodes) {
     const record = model.records.find((r) => r.key === node.key);
-    for (const field of prose[record.type])
-      if (record[field.name])
-        assert(
-          readme.includes(record[field.name]),
-          'missing ' + field.name + ' of ' + node.key,
-        );
+    const summary = recordSummary(record);
+    assert(summary, 'nothing summarizes ' + node.key);
+    assert(readme.includes(summary), 'missing the summary of ' + node.key);
   }
   for (const relation of architecture.relations)
-    for (const field of prose.interface)
-      if (relation[field.name])
-        assert(
-          readme.includes(relation[field.name]),
-          'missing ' + field.name + ' of ' + relation.key,
-        );
+    assert(
+      readme.includes(recordSummary({ ...relation, type: 'interface' })),
+      'missing the summary of ' + relation.key,
+    );
 });
 
 test('the generator never names a field of the schema', async () => {

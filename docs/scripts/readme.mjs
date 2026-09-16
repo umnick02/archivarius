@@ -5,6 +5,7 @@ import { generatedNotice } from '../../src/model/documents.mjs';
 import { analyzeProject } from '../../src/model/project-analysis.mjs';
 import { projectArchitecture } from '../../src/model/project-architecture.mjs';
 import { assertProject } from '../../src/model/project-contract.mjs';
+import { primaryFields } from '../../src/model/project-view.mjs';
 import prose from '../../src/generated/prose.mjs';
 import { root, input } from './framework.mjs';
 
@@ -22,26 +23,39 @@ const value = (record, field) => {
 
 const row = (cells) => '| ' + cells.join(' | ') + ' |';
 
+// A column that reads the same down every row carries no more than one line of
+// prose would, so it is left out; with a single row there is nothing to compare.
+const varies = (entries, cell) =>
+  entries.length < 2 || new Set(entries.map(cell)).size > 1;
+
 const table = (copy, type, entries, extra = []) => {
   if (!entries.length) return [];
-  // A column nobody filled says nothing, so it is dropped rather than shipped
-  // empty; which columns exist therefore follows from the records at hand.
-  const fields = prose[type].filter((field) =>
-    entries.some(([, record]) => value(record, field)),
-  );
+  // The map already ranks a record's fields to summarize it, and this page is
+  // the same summary in a row: the fields it leads with, minus those nobody
+  // filled and those that never differ.
+  const ranked = primaryFields[type] || [];
+  const fields = prose[type]
+    .filter((field) => ranked.includes(field.name))
+    .sort((a, b) => ranked.indexOf(a.name) - ranked.indexOf(b.name))
+    .filter(
+      (field) =>
+        entries.some(([, record]) => value(record, field)) &&
+        varies(entries, ([, record]) => value(record, field)),
+    );
+  const columns = [
+    ...fields.map((field) => ({
+      heading: copy.fields[field.name],
+      of: (record) => value(record, field),
+    })),
+    ...extra.filter((column) =>
+      varies(entries, ([, record]) => column.of(record)),
+    ),
+  ];
   return [
-    row([
-      copy.types[type],
-      ...fields.map((field) => copy.fields[field.name]),
-      ...extra.map((column) => column.heading),
-    ]),
-    row(['---', ...fields.map(() => '---'), ...extra.map(() => '---')]),
+    row([copy.types[type], ...columns.map((column) => column.heading)]),
+    row(['---', ...columns.map(() => '---')]),
     ...entries.map(([title, record]) =>
-      row([
-        title,
-        ...fields.map((field) => value(record, field)),
-        ...extra.map((column) => column.of(record)),
-      ]),
+      row([title, ...columns.map((column) => column.of(record))]),
     ),
     '',
   ];
