@@ -36,7 +36,10 @@ export const files = {
 
 const bound = ['scope', 'component', 'interaction', 'interface'];
 
-export async function collectBindings(model) {
+// The described parts and the file the table gives each of them. A part without a
+// file, or a bound key nothing describes, is a broken map of the repository and
+// fails at once; nothing here reads bytes.
+export function boundPaths(model) {
   const described = model.records
     .filter((record) => bound.includes(record.type))
     .map((record) => record.key);
@@ -44,14 +47,18 @@ export async function collectBindings(model) {
   if (stray.length) throw new Error('Bound keys left the model: ' + stray);
   const missing = described.filter((key) => !files[key]);
   if (missing.length) throw new Error('Parts without a file: ' + missing);
+  return Object.fromEntries(described.sort().map((key) => [key, files[key]]));
+}
+
+export async function collectBindings(model) {
   return Object.fromEntries(
     await Promise.all(
-      described.sort().map(async (key) => [
+      Object.entries(boundPaths(model)).map(async ([key, file]) => [
         key,
         {
-          path: files[key],
+          path: file,
           digest: hashBytes(
-            new Uint8Array(await readFile(path.join(root, files[key]))),
+            new Uint8Array(await readFile(path.join(root, file))),
           ),
         },
       ]),
@@ -59,12 +66,44 @@ export async function collectBindings(model) {
   );
 }
 
+// The parts whose file no longer holds the bytes the last release recorded. This
+// is a reading list, not a verdict: each named part is a description an agent has
+// to read against its file again.
+export function staleParts(model, bindings) {
+  return Object.keys(bindings)
+    .filter((key) => {
+      const released = model.bindings?.[key];
+      return (
+        !released ||
+        released.path !== bindings[key].path ||
+        released.digest !== bindings[key].digest
+      );
+    })
+    .sort();
+}
+
 if (import.meta.url === new URL(process.argv[1], 'file:').href) {
   const model = JSON.parse(await readFile(input, 'utf8'));
-  const bindings = await collectBindings(model);
-  if (JSON.stringify(model.bindings) === JSON.stringify(bindings))
+  if (process.argv.includes('--check')) {
+    const paths = boundPaths(model);
+    const recorded = Object.fromEntries(
+      Object.entries(model.bindings ?? {}).map(([key, binding]) => [
+        key,
+        binding.path,
+      ]),
+    );
+    if (JSON.stringify(paths) !== JSON.stringify(recorded))
+      throw new Error('Bound files are stale: run npm run docs:bind:release');
+    for (const file of Object.values(paths))
+      await readFile(path.join(root, file));
     process.exit(0);
-  if (process.argv.includes('--check'))
-    throw new Error('Bindings are stale: run npm run docs:bind');
-  await updateProjectFile(input, projectContext(model, []), { bindings });
+  }
+  const bindings = await collectBindings(model);
+  const stale = staleParts(model, bindings);
+  if (process.argv.includes('--release')) {
+    if (stale.length)
+      await updateProjectFile(input, projectContext(model, []), { bindings });
+    process.exit(0);
+  }
+  for (const key of stale) process.stdout.write(key + '\n');
 }

@@ -61,6 +61,7 @@
     "docs:apply": "node docs/scripts/project.mjs apply",
     "docs:bind": "node docs/scripts/bind.mjs",
     "docs:bind:check": "node docs/scripts/bind.mjs --check",
+    "docs:bind:release": "node docs/scripts/bind.mjs --release",
     "docs:readme": "node docs/scripts/readme.mjs",
     "docs:readme:check": "node docs/scripts/readme.mjs --check",
     "docs:serve": "node docs/scripts/project.mjs serve",

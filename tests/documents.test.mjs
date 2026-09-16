@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { generateDocumentation, readArchitectureFile } from '../src/node.mjs';
 import { renderDocumentation } from '../src/model/document.mjs';
 import { ArchitectureGraph } from '../src/model/graph.mjs';
-import { hashBytes } from '../src/model/digest.mjs';
+import { files, staleParts } from '../docs/scripts/bind.mjs';
 
 const root = new URL('../', import.meta.url);
 const model = await readArchitectureFile(
@@ -142,9 +142,11 @@ test('the help text and the documented CLI record name the same commands', async
   );
 });
 
-// A binding is a claim about bytes on disk. Left to hand editing it rots into a
-// digest of a file nobody has today, so the repository proves it instead.
-test('every described part of this repository is bound to the file that carries it', async () => {
+// A binding says which file carries a part. That claim is checked on every run:
+// the table must cover the described parts and each file must exist. The digest
+// is a release claim about bytes, so it is not asserted here — bytes move between
+// releases, and a gate on them would only teach an agent to refresh a number.
+test('every described part of this repository is bound to a file that exists', async () => {
   const project = JSON.parse(
     await fs.readFile(new URL('project.json', root), 'utf8'),
   );
@@ -155,10 +157,33 @@ test('every described part of this repository is bound to the file that carries 
     .map((record) => record.key)
     .sort();
   assert.deepEqual(Object.keys(project.bindings).sort(), described);
-  for (const [key, binding] of Object.entries(project.bindings))
-    assert.equal(
-      hashBytes(new Uint8Array(await fs.readFile(new URL(binding.path, root)))),
-      binding.digest,
-      key + ' names bytes this repository does not have',
+  for (const [key, binding] of Object.entries(project.bindings)) {
+    assert.equal(binding.path, files[key], key + ' is bound past the table');
+    assert.ok(
+      await fs.readFile(new URL(binding.path, root)),
+      key + ' names a file this repository does not have',
     );
+  }
+});
+
+// Bytes that moved since the release are not a failure, they are a reading list:
+// the part whose file changed is the part whose description an agent must read
+// again. Naming every part on every edit would make that list worthless.
+test('changed bytes name the parts whose description needs a fresh read', () => {
+  const project = {
+    records: [
+      { key: 'core', type: 'component' },
+      { key: 'cli', type: 'component' },
+    ],
+    bindings: {
+      core: { path: 'src/core.mjs', digest: 'old' },
+      cli: { path: 'src/cli.mjs', digest: 'same' },
+    },
+  };
+  const current = {
+    core: { path: 'src/core.mjs', digest: 'new' },
+    cli: { path: 'src/cli.mjs', digest: 'same' },
+  };
+  assert.deepEqual(staleParts(project, current), ['core']);
+  assert.deepEqual(staleParts(project, project.bindings), []);
 });

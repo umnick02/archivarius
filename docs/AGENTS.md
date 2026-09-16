@@ -17,8 +17,11 @@ cloned framework. Build once with `npm run build`, then:
 - `npm run docs:apply -- --context context.json --change change.json` — apply a
   validated change. A stale context, unknown field or broken reference is
   rejected and the source file is preserved.
-- `npm run docs:bind` — recompute every part's file binding from the bytes on
-  disk; `docs/scripts/bind.mjs` holds the part-to-file table.
+- `npm run docs:bind` — list the parts whose file changed since the last release;
+  each name is a description to read against its file again. `docs:bind:check`
+  proves every described part is bound to a file that exists, and
+  `docs:bind:release` records the current bytes. `docs/scripts/bind.mjs` holds the
+  part-to-file table.
 - `npm run docs:serve` — start the local viewer at `http://127.0.0.1:4174/`
   (loopback only); reload to read and validate the current JSON, stop with
   Ctrl+C.

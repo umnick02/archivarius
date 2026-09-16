@@ -16,5 +16,8 @@ Invariants:
 - The viewer binds to loopback only; it exposes the model endpoint, not the
   repository filesystem.
 - `bind.mjs` owns the only hand-maintained part-to-file table; digests are read
-  from disk, never written by hand, and `--check` fails on drift. The readme
-  shows a part only while that table binds it.
+  from disk, never written by hand. `--check` proves the table covers the
+  described parts and that every bound file exists, `--release` records the
+  current bytes, and the default run lists the parts whose bytes moved since that
+  release — a reading list, not a failure. The readme shows a part only while that
+  table binds it.
