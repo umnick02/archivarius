@@ -25,11 +25,7 @@ assert(pack.files.some((file) => file.path === 'dist/src/index.js'));
 assert(
   pack.files.some((file) => file.path === 'dist/assets/model.schema.json'),
 );
-assert(
-  pack.files.every((file) =>
-    /^(dist\/|README.md$|package.json$)/.test(file.path),
-  ),
-);
+assert(pack.files.every((file) => /^(dist\/|package.json$)/.test(file.path)));
 await fs.mkdir(consumer, { recursive: true });
 await fs.cp(path.join(root, 'tests/consumer'), consumer, { recursive: true });
 await fs.mkdir(path.join(consumer, 'public'), { recursive: true });

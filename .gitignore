@@ -3,3 +3,6 @@ dist/
 .runtime/
 *.tgz
 src/generated/
+.idea/
+.vscode/
+.DS_Store

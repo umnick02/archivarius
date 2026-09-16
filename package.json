@@ -9,8 +9,7 @@
     "url": "git+ssh://git@github.com/umnick02/archivarius.git"
   },
   "files": [
-    "dist",
-    "README.md"
+    "dist"
   ],
   "bin": {
     "archivarius": "./dist/src/cli.mjs"
