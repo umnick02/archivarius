@@ -22,7 +22,9 @@ Invariants:
   pins their extension surface to `x-targets` and `x-history`; a new `x-` keyword
   must be documented in `contract.md` before the test accepts it.
 - `layers.test.mjs` proves the `src/` import graph is a DAG that only points down
-  the layers the folders name; move a module instead of widening `allowed`.
+  the layers the folders name; move a module instead of widening `allowed`. It also
+  holds every described interaction to a dependency the modules really have — fix
+  the model or the part-to-file table, never the walk.
 - `cdp.mjs` never sleeps for a render: `clicker` waits two frames, `waiter` and
   `settler` wait for state. A suite that needs a sleep is watching the wrong
   signal — the three surviving `pause` calls are polling loops and the one case
