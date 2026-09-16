@@ -22,7 +22,7 @@ const evidenceDirectory = new URL(
   '../.runtime/consumer/dist/implementation-fixture/',
   import.meta.url,
 );
-const click = clicker(b, { settle: 150 });
+const click = clicker(b);
 const until = waiter(b);
 const settled = settler(b);
 try {

@@ -87,7 +87,7 @@ export const pause = (ms = 500) =>
 // A control that is absent or collapsed to nothing fails the suite instead of
 // swallowing the click, so a broken selector cannot pass as a working one.
 export const clicker =
-  (browser, { settle = 400 } = {}) =>
+  (browser) =>
   async (selector, count = 1) => {
     const point = await browser.evaluate((selector) => {
       const element = document.querySelector(selector);
@@ -104,7 +104,17 @@ export const clicker =
         button: 'left',
         clickCount: count,
       });
-    await pause(settle);
+    // Let the click's own render land: two frames is a painted commit, not a
+    // guess at how long one takes. Anything the click starts asynchronously —
+    // a relayout, a fetch — is the caller's to await through waiter or settler.
+    await browser.evaluate(
+      () =>
+        new Promise((resolve) =>
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() => resolve(true)),
+          ),
+        ),
+    );
   };
 
 // Wait for the state the page is supposed to reach instead of guessing how long

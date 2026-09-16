@@ -20,3 +20,16 @@ Invariants:
   option; the memoized path must never be the only one exercised.
 - `layers.test.mjs` proves the `src/` import graph is a DAG that only points down
   the layers the folders name; move a module instead of widening `allowed`.
+- `cdp.mjs` never sleeps for a render: `clicker` waits two frames, `waiter` and
+  `settler` wait for state. A suite that needs a sleep is watching the wrong
+  signal — the three surviving `pause` calls are polling loops and the one case
+  that asserts a key does nothing.
+- `npm run test:coverage` holds repository-wide `src/` floors; `ui/view.mjs` is
+  proven in the browser suites, which are not instrumented, so read the floors as
+  a whole and not per file. `load.test.mjs` covers `ui/load.mjs` in Node by
+  stubbing `fetch`, so a network path never depends on Chrome to be exercised.
+- `project-fixture.mjs` owns the compact project and the steps that make it
+  confirmable; a suite imports it instead of re-reading the example or inventing
+  its own variant. Project subjects split by owner: completion semantics in
+  `project.test.mjs`, rendering in `project-documents.test.mjs`, receipts and
+  files in `project-checks.test.mjs`, authoring in `project-authoring.test.mjs`.

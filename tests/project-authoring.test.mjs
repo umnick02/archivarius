@@ -23,12 +23,7 @@ import {
   writeAtomic,
 } from '../src/node.mjs';
 import { storeProjectStorage } from '../src/io/project-storage.mjs';
-const example = JSON.parse(
-  await fs.readFile(
-    new URL('../examples/basic/public/project.json', import.meta.url),
-  ),
-);
-const get = (m, key) => m.records.find((r) => r.key === key);
+import { example, get } from './project-fixture.mjs';
 const apply = (m, change) =>
   applyProjectChanges(m, projectContext(m, [m.root]), change);
 const review = (m) =>

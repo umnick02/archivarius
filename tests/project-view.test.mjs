@@ -6,17 +6,12 @@ import {
   confirmationGroups,
   searchRecord,
 } from '../src/model/project-view.mjs';
+import { example as project, get as record } from './project-fixture.mjs';
 
-const project = JSON.parse(
-  await fs.readFile(
-    new URL('../examples/basic/public/project.json', import.meta.url),
-    'utf8',
-  ),
-);
 const copy = JSON.parse(
   await fs.readFile(new URL('../assets/project.json', import.meta.url), 'utf8'),
 );
-const get = (key) => project.records.find((r) => r.key === key);
+const get = (key) => record(project, key);
 
 test('search finds parameter values, methods, nested content and reference titles', () => {
   assert.equal(

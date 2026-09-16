@@ -52,7 +52,8 @@ Use the Node version in `.nvmrc`; run commands from the repository root.
 | Command                              | Scope                                                                         |
 | ------------------------------------ | ----------------------------------------------------------------------------- |
 | `npm run build`                      | Compile `src/` and copy `assets/` into `dist/`                                |
-| `npm test`                           | Node test suites in `tests/*.test.mjs` (regenerates contract)                 |
+| `npm test`                           | Node test suites in `tests/*.test.mjs` (regenerates contract, builds `dist`)  |
+| `npm run test:coverage`              | The same suites with `src/` coverage floors enforced                          |
 | `npm run lint`                       | ESLint: hook rules, unused code and the no-I/O module boundary                |
 | `npm run test:browser`               | Headless render checks (own Chrome and server; needs `dist`)                  |
 | `npm run test:package`               | Pack the tarball and validate an installed consumer                           |

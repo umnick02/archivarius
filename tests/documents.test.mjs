@@ -12,7 +12,7 @@ const model = await readArchitectureFile(
 );
 const graph = ArchitectureGraph.validate(model);
 const run = (args) =>
-  spawnSync(process.execPath, ['dist/src/cli.mjs', ...args], {
+  spawnSync(process.execPath, ['src/cli.mjs', ...args], {
     cwd: root,
     encoding: 'utf8',
   });

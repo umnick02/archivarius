@@ -225,7 +225,11 @@ try {
   }
   assert((await state()).visible.includes('gateway'));
   await b.evaluate(() => window.consumer.first.home());
+  await settled(camera);
   await click('#first [data-node=search]', 2);
+  await until(() =>
+    window.consumer.first.snapshot().visible.includes('engine'),
+  );
   assert((await state()).visible.includes('engine'));
   const interactions = (await state()).relations.length;
   await b.evaluate(() => {
