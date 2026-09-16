@@ -50,7 +50,7 @@
     "lint": "eslint .",
     "test:browser": "node tests/browser.mjs && node tests/project-browser.mjs",
     "test:package": "node tooling/test-package.mjs",
-    "check": "npm run build && npm run lint && npm run format:check && npm test && npm run test:package && npm run test:browser && npm run docs:readme:check",
+    "check": "npm run build && npm run lint && npm run format:check && npm test && npm run test:package && npm run test:browser && npm run docs:validate && npm run docs:readme:check",
     "docs:validate": "node docs/scripts/project.mjs validate --json",
     "docs:read": "node docs/scripts/project.mjs read",
     "docs:context": "node docs/scripts/project.mjs context",

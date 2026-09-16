@@ -3,7 +3,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ArchitectureError, parseJSON } from '../core.mjs';
+import { ArchitectureError } from '../model/errors.mjs';
+import { parseJSON } from '../model/parse.mjs';
 import { checkStructure } from '../model/structure.mjs';
 import { digest } from '../model/digest.mjs';
 

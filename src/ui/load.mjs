@@ -1,9 +1,6 @@
 import { ArchitectureGraph } from '../model/graph.mjs';
-import {
-  ArchitectureError,
-  parseArchitecture,
-  validateArchitecture,
-} from '../core.mjs';
+import { ArchitectureError } from '../model/errors.mjs';
+import { parseArchitecture, validateArchitecture } from '../model/parse.mjs';
 import { analyzeProject } from '../model/project-analysis.mjs';
 import { projectArchitecture } from '../model/project-architecture.mjs';
 import {

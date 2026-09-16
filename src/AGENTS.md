@@ -20,6 +20,11 @@ Invariants:
 - ESLint bans `node:*` and `process` for all of `src/**` and re-allows them only
   for `src/io/**`, `src/node.mjs` and `src/cli.mjs`; it also forbids reaching into
   `io/` from anywhere else. Move a module instead of widening the rule.
+- Imports only point down this table and never form a cycle, and a module inside a
+  layer imports its owner directly rather than an entry point.
+  `tests/layers.test.mjs` holds both.
+- The root modules are export surfaces: behavior lives in a layer, so `core.mjs`
+  re-exports `model/parse.mjs` instead of holding the parser.
 - The browser surface displays validated model facts and keeps only presentation
   state (zoom, focus, selection). `ui/load.mjs` is the sole `fetch` caller.
 - Render model content as literal text — no executable Markdown or active-content

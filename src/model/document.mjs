@@ -1,16 +1,7 @@
 import { ArchitectureGraph } from './graph.mjs';
-import { ArchitectureError } from '../core.mjs';
+import { ArchitectureError } from './errors.mjs';
+import { escape, inline } from './documents.mjs';
 import { renderProjectDocumentation } from './project-document.mjs';
-
-// Model prose is plain text. Only the renderer creates Markdown structure.
-const escape = (value) =>
-  String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replace(/([\\`*_[\]{}()#+.!|~-])/g, '\\$1')
-    .replace(/\r\n?/g, '\n');
-const inline = (value) => escape(value).replaceAll('\n', ' ');
 
 export function renderDocumentation(model, copy) {
   if (model.version === 4)
