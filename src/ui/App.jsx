@@ -1,5 +1,4 @@
 import {
-  Fragment,
   forwardRef,
   useImperativeHandle,
   useCallback,
@@ -18,17 +17,13 @@ import {
 import { useArchitecture } from './context.jsx';
 import { ArchitectureNode } from './ArchitectureNode.jsx';
 import { ArchitectureEdge } from './ArchitectureEdge.jsx';
-import { ImplementationMark } from './ImplementationMark.jsx';
 import { Inspector } from './Inspector.jsx';
+import { MapHeader } from './MapHeader.jsx';
+import { MapChrome } from './MapChrome.jsx';
+import { MapOverlays } from './MapOverlays.jsx';
 import { usePanelNavigation } from './usePanelNavigation.jsx';
-import { ArchitectureGraph } from '../model/graph.mjs';
-import {
-  kindColors,
-  expandedAt,
-  isVisible,
-  projectedEdges,
-  placeEdgeLabels,
-} from './view.mjs';
+import { useMapProjection } from './useMapProjection.jsx';
+import { expandedAt, isVisible } from './view.mjs';
 
 const nodeTypes = { architecture: ArchitectureNode },
   edgeTypes = { architecture: ArchitectureEdge };
@@ -36,17 +31,8 @@ const duration = () =>
   matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 280;
 
 export const App = forwardRef(function App({ onReady }, ref) {
-  const {
-    model,
-    project,
-    projectCopy,
-    completion,
-    graph,
-    layout,
-    copy,
-    rootColors,
-    instanceId,
-  } = useArchitecture();
+  const { model, project, graph, layout, copy, rootColors, instanceId } =
+    useArchitecture();
   const flow = useReactFlow(),
     viewport = useViewport();
   const maxZoom = useMemo(
@@ -120,20 +106,6 @@ export const App = forwardRef(function App({ onReady }, ref) {
     previousExpanded.current = next;
     return next;
   }, [layout, viewport.zoom, size]);
-  const interfaces = useMemo(
-    () =>
-      new Map(
-        [...graph.nodes.keys()].map((key) => [
-          key,
-          ArchitectureGraph.describe(model, graph, key),
-        ]),
-      ),
-    [model, graph],
-  );
-  const bundles = useMemo(
-    () => projectedEdges(model, graph, layout, expanded, completion.relations),
-    [model, graph, layout, expanded, completion],
-  );
   const clearClick = useCallback(() => {
     clearTimeout(pendingClick.current);
   }, []);
@@ -276,135 +248,18 @@ export const App = forwardRef(function App({ onReady }, ref) {
   while (zoomScope && !expanded.has(zoomScope))
     zoomScope = graph.parents.get(zoomScope);
   const activeKey = contextEnabled ? selected || zoomScope : null;
-  const inside = useCallback(
-    (key, container) => {
-      while (key) {
-        if (key === container) return true;
-        key = graph.parents.get(key);
-      }
-      return false;
-    },
-    [graph],
-  );
-  const connected = useMemo(() => {
-    if (!activeKey) return null;
-    const result = new Set([activeKey]);
-    for (const edge of bundles)
-      if (
-        edge.bundle.relations.some(
-          (r) => inside(r.from, activeKey) || inside(r.to, activeKey),
-        )
-      ) {
-        result.add(edge.bundle.from);
-        result.add(edge.bundle.to);
-      }
-    return result;
-  }, [activeKey, bundles, inside]);
-  const nodes = useMemo(
-    () =>
-      Object.values(layout.nodes).map((box) => {
-        const handles = [];
-        for (const edge of bundles) {
-          if (edge.bundle.from === box.key)
-            handles.push({
-              ...edge.source,
-              id: 's-' + edge.id,
-              type: 'source',
-            });
-          if (edge.bundle.to === box.key)
-            handles.push({
-              ...edge.target,
-              id: 't-' + edge.id,
-              type: 'target',
-            });
-        }
-        const parent = box.parent ? layout.nodes[box.parent] : null;
-        return {
-          id: box.key,
-          type: 'architecture',
-          parentId: box.parent || undefined,
-          extent: parent ? 'parent' : undefined,
-          position: {
-            x: box.x - (parent?.x || 0),
-            y: box.y - (parent?.y || 0),
-          },
-          width: box.width,
-          height: box.height,
-          hidden: !isVisible(box.key, graph, expanded),
-          draggable: false,
-          selectable: false,
-          data: {
-            item: graph.nodes.get(box.key),
-            interfaces: interfaces.get(box.key),
-            box,
-            handles,
-            expanded: expanded.has(box.key),
-            onEnter: fitNode,
-            onDetails: showNode,
-            highlighted: selected === box.key,
-            muted:
-              !!connected &&
-              !connected.has(box.key) &&
-              !inside(box.key, activeKey) &&
-              !inside(activeKey, box.key),
-          },
-          style: { width: box.width, height: box.height },
-          zIndex: box.depth,
-        };
-      }),
-    [
-      layout,
-      graph,
-      interfaces,
-      bundles,
-      expanded,
-      fitNode,
-      showNode,
-      selected,
-      connected,
-      activeKey,
-      inside,
-    ],
-  );
-  const edges = useMemo(
-    () =>
-      placeEdgeLabels(bundles, nodes, viewport, size, layer).map((edge) => ({
-        id: edge.id,
-        type: 'architecture',
-        source: edge.bundle.from,
-        target: edge.bundle.to,
-        sourceHandle: 's-' + edge.id,
-        targetHandle: 't-' + edge.id,
-        selectable: false,
-        zIndex: 20,
-        data: {
-          ...edge,
-          onOpen: showRelation,
-          muted:
-            (layer !== 'all' && edge.bundle.kind !== layer) ||
-            (!!activeKey &&
-              !edge.bundle.relations.some(
-                (r) => inside(r.from, activeKey) || inside(r.to, activeKey),
-              )),
-          active:
-            panel?.type === 'relation' &&
-            edge.bundle.relations.some((e) =>
-              panel.bundle.relations.some((p) => p.key === e.key),
-            ),
-        },
-      })),
-    [
-      bundles,
-      nodes,
-      viewport,
-      size,
-      panel,
-      showRelation,
-      layer,
-      activeKey,
-      inside,
-    ],
-  );
+  const { interfaces, bundles, nodes, edges, outside } = useMapProjection({
+    expanded,
+    viewport,
+    size,
+    layer,
+    selected,
+    activeKey,
+    panel,
+    fitNode,
+    showNode,
+    showRelation,
+  });
   const path = useMemo(() => {
     const result = [];
     let key = focus;
@@ -599,14 +454,6 @@ export const App = forwardRef(function App({ onReady }, ref) {
     (size.width - 70) / layout.bounds.width,
     (size.height - 180) / layout.bounds.height,
   );
-  const outside = activeKey
-    ? [
-        ...new Set([
-          ...(interfaces.get(activeKey)?.incoming || []).map((r) => r.from),
-          ...(interfaces.get(activeKey)?.outgoing || []).map((r) => r.to),
-        ]),
-      ].filter((key) => !inside(key, activeKey))
-    : [];
   return (
     <div
       className="map-app"
@@ -623,118 +470,18 @@ export const App = forwardRef(function App({ onReady }, ref) {
           root.current.focus({ preventScroll: true });
       }}
     >
-      <header>
-        <div className="identity">
-          <div className="logo">↗</div>
-          <div>
-            <div className="brand">
-              {copy.brand} <span>/</span> {model.title || copy.title}
-            </div>
-            <div className="subtitle">{copy.subtitle}</div>
-          </div>
-        </div>
-        <div className="header-right">
-          {project && (
-            <button
-              className="quiet"
-              data-control="project"
-              onClick={() => {
-                clearClick();
-                openPanel({ type: 'project' });
-              }}
-            >
-              {projectCopy.button}
-            </button>
-          )}
-          {project ? (
-            <button
-              className="quiet"
-              data-control="project-search"
-              onClick={() =>
-                openPanel({
-                  type: 'project',
-                  view: 'all',
-                  focusSearch: true,
-                })
-              }
-            >
-              {projectCopy.search}
-            </button>
-          ) : (
-            <select
-              data-control="node-search"
-              aria-label={copy.findNode}
-              value=""
-              onChange={(e) => fitNode(e.target.value)}
-            >
-              <option value="" disabled>
-                {copy.findNode}
-              </option>
-              {[...graph.nodes.values()].map((node) => (
-                <option key={node.key} value={node.key}>
-                  {node.title}
-                </option>
-              ))}
-            </select>
-          )}
-          <select
-            data-control="layer"
-            aria-label={copy.layerLabel}
-            value={layer}
-            onChange={(e) => {
-              clearClick();
-              setLayer(e.target.value);
-              closePanel();
-            }}
-          >
-            {Object.entries(copy.layers).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </select>
-          <button
-            className="quiet"
-            data-control="contracts"
-            onClick={() => {
-              clearClick();
-              openPanel({ type: 'contracts' });
-            }}
-          >
-            {copy.rulesButton}
-          </button>
-          <button
-            className="quiet"
-            data-control="about"
-            onClick={() => openPanel({ type: 'about' })}
-          >
-            {copy.aboutButton}
-          </button>
-        </div>
-      </header>
-      {panel && (
-        <div className="mobile-view-switch">
-          <button
-            className="quiet"
-            data-control="mobile-map"
-            aria-pressed={mobileMap}
-            onClick={() => {
-              setMobileMap(true);
-              pane.current?.focus({ preventScroll: true });
-            }}
-          >
-            {projectCopy.returnToMap}
-          </button>
-          <button
-            className="quiet"
-            data-control="mobile-card"
-            aria-pressed={!mobileMap}
-            onClick={() => setMobileMap(false)}
-          >
-            {projectCopy.returnToCard}
-          </button>
-        </div>
-      )}
+      <MapHeader
+        layer={layer}
+        setLayer={setLayer}
+        panel={panel}
+        mobileMap={mobileMap}
+        setMobileMap={setMobileMap}
+        pane={pane}
+        clearClick={clearClick}
+        openPanel={openPanel}
+        closePanel={closePanel}
+        fitNode={fitNode}
+      />
       <div
         className="map-pane"
         ref={pane}
@@ -802,137 +549,23 @@ export const App = forwardRef(function App({ onReady }, ref) {
             position="bottom-left"
           />
         </ReactFlow>
-        {!!graph.nodes.size && (
-          <div
-            className="implementation-legend"
-            data-control="implementation-legend"
-            title={copy.implementationUnconfirmed}
-          >
-            <strong>{copy.mapImplementation.label}</strong>
-            {['confirmed', 'partial', 'unconfirmed'].map((state) => (
-              <span key={state}>
-                <ImplementationMark state={state} />
-                {copy.mapImplementation[state]}
-              </span>
-            ))}
-          </div>
-        )}
-        <svg width="0" height="0" className="marker-definitions">
-          <defs>
-            {Object.entries(kindColors).map(([kind, color]) => (
-              <marker
-                key={kind}
-                id={instanceId + '-head-' + kind}
-                viewBox="0 0 8 8"
-                refX="8"
-                refY="4"
-                markerWidth={7 / viewport.zoom}
-                markerHeight={7 / viewport.zoom}
-                markerUnits="userSpaceOnUse"
-                orient="auto"
-              >
-                <path
-                  d="M 1 1 L 7 4 L 1 7"
-                  fill="none"
-                  stroke={color}
-                  strokeWidth="1.2"
-                />
-              </marker>
-            ))}
-          </defs>
-        </svg>
+        <MapOverlays zoom={viewport.zoom} />
       </div>
-      <nav data-control="breadcrumbs" aria-label={copy.positionLabel}>
-        <button onClick={home}>{copy.wholeSystem}</button>
-        {path.map((key) => (
-          <Fragment key={key}>
-            <span>/</span>
-            <button onClick={() => fitNode(key)}>
-              {graph.nodes.get(key).title}
-            </button>
-          </Fragment>
-        ))}
-      </nav>
-      {activeKey && (
-        <div className="map-context">
-          <button
-            className="quiet"
-            data-control="clear-focus"
-            onClick={() => {
-              setSelected(null);
-              setContextEnabled(false);
-            }}
-          >
-            {projectCopy.clearFocus}
-          </button>
-          {!!outside.length && (
-            <details className="external-connections">
-              <summary>
-                {projectCopy.external} · {outside.length}
-              </summary>
-              {outside.map((key) => (
-                <button
-                  className="record-link"
-                  data-external-node={key}
-                  key={key}
-                  onClick={() => fitNode(key)}
-                >
-                  {graph.nodes.get(key).title}
-                </button>
-              ))}
-            </details>
-          )}
-        </div>
-      )}
-      <div className="hint">
-        <strong>{copy.hints.zoom}</strong> · {copy.hints.pan}
-        <br />
-        {copy.hints.enter} · {copy.hints.edge}
-        <br />
-        <span style={{ color: kindColors.data }}>
-          ━ {copy.layers.data}
-        </span> ·{' '}
-        <span style={{ color: kindColors.command }}>
-          ┄ {copy.layers.command}
-        </span>{' '}
-        · <span style={{ color: kindColors.state }}>┈ {copy.layers.state}</span>
-      </div>
-      <div className="map-controls">
-        <button
-          data-control="back"
-          aria-label={copy.up}
-          disabled={!path.length}
-          onClick={up}
-        >
-          ↰
-        </button>
-        <i />
-        <button
-          data-control="minus"
-          aria-label={copy.zoomOut}
-          onClick={() => changeZoom(-1)}
-        >
-          −
-        </button>
-        <span data-control="zoom-label">
-          {Math.round((viewport.zoom / overviewZoom) * 100)}%
-        </span>
-        <button
-          data-control="plus"
-          aria-label={copy.zoomIn}
-          onClick={() => changeZoom(1)}
-        >
-          +
-        </button>
-        <i />
-        <button
-          data-control="home"
-          aria-label={copy.wholeArchitecture}
-          onClick={home}
-        >
-          ⌂
-        </button>
-      </div>
+      <MapChrome
+        path={path}
+        home={home}
+        up={up}
+        fitNode={fitNode}
+        changeZoom={changeZoom}
+        zoom={viewport.zoom}
+        overviewZoom={overviewZoom}
+        activeKey={activeKey}
+        outside={outside}
+        clearFocus={() => {
+          setSelected(null);
+          setContextEnabled(false);
+        }}
+      />
       <Inspector
         panel={panel}
         interfaces={panel?.key ? interfaces.get(panel.key) : null}
