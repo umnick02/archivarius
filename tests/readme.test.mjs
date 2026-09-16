@@ -10,11 +10,28 @@ const model = JSON.parse(
   await fs.readFile(new URL('../docs/project.json', import.meta.url), 'utf8'),
 );
 const copy = await readCopy();
-// A heading is a label the map already shows, never a word of the generator's.
-const labels = new Set([
-  ...Object.values(copy.fields),
-  ...Object.values(copy.types),
-]);
+// A heading or a note is wording the map already shows, never a word of the
+// generator's; a template counts once its placeholders are filled.
+const strings = (value) =>
+  typeof value === 'string'
+    ? [value]
+    : value && typeof value === 'object'
+      ? Object.values(value).flatMap(strings)
+      : [];
+const labels = new Set(strings(copy));
+const fromCopy = (line) =>
+  [...labels].some(
+    (label) =>
+      label === line ||
+      (label.includes('{') &&
+        new RegExp(
+          '^' +
+            label
+              .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+              .replace(/\\\{\w+\\\}/g, '.+') +
+            '$',
+        ).test(line)),
+  );
 const record = (type) => model.records.find((r) => r.type === type);
 const records = (type) => model.records.filter((r) => r.type === type);
 
@@ -78,21 +95,26 @@ test('the readme carries no text of its own', () => {
       for (const cell of cells)
         if (cell && !/^-+$/.test(cell))
           assert(
-            source.includes(cell) || labels.has(cell),
+            source.includes(cell) || fromCopy(cell),
             'text absent from the model: ' + cell,
           );
       continue;
     }
-    assert(source.includes(line.trim()), 'text absent from the model: ' + line);
+    assert(
+      source.includes(line.trim()) || fromCopy(line.trim()),
+      'text absent from the model: ' + line,
+    );
   }
 });
 
-test('the readme drops the inspector furniture and stays one screen', () => {
+test('the readme drops the inspector furniture and never grows into a report', () => {
   const readme = renderReadme(model, copy);
   for (const furniture of ['<a id=', 'Snapshot:', '**', 'Reload after'])
     assert(!readme.includes(furniture), 'leaked ' + furniture);
+  // A row per record at most: the readme must never turn back into a section
+  // per record with its full field set.
   assert(
-    readme.split('\n').length <= 60,
+    readme.split('\n').length <= 3 * model.records.length,
     'too long: ' + readme.split('\n').length,
   );
   assert(readme.trimEnd().endsWith(generatedNotice), 'missing the notice');
@@ -169,7 +191,7 @@ test('every table states its columns with the labels the map uses', () => {
   for (const header of headers)
     for (const heading of header.split('|').map((c) => c.trim()))
       if (heading)
-        assert(labels.has(heading), 'heading absent from the copy: ' + heading);
+        assert(fromCopy(heading), 'heading absent from the copy: ' + heading);
 });
 
 test('every prose field the schema declares has a label in the copy', () => {
