@@ -83,13 +83,13 @@ assert.equal(
 );
 run(
   cli,
-  ['docs', 'public/architecture.json', '--output', 'architecture.md'],
+  ['reference', 'public/architecture.json', '--output', 'architecture.md'],
   consumer,
 );
 run(
   cli,
   [
-    'docs',
+    'reference',
     'public/architecture.json',
     '--output',
     'architecture.md',

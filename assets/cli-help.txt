@@ -1,7 +1,7 @@
 Archivarius
 
   archivarius validate <model.json> [--json]
-  archivarius docs <model.json> --output <architecture.md> [--check]
+  archivarius reference <model.json> --output <architecture.md> [--check]
   archivarius documents <project.json> --output <directory> [--check] [--json]
   archivarius read <project.json> --focus <key> [--focus <key>]
   archivarius context <project.json> --focus <key> [--focus <key>] [--output <receipt.json>]
@@ -12,7 +12,7 @@ Archivarius
 
 validate checks both the file schema and all graph invariants.
 --json returns machine-readable diagnostics with JSON Pointer paths.
-docs generates Markdown from that same validated model. It never edits the model.
+reference generates one Markdown file from that same validated model. It never edits the model.
 documents renders document records to their declared Markdown/JSON paths under the output directory.
 --check compares the output with fresh generation and exits unsuccessfully on drift.
 read returns focused contracts and owning sections without review metadata.

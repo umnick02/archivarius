@@ -78,14 +78,20 @@ test('CLI validates whole models, detects documentation drift and preserves file
       errors: [],
       diagnostics: [],
     });
-    assert.equal(run(['docs', input, '--output', output]).status, 0);
+    assert.equal(run(['reference', input, '--output', output]).status, 0);
     const original = await fs.readFile(output, 'utf8');
     assert.equal(original, await generateDocumentation(model));
-    assert.equal(run(['docs', input, '--output', output, '--check']).status, 0);
+    assert.equal(
+      run(['reference', input, '--output', output, '--check']).status,
+      0,
+    );
     await fs.appendFile(output, '\nmanual change');
-    assert.equal(run(['docs', input, '--output', output, '--check']).status, 1);
+    assert.equal(
+      run(['reference', input, '--output', output, '--check']).status,
+      1,
+    );
     assert((await fs.readFile(output, 'utf8')).endsWith('manual change'));
-    assert.equal(run(['docs', input, '--output', output]).status, 0);
+    assert.equal(run(['reference', input, '--output', output]).status, 0);
     assert.equal(await fs.readFile(output, 'utf8'), original);
     const broken = structuredClone(model);
     broken.relations = broken.relations.filter(
@@ -99,18 +105,21 @@ test('CLI validates whole models, detects documentation drift and preserves file
         (d) => d.code === 'INTERACTION_REQUIRED',
       ),
     );
-    assert.equal(run(['docs', input, '--output', output]).status, 1);
+    assert.equal(run(['reference', input, '--output', output]).status, 1);
     assert.equal(await fs.readFile(output, 'utf8'), original);
     await fs.writeFile(input, serialized);
-    assert.equal(run(['docs', input, '--output', input]).status, 1);
+    assert.equal(run(['reference', input, '--output', input]).status, 1);
     const alias = directory + '/alias.json';
     await fs.symlink(input, alias);
-    assert.equal(run(['docs', input, '--output', alias]).status, 1);
+    assert.equal(run(['reference', input, '--output', alias]).status, 1);
     assert.equal(await fs.readFile(input, 'utf8'), serialized);
     const changed = structuredClone(model);
     changed.nodes[0].summary += ' Changed.';
     await fs.writeFile(input, JSON.stringify(changed));
-    assert.equal(run(['docs', input, '--output', output, '--check']).status, 1);
+    assert.equal(
+      run(['reference', input, '--output', output, '--check']).status,
+      1,
+    );
     assert.equal(run(['validate', input, '--unknown']).status, 2);
     assert.equal(run(['--help']).status, 0);
   } finally {

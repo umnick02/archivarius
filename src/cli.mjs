@@ -45,7 +45,7 @@ async function main() {
     const [command] = positionals;
     const allowed = {
       validate: ['json'],
-      docs: ['output', 'check'],
+      reference: ['output', 'check'],
       documents: ['output', 'check', 'json'],
       context: ['focus', 'json', 'output'],
       read: ['focus', 'json'],
@@ -60,7 +60,7 @@ async function main() {
       positionals.length !== 2 ||
       ![
         'validate',
-        'docs',
+        'reference',
         'documents',
         'context',
         'read',
@@ -73,7 +73,7 @@ async function main() {
       (command === 'apply' && (!values.context || !values.change)) ||
       (command === 'run' &&
         (values.focus?.length !== 1 || !values.result || !values.evidence)) ||
-      (command === 'docs' && (!values.output || values.json)) ||
+      (command === 'reference' && (!values.output || values.json)) ||
       (command === 'documents' && !values.output) ||
       (command === 'validate' && (values.output !== undefined || values.check))
     )
