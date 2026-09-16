@@ -1,8 +1,9 @@
 import fs from 'node:fs/promises';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { generatedNotice } from '../src/documents.mjs';
-import { projectArchitecture } from '../src/project.mjs';
+import { generatedNotice } from '../src/model/documents.mjs';
+import { projectArchitecture } from '../src/model/project.mjs';
+import prose from '../src/generated/prose.mjs';
 import { renderReadme } from '../docs/scripts/readme.mjs';
 
 const model = JSON.parse(
@@ -62,6 +63,17 @@ test('the readme carries no text of its own', () => {
       continue;
     if (line.startsWith('```')) continue;
     if (diagram.includes(line)) continue;
+    if (line.startsWith('|')) {
+      // A row is structure; every cell it carries must still come from a record.
+      const cells = line
+        .split('|')
+        .flatMap((c) => c.split('<br>'))
+        .map((c) => c.trim().replaceAll('\\|', '|'));
+      for (const cell of cells)
+        if (cell && !/^-+$/.test(cell))
+          assert(source.includes(cell), 'text absent from the model: ' + cell);
+      continue;
+    }
     assert(source.includes(line.trim()), 'text absent from the model: ' + line);
   }
 });
@@ -75,6 +87,68 @@ test('the readme drops the inspector furniture and stays one screen', () => {
     'too long: ' + readme.split('\n').length,
   );
   assert(readme.trimEnd().endsWith(generatedNotice), 'missing the notice');
+});
+
+test('the prose table is derived from the schema, not written by hand', async () => {
+  const schema = JSON.parse(
+    await fs.readFile(
+      new URL('../assets/model.schema.json', import.meta.url),
+      'utf8',
+    ),
+  );
+  for (const variant of schema.$defs.record.oneOf) {
+    const type = variant.properties.type.const;
+    const expected = Object.entries(variant.properties)
+      .filter(([, field]) => /#\/\$defs\/texts?$/.test(field.$ref || ''))
+      .map(([name]) => name);
+    assert.deepEqual(
+      prose[type].map((field) => field.name),
+      expected,
+      'prose fields drifted for ' + type,
+    );
+  }
+});
+
+test('the readme states what every part does and what crosses every edge', () => {
+  const readme = renderReadme(model);
+  const architecture = projectArchitecture(model);
+  const leaves = [];
+  const walk = (node) => {
+    if (node.children?.length) for (const child of node.children) walk(child);
+    else leaves.push(node);
+  };
+  for (const node of architecture.nodes) walk(node);
+  for (const node of leaves) {
+    const record = model.records.find((r) => r.key === node.key);
+    for (const field of prose[record.type])
+      if (record[field.name])
+        assert(
+          readme.includes(record[field.name]),
+          'missing ' + field.name + ' of ' + node.key,
+        );
+  }
+  for (const relation of architecture.relations)
+    for (const field of prose.interface)
+      if (relation[field.name])
+        assert(
+          readme.includes(relation[field.name]),
+          'missing ' + field.name + ' of ' + relation.key,
+        );
+});
+
+test('the generator never names a field of the schema', async () => {
+  const source = await fs.readFile(
+    new URL('../docs/scripts/readme.mjs', import.meta.url),
+    'utf8',
+  );
+  const names = new Set(
+    Object.values(prose).flatMap((fields) => fields.map((f) => f.name)),
+  );
+  for (const name of names)
+    assert(
+      !new RegExp('[\'"]' + name + '[\'"]').test(source),
+      'the generator hardcodes the field ' + name,
+    );
 });
 
 test('rendering the same model twice gives the same readme', () => {

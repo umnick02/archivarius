@@ -89,5 +89,25 @@ for (const [file, name, validatorName, typeName] of [
       new URL('references.mjs', output),
       'export default ' + JSON.stringify(references) + ';\n',
     );
+    // The schema already separates prose from structure: a field states prose
+    // when it refers to text or texts, while keys, enums and digests describe
+    // the graph. Every reader of the model - the map, the readme, an authoring
+    // prompt - selects fields from this one table instead of naming them.
+    const prose = Object.fromEntries(
+      Object.entries(fields).map(([kind, properties]) => [
+        kind,
+        Object.entries(properties)
+          .map(([name, field]) => [
+            name,
+            /#\/\$defs\/(texts?)$/.exec(field.$ref),
+          ])
+          .filter(([, match]) => match)
+          .map(([name, match]) => ({ name, many: match[1] === 'texts' })),
+      ]),
+    );
+    await fs.writeFile(
+      new URL('prose.mjs', output),
+      'export default ' + JSON.stringify(prose) + ';\n',
+    );
   }
 }
