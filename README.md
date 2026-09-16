@@ -28,7 +28,7 @@ One validated JSON file - a snapshot - holds a project's whole description as sm
 ```
 
 ```mermaid
-flowchart TD
+flowchart LR
     subgraph c-model["Model and contract"]
         c-core["Core"]
         c-graph["Graph references"]
@@ -65,7 +65,7 @@ A record keeps the definitions it was written against apart from the records it 
 | Graph references | Validates typed relations between records and reports reverse links and coverage. |
 | Canonical digest | Computes the SHA-256 basis over a canonical representation of the definitions. |
 | Node API | Reads a model file, verifies evidence artifacts by bytes, applies validated changes, and generates documentation. |
-| CLI | Exposes validate, read, context, apply, documents, verify, run and archive over the model file. |
+| CLI | Exposes validate, read, context, apply, docs, documents, verify, run and archive over the model file. |
 | Evidence verification | Matches declared binding bytes against files and records actual check outcomes. |
 | Map rendering | Mounts an interactive architecture map with semantic zoom and an inspector for records. |
 | Architecture map | Lays out components and interactions and reveals detail as the map is zoomed. |

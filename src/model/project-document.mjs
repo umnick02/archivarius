@@ -4,18 +4,12 @@ import { projectArchitecture } from './project-architecture.mjs';
 import { assertProject } from './project-contract.mjs';
 import { recordReferences } from './records.mjs';
 
-import { renderDocument, generatedNotice } from './documents.mjs';
-
-const escape = (value) =>
-  String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replace(/([\\`*_[\]|~])/g, '\\$1')
-    // Only a line that opens with Markdown structure can change the shape of the
-    // document; punctuation inside a sentence must stay readable.
-    .replace(/^(\s*)([#>+-]|\d+\.)/gm, '$1\\$2');
-const inline = (value) => escape(value).replace(/[\r\n]+/g, ' ');
+import {
+  renderDocument,
+  generatedNotice,
+  escape,
+  inline,
+} from './documents.mjs';
 
 // The diagram is generated from the same projection the map renders, so the
 // picture cannot disagree with the UI or with the model behind it.
@@ -39,7 +33,9 @@ export function architectureDiagram(model) {
   };
   return [
     '```mermaid',
-    'flowchart TD',
+    // GitHub scales one wide SVG down until its labels are unreadable, and a
+    // left-to-right chain keeps the containers stacked instead of side by side.
+    'flowchart LR',
     ...architecture.nodes.flatMap((root) => node(root, 0)),
     ...architecture.relations.map(
       (r) => '    ' + id(r.from) + ' -->|' + label(r.label) + '| ' + id(r.to),
