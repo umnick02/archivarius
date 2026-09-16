@@ -115,7 +115,7 @@ test('confirmation needs current external evidence, complete coverage and integr
       get(m, 'export-check').method = get(m, 'export-flow').steps.join(' ');
     },
     (m) => {
-      m.bindings.fixture.digest = 'c'.repeat(64);
+      m.bindings.writer.digest = 'c'.repeat(64);
     },
     (m) => {
       m.records.push(structuredClone(get(example, 'exclude-private')));
@@ -160,6 +160,31 @@ test('confirmation needs current external evidence, complete coverage and integr
     analyzeProject(model, {
       verifiedResults: ['run'],
     }).completion.project.reasons.some((r) => r.code === 'CHECK_FAILED'),
+  );
+});
+
+test('realization is claimed for the bound record, not for whatever else is bound', () => {
+  const model = ready();
+  model.records.push(receipt(model));
+  assert.equal(
+    analyzeProject(model, { verifiedResults: ['run'] }).completion.writer
+      .implemented,
+    true,
+  );
+  const unbound = structuredClone(model);
+  delete unbound.bindings.writer;
+  const analysis = analyzeProject(unbound, { verifiedResults: ['run'] });
+  assert.deepEqual(
+    analysis.completion.writer.reasons.filter(
+      (r) => r.code === 'REALIZATION_UNAVAILABLE',
+    ),
+    [{ code: 'REALIZATION_UNAVAILABLE', key: 'writer' }],
+  );
+  assert.equal(
+    analysis.completion.screen.reasons.some(
+      (r) => r.code === 'REALIZATION_UNAVAILABLE',
+    ),
+    false,
   );
 });
 
@@ -296,6 +321,8 @@ test('component completion follows contained parts and contracts without propaga
     key: 'open-question',
     origin: 'question',
   });
+  for (const key of ['extra', 'extra-result'])
+    model.bindings[key] = { path: 'fixture.mjs', digest: 'a'.repeat(64) };
   seal(model);
   model.records.push(receipt(model));
   const analysis = analyzeProject(model, { verifiedResults: ['run'] });

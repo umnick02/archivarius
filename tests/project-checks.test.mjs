@@ -12,7 +12,7 @@ import {
   updateProjectFile,
 } from '../src/node.mjs';
 import { hashBytes } from '../src/model/digest.mjs';
-import { get, ready, seal } from './project-fixture.mjs';
+import { bind, get, ready, seal } from './project-fixture.mjs';
 
 test('actual check records bind command, source bytes and outcome; stale and missing evidence cannot confirm', async (t) => {
   const directory = await fs.mkdtemp(
@@ -28,7 +28,7 @@ test('actual check records bind command, source bytes and outcome; stale and mis
     createHash('sha256').update(checker).digest('hex'),
   );
   const model = ready();
-  model.bindings.fixture.digest = hashBytes(checker);
+  bind(model, hashBytes(checker));
   get(model, 'export-check').command = [process.execPath, 'fixture.mjs'];
   seal(model);
   const record = await executeProjectCheck(model, 'export-check', {

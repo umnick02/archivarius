@@ -10,13 +10,13 @@ endpoint types of references; `x-history` permits a reference to a stored histor
 Both are annotations no validator implements, so compile the schemas with ajv
 `strict: false`; these two are the only extensions they carry.
 
-| Data            | Purpose                                                                        |
-| --------------- | ------------------------------------------------------------------------------ |
-| `records`       | Current definitions with unique `key` and `type`                               |
-| `root`, `entry` | Root scope and the terminal participant of the entry into the architecture     |
-| `bindings`      | Named relative paths and SHA-256 of realization, verification, and entry files |
-| `history`       | Former records with a verifiable content hash                                  |
-| `snapshots`     | The exact composition of used revisions and bindings of a former snapshot      |
+| Data            | Purpose                                                                             |
+| --------------- | ----------------------------------------------------------------------------------- |
+| `records`       | Current definitions with unique `key` and `type`                                    |
+| `root`, `entry` | Root scope and the terminal participant of the entry into the architecture          |
+| `bindings`      | Realization, verification, and entry files by record key: relative path and SHA-256 |
+| `history`       | Former records with a verifiable content hash                                       |
+| `snapshots`     | The exact composition of used revisions and bindings of a former snapshot           |
 
 `scope` groups a product area; `component.parent` defines architectural
 nesting. `interaction` connects terminal components through an `interface`.
@@ -51,6 +51,8 @@ remains an obstacle. Resolution of a contradiction is specified explicitly throu
 Full realization is derived from all applicable criteria, the assigned realization,
 current bases, required verifications, and verification of the whole. Questions, assumptions,
 uncovered requirements, missing bindings, and contradictions preclude a "yes".
+A scope, component, interaction, or interface carries an assigned realization only while
+`bindings` holds an entry under its own key; a binding of a neighbor states nothing about it.
 For confirmation, a result must have an available execution artifact and matching
 bytes of all declared inputs. Loading from a `File`/object does not grant access to neighboring
 files, and therefore by itself does not confirm execution.

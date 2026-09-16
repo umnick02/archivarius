@@ -200,7 +200,7 @@ export function analyzeProject(model, { verifiedResults = [] } = {}) {
         applicableRequirements(model, key).map((r) => r.key),
         true,
       );
-      if (!Object.keys(model.bindings).length)
+      if (!model.bindings[key])
         reasons.push({ code: 'REALIZATION_UNAVAILABLE', key });
     }
     if (record.type === 'interface') {

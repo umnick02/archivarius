@@ -24,8 +24,18 @@ export const seal = (model) => {
 export const ready = () => {
   const model = clone();
   model.records = model.records.filter((r) => r.key !== 'exclude-private');
-  model.bindings = { fixture: { path: 'fixture.mjs', digest: 'a'.repeat(64) } };
+  model.bindings = Object.fromEntries(
+    model.records
+      .filter((r) =>
+        ['scope', 'component', 'interaction', 'interface'].includes(r.type),
+      )
+      .map((r) => [r.key, { path: 'fixture.mjs', digest: 'a'.repeat(64) }]),
+  );
   return seal(model);
+};
+export const bind = (model, digest) => {
+  for (const binding of Object.values(model.bindings)) binding.digest = digest;
+  return model;
 };
 export const receipt = (model) => ({
   key: 'run',

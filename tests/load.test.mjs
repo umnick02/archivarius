@@ -11,7 +11,7 @@ import {
   contractDigest,
   realizationDigest,
 } from '../src/model/project-digest.mjs';
-import { get, ready, seal, receipt } from './project-fixture.mjs';
+import { bind, get, ready, seal, receipt } from './project-fixture.mjs';
 
 const architecture = JSON.parse(
   await fs.readFile(
@@ -139,7 +139,7 @@ test('shipped copy is read beside the package, or beside the base a host names',
 test('the browser confirms a project against the artifacts it can fetch, and refuses the ones it cannot', async (t) => {
   const binding = new TextEncoder().encode('export const check = true;\n');
   const model = ready();
-  model.bindings.fixture.digest = hashBytes(binding);
+  bind(model, hashBytes(binding));
   get(model, 'export-check').command = ['node', 'fixture.mjs'];
   seal(model);
   const record = receipt(model);
