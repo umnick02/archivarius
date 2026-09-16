@@ -27,7 +27,7 @@ jobs:
           echo "CHROME_PATH=$(which google-chrome || which chromium || which chromium-browser)" >> "$GITHUB_ENV"
       - run: npm run check
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: render-screenshots
           path: .runtime/*.png
