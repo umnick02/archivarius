@@ -54,6 +54,7 @@ Use the Node version in `.nvmrc`; run commands from the repository root.
 | `npm run lint`                       | ESLint: hook rules, unused code and the no-I/O module boundary   |
 | `npm run test:browser`               | Headless render checks (own Chrome and server; needs `dist`)     |
 | `npm run test:package`               | Pack the tarball and validate an installed consumer              |
+| `npm run lint:package`               | publint and attw: export map and type resolution                 |
 | `npm run check`                      | Everything above plus `format:check` and `docs:readme:check`     |
 | `npm run generate`                   | Regenerate the contract validators/types in `src/generated/`     |
 | `npm run docs:validate`              | Validate the whole documentation model                           |

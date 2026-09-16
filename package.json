@@ -50,7 +50,8 @@
     "lint": "eslint .",
     "test:browser": "node tests/browser.mjs && node tests/project-browser.mjs",
     "test:package": "node tooling/test-package.mjs",
-    "check": "npm run build && npm run lint && npm run format:check && npm test && npm run test:package && npm run test:browser && npm run docs:validate && npm run docs:readme:check",
+    "lint:package": "publint --strict && attw --pack . --profile esm-only --entrypoints . ./core ./node",
+    "check": "npm run build && npm run lint && npm run format:check && npm test && npm run test:package && npm run lint:package && npm run test:browser && npm run docs:validate && npm run docs:readme:check",
     "docs:validate": "node docs/scripts/project.mjs validate --json",
     "docs:read": "node docs/scripts/project.mjs read",
     "docs:context": "node docs/scripts/project.mjs context",
@@ -73,6 +74,7 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.5",
     "@eslint/js": "10.0.1",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
@@ -84,6 +86,7 @@
     "json-schema-to-typescript": "16.0.0",
     "postcss": "8.5.28",
     "prettier": "3.8.1",
+    "publint": "0.3.24",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "typescript": "5.9.3",
