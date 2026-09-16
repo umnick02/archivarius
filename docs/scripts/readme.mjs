@@ -78,12 +78,17 @@ export function renderReadme(model, copy) {
     prose[record.type].flatMap((field) =>
       value(record, field) ? [value(record, field), ''] : [],
     );
-  // Confirmation belongs where a record can be named and opened: the map's
-  // overview and the full documentation carry the gaps with their keys. Here it
-  // would only be an aggregate about this file's own bookkeeping.
-  const confirmed = new Set(
-    analyzeProject(model).completion[scope.key].progress.confirmedCriteria,
-  );
+  // The page has to say how much of this is confirmed, in the same wording and
+  // from the same analysis the map shows, caveat included.
+  const progress = analyzeProject(model).completion[scope.key];
+  const confirmed = new Set(progress.progress.confirmedCriteria);
+  // What is missing is stated once per kind of gap; naming every record again
+  // would only reprint the model.
+  const reasons = [
+    ...new Set(
+      progress.reasons.map((reason) => copy.reasonsByCode[reason.code]),
+    ),
+  ].filter(Boolean);
   return [
     '# ' + scope.title,
     '',
@@ -152,6 +157,15 @@ export function renderReadme(model, copy) {
       'decision',
       records('decision').map((record) => [record.title, record]),
     ),
+    copy.criteriaProgress
+      .replace('{confirmed}', String(confirmed.size))
+      .replace('{total}', String(progress.progress.criteria.length)),
+    '',
+    ...(reasons.length
+      ? [row([copy.reasons]), row(['---']), ...reasons.map((r) => row([r])), '']
+      : []),
+    copy.confirmationNote,
+    '',
     generatedNotice,
     '',
   ].join('\n');
