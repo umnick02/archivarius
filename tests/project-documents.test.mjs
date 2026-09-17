@@ -3,7 +3,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { digest } from '../src/model/digest.mjs';
-import { zoneTones } from '../src/model/appearance.mjs';
+import {
+  relationLines,
+  relationTones,
+  zoneTones,
+} from '../src/model/appearance.mjs';
 import { projectArchitecture } from '../src/model/project-architecture.mjs';
 import {
   applyProjectChanges,
@@ -76,7 +80,9 @@ test('the diagram distinguishes a node by its zone and its kind, not by one flat
     ...new Set(components.filter((r) => !grouping(r)).map((r) => r.zone)),
   ];
   assert(zones.length > 1, 'the fixture needs more than one zone');
-  // A class per zone the drawn nodes actually use, carrying that zone's tone.
+  // A class per zone the drawn nodes actually use, carrying that zone's tone as
+  // a stroke. The fill stays with the reader's theme: one markdown source is
+  // rendered on a light and a dark page, so a literal fill would hide a label.
   for (const zone of zones) {
     const rule = diagram.match(
       new RegExp('^\\s*classDef ' + zone + ' .*$', 'm'),
@@ -85,6 +91,10 @@ test('the diagram distinguishes a node by its zone and its kind, not by one flat
     assert(
       rule[0].includes(zoneTones[zone]),
       'zone ' + zone + ' does not carry its shared tone',
+    );
+    assert(
+      !/fill:|color:/.test(rule[0]),
+      'zone ' + zone + ' paints over the reader’s theme',
     );
   }
   // Every drawn component states its zone: a leaf through the class shorthand,
@@ -99,21 +109,40 @@ test('the diagram distinguishes a node by its zone and its kind, not by one flat
         );
     const line = diagram.match(pattern);
     assert(line, 'component ' + component.key + ' is drawn without its zone');
-    if (groups)
+    if (groups) {
       assert(
         line[0].includes(zoneTones[component.zone]),
         'subgraph ' + component.key + ' does not carry its zone tone',
       );
+      assert(
+        !/fill:|color:/.test(line[0]),
+        'subgraph ' + component.key + ' paints over the reader’s theme',
+      );
+    }
   }
-  // Relation kinds differ as lines, so the picture reads without the legend.
-  const openers = new Set(
-    [...diagram.matchAll(/^\s*\S+ (\S+)\|"/gm)].map((m) => m[1]),
-  );
-  const kinds = new Set(
-    projectArchitecture(model).relations.map((r) => r.kind),
-  );
+  // A relation kind reads twice over, as a line and as a tone, so the picture
+  // says the same thing the map says without a legend beside it.
+  const relations = projectArchitecture(model).relations;
+  const kinds = new Set(relations.map((r) => r.kind));
   assert(kinds.size > 1, 'the fixture needs more than one relation kind');
-  assert.equal(openers.size, kinds.size, 'relation kinds share one line style');
+  const opener = { solid: '-->', thick: '==>', dotted: '-.->' };
+  relations.forEach((relation, index) => {
+    const line = opener[relationLines[relation.kind]];
+    assert(
+      diagram.includes(
+        ' ' + line + '|"' + relation.label.replaceAll('"', '#quot;') + '"|',
+      ),
+      'relation ' + relation.key + ' is not drawn as a ' + relation.kind,
+    );
+    const styled = [...diagram.matchAll(/^\s*linkStyle ([\d,]+) (.+)$/gm)].find(
+      (m) => m[1].split(',').includes(String(index)),
+    );
+    assert(styled, 'relation ' + relation.key + ' carries no tone');
+    assert(
+      styled[2].includes(relationTones[relation.kind]),
+      'relation ' + relation.key + ' invents a tone',
+    );
+  });
 });
 
 test('diagram identifiers never collide with Mermaid keywords', async () => {

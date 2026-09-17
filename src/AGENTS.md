@@ -45,8 +45,10 @@ Invariants:
   `model/project-view.mjs`.
 - `model/appearance.mjs` owns the one display vocabulary keyed on the rendering
   contract's enums — tone, shape, outline, line — read by the map and the
-  generated diagram alike; a surface adds only its own pixels (dash lengths in
-  `ui/view.mjs`), never a second palette.
+  generated diagram alike; neither surface repeats one of those tones, and each
+  adds only its own pixels: dash lengths and radii in `ui/view.mjs`, fills and
+  selection states in `ui/styles.css`, nothing in the generated diagram, which
+  spends a tone on strokes and leaves the page to the reader's theme.
 - `model/documents.mjs` owns the single Markdown escaper every renderer uses; it
   neutralizes structure, not punctuation.
 - `ui/context.jsx` pluralizes with `one`/`other` against `assets/strings.json`.

@@ -2,7 +2,6 @@ import { digest } from './digest.mjs';
 import {
   nodeAppearance,
   relationAppearance,
-  tint,
   zoneTones,
 } from './appearance.mjs';
 import { analyzeProject } from './project-analysis.mjs';
@@ -18,9 +17,11 @@ import {
 } from './documents.mjs';
 
 // The diagram is generated from the same projection the map renders, so the
-// picture cannot disagree with the UI or with the model behind it, and it is
-// styled from the same appearance table, so it cannot disagree with how the map
-// draws a zone, a kind or a relation.
+// picture cannot disagree with the UI or with the model behind it, and its zones,
+// kinds and relations are named by the same appearance table the map reads. Only
+// the tones are shared: this markdown is rendered on a light and on a dark page,
+// so every fill and every text colour is left to the reader's theme, and a tone
+// is spent on strokes alone.
 export function architectureDiagram(model) {
   const architecture = projectArchitecture(model);
   if (!architecture.nodes.length) return [];
@@ -28,8 +29,6 @@ export function architectureDiagram(model) {
   // Record keys are free text, so a key like "graph" or "end" would be read as
   // Mermaid syntax. Identifiers are namespaced to keep every key usable.
   const id = (key) => 'c-' + key;
-  // Both themes read a light fill, so the text tone is stated, never inherited.
-  const ink = '#2c392f';
   const zones = new Set();
   const styles = [];
   // Mermaid spells a shape in brackets; the table names it, this maps the name.
@@ -44,23 +43,19 @@ export function architectureDiagram(model) {
     const children = entry.children || [];
     if (!children.length) {
       zones.add(entry.zone);
-      const shape = shaped[look.shape] || shaped.box;
+      if (!Object.hasOwn(shaped, look.shape))
+        throw new Error('No Mermaid shape for ' + look.shape);
       return [
-        pad + id(entry.key) + shape(label(entry.title)) + ':::' + entry.zone,
+        pad +
+          id(entry.key) +
+          shaped[look.shape](label(entry.title)) +
+          ':::' +
+          entry.zone,
       ];
     }
     // A subgraph takes no class, so its zone is stated as a style line; a
     // grouping node keeps the container shape Mermaid gives it.
-    styles.push(
-      '    style ' +
-        id(entry.key) +
-        ' fill:' +
-        tint(look.tone) +
-        ',stroke:' +
-        look.tone +
-        ',color:' +
-        ink,
-    );
+    styles.push('    style ' + id(entry.key) + ' stroke:' + look.tone);
     return [
       pad + 'subgraph ' + id(entry.key) + '[' + label(entry.title) + ']',
       ...children.flatMap((child) => node(child, depth + 1)),
@@ -70,6 +65,14 @@ export function architectureDiagram(model) {
   const nodes = architecture.nodes.flatMap((root) => node(root, 0));
   // The label rides in the pipe form, which every line style accepts.
   const lines = { solid: '-->', thick: '==>', dotted: '-.->' };
+  // A kind reads as a line and as a tone. Mermaid tones an edge by its position
+  // in the diagram, which is the order the relations are written in below.
+  const toned = new Map();
+  architecture.relations.forEach((relation, index) => {
+    const { tone } = relationAppearance(relation);
+    if (!toned.has(tone)) toned.set(tone, []);
+    toned.get(tone).push(index);
+  });
   return [
     '```mermaid',
     // GitHub scales one wide SVG down until its labels are unreadable, and a
@@ -89,16 +92,12 @@ export function architectureDiagram(model) {
         id(r.to),
     ),
     ...styles,
+    ...[...toned].map(
+      ([tone, indexes]) =>
+        '    linkStyle ' + indexes.join(',') + ' stroke:' + tone,
+    ),
     ...[...zones].map(
-      (zone) =>
-        '    classDef ' +
-        zone +
-        ' fill:' +
-        tint(zoneTones[zone]) +
-        ',stroke:' +
-        zoneTones[zone] +
-        ',color:' +
-        ink,
+      (zone) => '    classDef ' + zone + ' stroke:' + zoneTones[zone],
     ),
     '```',
     '',

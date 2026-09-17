@@ -1,8 +1,9 @@
 // The one display vocabulary of this library. The rendering contract's node and
 // relation enums are closed, so what a picture may say is finite and can be
 // written down once: the map and the generated diagram read this table instead
-// of each inventing an aesthetic. Concrete pixels — stroke widths, dash lengths,
-// corner radii — stay with the renderer that draws them.
+// of each inventing an aesthetic. A tone is a line colour — how much of it a
+// surface spends on a fill, and what background it sits on, belongs to that
+// surface, as do stroke widths, dash lengths and corner radii.
 
 /** @type {Record<string, string>} zone -> the tone that carries it */
 export const zoneTones = {
@@ -15,7 +16,7 @@ export const zoneTones = {
 
 /** @type {Record<string, string>} node kind -> the outline it is drawn with */
 export const nodeShapes = {
-  subsystem: 'group',
+  subsystem: 'box',
   component: 'box',
   store: 'cylinder',
   external: 'stadium',
@@ -36,15 +37,17 @@ export const relationLines = {
 };
 
 // Root containers are told apart from each other, not from their zone, so this
-// sequence is assigned by position and belongs to no single enum value.
+// sequence is assigned by position and belongs to no single enum value. It
+// shares no tone with `zoneTones`: a container edge must never read as a zone
+// the card inside it is not in.
 export const rootTones = [
-  '#5779a6',
-  '#77679c',
-  '#b07852',
-  '#558574',
+  '#3f6f8f',
+  '#8a5b7d',
+  '#a8613f',
+  '#4d7a4a',
   '#b58b37',
   '#617b82',
-  '#74747e',
+  '#6f6a5c',
 ];
 
 const held = (table, value, what) => {
@@ -52,24 +55,6 @@ const held = (table, value, what) => {
     throw new Error('No appearance for ' + what + ' ' + JSON.stringify(value));
   return table[value];
 };
-
-// The fill behind a tone. A stylesheet mixes this with `color-mix`, but a
-// generated diagram can only carry a literal, so the mix is computed here once
-// and both surfaces land on the same colour.
-/**
- * @param {string} tone
- * @param {number} [strength] how much of the tone survives, 0..1
- * @returns {string}
- */
-export function tint(tone, strength = 0.14) {
-  const mix = (channel) =>
-    Math.round(channel * strength + 255 * (1 - strength))
-      .toString(16)
-      .padStart(2, '0');
-  return (
-    '#' + [1, 3, 5].map((i) => mix(parseInt(tone.slice(i, i + 2), 16))).join('')
-  );
-}
 
 /**
  * @param {{kind: string, zone: string}} node

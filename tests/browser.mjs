@@ -108,22 +108,29 @@ try {
     model.nodes.length,
   );
   // A card is drawn from the shared appearance table, not from a palette this
-  // surface keeps to itself: the zone it states carries that zone's tone and
-  // the kind decides the outline.
+  // surface keeps to itself: the zone it states is painted along the card's
+  // edge in that zone's tone, and the kind decides the outline.
   const cards = await b.evaluate(() =>
     [...document.querySelectorAll('#first [data-node]')].map((card) => ({
       key: card.dataset.node,
       zone: card.dataset.zone,
-      tone: getComputedStyle(card).getPropertyValue('--zone').trim(),
+      stripe: getComputedStyle(card).boxShadow,
       outline: getComputedStyle(card).borderTopStyle,
     })),
   );
+  const rgb = (hex) =>
+    'rgb(' +
+    [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(', ') +
+    ')';
   assert(cards.length, 'expected rendered cards');
   for (const card of cards) {
     const item = nodesByKey.get(card.key);
     const look = nodeAppearance(item);
     assert.equal(card.zone, item.zone, 'card ' + card.key + ' hides its zone');
-    assert.equal(card.tone, look.tone, 'card ' + card.key + ' invents a tone');
+    assert(
+      card.stripe.includes(rgb(look.tone)),
+      'card ' + card.key + ' does not paint its zone: ' + card.stripe,
+    );
     assert.equal(
       card.outline,
       look.outline,

@@ -8,8 +8,9 @@ import {
   zoneTones,
   relationTones,
   relationLines,
-  tint,
+  rootTones,
 } from '../src/model/appearance.mjs';
+import { shapeRadii } from '../src/ui/view.mjs';
 
 const schema = JSON.parse(
   await fs.readFile(
@@ -35,26 +36,62 @@ test('appearance answers with a tone, a shape and an outline for any allowed nod
     for (const zone of nodeEnum('zone')) {
       const look = nodeAppearance({ kind, zone });
       assert.match(look.tone, /^#[0-9a-f]{6}$/);
-      assert.equal(look.shape, nodeShapes[kind]);
+      // An outside participant is drawn as a broken line, everything the model
+      // owns as an unbroken one.
       assert.equal(look.outline, kind === 'external' ? 'dashed' : 'solid');
     }
 });
 
 test('a store and an external participant do not draw as a plain component', () => {
   const shapes = new Set(Object.values(nodeShapes));
-  assert.equal(shapes.size, Object.keys(nodeShapes).length);
+  assert(shapes.has(nodeShapes.store), 'a store has no shape');
+  assert.notEqual(nodeShapes.store, nodeShapes.component);
+  assert.notEqual(nodeShapes.external, nodeShapes.component);
+  assert.notEqual(nodeShapes.store, nodeShapes.external);
+});
+
+// A named shape only exists if a renderer can draw it, so the surface that owns
+// the pixels answers for every shape the table names — no silent fallback.
+test('every shape the table names has pixels to be drawn with', () => {
+  for (const kind of nodeEnum('kind')) {
+    const { shape } = nodeAppearance({ kind, zone: 'pure' });
+    assert.equal(
+      typeof shapeRadii[shape],
+      'function',
+      'no pixels for shape ' + shape,
+    );
+    assert.match(shapeRadii[shape](200, 120), /px/);
+  }
 });
 
 test('appearance answers with a tone and a line for any allowed relation', () => {
+  const tones = new Set(),
+    lines = new Set();
   for (const kind of relationEnum) {
     const look = relationAppearance({ kind });
-    assert.equal(look.tone, relationTones[kind]);
-    assert.equal(look.line, relationLines[kind]);
+    assert.match(look.tone, /^#[0-9a-f]{6}$/);
     assert(
       ['solid', 'thick', 'dotted'].includes(look.line),
       'unknown line ' + look.line,
     );
+    tones.add(look.tone);
+    lines.add(look.line);
   }
+  // Two kinds that read alike carry no information.
+  assert.equal(tones.size, relationEnum.length);
+  assert.equal(lines.size, relationEnum.length);
+});
+
+// The container tone says which root a card belongs to and the zone tone says
+// what kind of work it does. If the two sequences shared a colour, a border
+// could read as a zone the card is not in.
+test('the container sequence never repeats a zone tone', () => {
+  const zones = new Set(Object.values(zoneTones));
+  for (const tone of rootTones) {
+    assert.match(tone, /^#[0-9a-f]{6}$/);
+    assert(!zones.has(tone), 'container tone ' + tone + ' is a zone tone');
+  }
+  assert.equal(new Set(rootTones).size, rootTones.length);
 });
 
 test('an unknown value is rejected instead of drawn as a default', () => {
@@ -63,25 +100,8 @@ test('an unknown value is rejected instead of drawn as a default', () => {
   assert.throws(() => relationAppearance({ kind: 'ping' }));
 });
 
-// A renderer that cannot compute a mix (Mermaid takes literals only) still has
-// to reach the same fill the stylesheet mixes, so the derivation is shared.
-test('a tone yields one deterministic fill, lighter than the tone itself', () => {
-  for (const tone of Object.values(zoneTones)) {
-    const fill = tint(tone);
-    assert.match(fill, /^#[0-9a-f]{6}$/);
-    assert.equal(fill, tint(tone));
-    const channels = (hex) =>
-      [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
-    const light = channels(fill),
-      base = channels(tone);
-    for (const i of [0, 1, 2])
-      assert(light[i] > base[i], 'fill is not lighter than ' + tone);
-  }
-  assert.notEqual(tint(zoneTones.pure), tint(zoneTones.presentation));
-});
-
 // One vocabulary, two renderers: the browser owns pixels, never a second copy
-// of the palette the readme diagram draws with.
+// of the palette the readme diagram draws with — the stylesheet included.
 test('the browser surface holds no second copy of the shared palette', async () => {
   const shared = new Set([
     ...Object.values(zoneTones),
@@ -89,7 +109,7 @@ test('the browser surface holds no second copy of the shared palette', async () 
   ]);
   const directory = new URL('../src/ui/', import.meta.url);
   for (const name of await fs.readdir(directory)) {
-    if (!/\.(mjs|jsx)$/.test(name)) continue;
+    if (!/\.(mjs|jsx|css)$/.test(name)) continue;
     const source = await fs.readFile(new URL(name, directory), 'utf8');
     for (const tone of shared)
       assert(

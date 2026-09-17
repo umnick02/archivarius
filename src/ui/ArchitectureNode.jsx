@@ -51,7 +51,7 @@ export function ArchitectureNode({ data }) {
     transformOrigin: '0 0',
     borderStyle: look.outline,
     borderWidth: highlighted ? 2 : 1,
-    borderRadius: (shapeRadii[look.shape] || shapeRadii.box)(w, h),
+    borderRadius: shapeRadii[look.shape](w, h),
   };
   return (
     <>

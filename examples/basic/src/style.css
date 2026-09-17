@@ -19,6 +19,15 @@ body {
 .example-toolbar span {
   color: #657060;
 }
+.example-toolbar button {
+  padding: 4px 10px;
+  font: inherit;
+  color: #2c392f;
+  background: #f5f7ef;
+  border: 1px solid #d7dfd1;
+  border-radius: 6px;
+  cursor: pointer;
+}
 #map {
   flex: 1;
   min-height: 400px;
