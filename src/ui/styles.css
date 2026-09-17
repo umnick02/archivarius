@@ -1196,3 +1196,46 @@
     border-color: var(--accent);
   }
 }
+
+/* Reach: the reader's question about a change, answered under the interactions the
+   map draws. It borrows the interface list's type so the panel reads as one thing. */
+.archivarius .reach h3 {
+  font-size: 0.875rem;
+  margin: 1.5rem 0 0.625rem;
+}
+.archivarius .reach h4 {
+  font-size: 0.75rem;
+  font-weight: 550;
+  margin: 0.75rem 0 0.3125rem;
+}
+.archivarius .reach h4 span {
+  font-weight: 400;
+  color: var(--muted);
+  padding-left: 0.3125rem;
+}
+.archivarius .reach details {
+  border-top: 1px solid var(--line-soft);
+  padding: 0.4375rem 0;
+}
+.archivarius .reach summary {
+  cursor: pointer;
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+.archivarius .reach summary small,
+.archivarius .reach-none {
+  color: var(--muted);
+  font-size: 0.6875rem;
+}
+.archivarius .reach-path,
+.archivarius .reach-cycles p {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.125rem;
+  margin: 0.3125rem 0 0;
+  font-size: 0.6875rem;
+}
+.archivarius .reach-arrow {
+  color: var(--muted);
+}

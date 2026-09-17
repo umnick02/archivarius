@@ -2,10 +2,17 @@ import { mapLegend, useArchitecture } from './context.jsx';
 import { panelWords } from '../model/legend.mjs';
 import { ImplementationSummary } from './ImplementationSummary.jsx';
 import { Interactions, InternalRelations } from './Interactions.jsx';
+import { Reach } from './Reach.jsx';
 
 // A component of a model without a project: the map is the only source, so the
 // implementation claim comes from the model's own evidence.
-export function NodePanel({ node, interfaces, fitNode, showRelation }) {
+export function NodePanel({
+  node,
+  interfaces,
+  fitNode,
+  showRelation,
+  showNode,
+}) {
   const { copy, completion } = useArchitecture();
   return (
     <>
@@ -41,6 +48,7 @@ export function NodePanel({ node, interfaces, fitNode, showRelation }) {
         edges={interfaces.internal}
         showRelation={showRelation}
       />
+      <Reach node={node} showNode={showNode ?? fitNode} />
       {node.rules.length > 0 && (
         <section className="node-rules">
           <h3>{copy.componentRules}</h3>

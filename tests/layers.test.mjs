@@ -51,6 +51,46 @@ test('every import points down the layers the folders name', async () => {
   assert.deepEqual(violations, []);
 });
 
+// The other half of the boundary: which modules may touch the world. ESLint states
+// it as a rule, and a rule can be disabled in the file it governs, so the same
+// boundary is read here from the bytes - one command can then answer for the whole
+// criterion.
+const worldly = {
+  file: /(?:from\s*'node:|import\s*\(\s*'node:|\bprocess\.)/,
+  network: /\b(?:fetch|XMLHttpRequest|WebSocket|EventSource)\s*\(/,
+};
+
+test('only the modules that own the world touch it', async () => {
+  // src/io/ and the two entry points do file access; src/ui/load.mjs is the one
+  // module that fetches a model, so a component cannot grow its own request.
+  const owners = {
+    file: (file) =>
+      file.startsWith('io/') || file === 'node.mjs' || file === 'cli.mjs',
+    network: (file) => file === 'ui/load.mjs',
+  };
+  const trespasses = [];
+  for (const file of await fs.readdir(root, { recursive: true })) {
+    if (!/\.(?:mjs|jsx)$/.test(file)) continue;
+    if (file.startsWith('generated/')) continue;
+    const source = await fs.readFile(new URL(file, root), 'utf8');
+    for (const [world, pattern] of Object.entries(worldly))
+      if (pattern.test(source) && !owners[world](file))
+        trespasses.push(`${file} -> ${world}`);
+  }
+  assert.deepEqual(trespasses, []);
+});
+
+// The reading is only worth something if it can see a trespass at all.
+test('a module that reaches for the world is seen reaching', () => {
+  assert.match("import fs from 'node:fs';", worldly.file);
+  assert.match('const answer = await fetch(url);', worldly.network);
+  assert.doesNotMatch(
+    "import { parse } from './model/parse.mjs';",
+    worldly.file,
+  );
+  assert.doesNotMatch('const prefetched = cache.get(url);', worldly.network);
+});
+
 test('the import graph has no cycles', async () => {
   const graph = await importGraph();
   const state = new Map();

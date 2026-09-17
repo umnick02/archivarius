@@ -4,6 +4,7 @@ import { ProjectInspector } from './ProjectInspector.jsx';
 import { ProjectOverview } from './ProjectOverview.jsx';
 import { Interactions, InternalRelations } from './Interactions.jsx';
 import { NodePanel } from './NodePanel.jsx';
+import { Reach } from './Reach.jsx';
 import { RelationPanel } from './RelationPanel.jsx';
 import { AboutPanel, ContractsPanel } from './CopyPanels.jsx';
 
@@ -41,6 +42,11 @@ export function Inspector({
   }, [panel?.entryId, hidden]);
   if (!panel) return null;
   const node = panel.type === 'node' ? graph.nodes.get(panel.key) : null;
+  // A project shows a component under either panel type, and reach is a property
+  // of the drawn part, so it is read from the key rather than from the panel type.
+  const drawn = ['node', 'record'].includes(panel.type)
+    ? graph.nodes.get(panel.key)
+    : null;
   return (
     <aside
       data-control="inspector"
@@ -107,6 +113,7 @@ export function Inspector({
                   edges={interfaces.internal}
                   showRelation={showRelation}
                 />
+                {drawn && <Reach node={drawn} showNode={showOnMap} />}
               </>
             )
           }

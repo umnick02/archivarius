@@ -18,6 +18,18 @@
     "incoming": "Receives from",
     "outgoing": "Sends to"
   },
+  "reach": {
+    "label": "Where a change here reaches",
+    "downstream": "Reaches, at any depth",
+    "upstream": "Reached by, at any depth",
+    "steps": {
+      "one": "{count} step away",
+      "other": "{count} steps away"
+    },
+    "step": "→",
+    "cycles": "Groups that reach each other",
+    "none": "No interaction leads out of this component or into it."
+  },
   "failure": {
     "title": "This view cannot be shown",
     "code": "Code",

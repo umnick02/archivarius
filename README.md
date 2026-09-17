@@ -26,7 +26,7 @@ An owner understands a system's structure, the grounds for decisions, the remain
 
 The snapshot in this repository describes Archivarius itself, so the map below, the tables under it and this page are the project's own records drawn by the library it documents.
 
-A record keeps the definitions it was written against apart from the records it merely mentions, so when a definition changes, whatever rested on it stops counting as confirmed instead of quietly staying green.
+Observed in this repository: a record keeps the definitions it was written against apart from the records it merely mentions, and when one of those definitions moved, everything resting on it lost currency in the same run while unrelated records kept theirs. Held to the whole snapshot instead, one edit withdrew all thirteen receipts at once - a withdrawal that named nothing and taught nobody anything.
 
 A team installs the library, mounts a map of its own system, and needs to find how to install it, how to read a failure and what it may rely on across versions.
 
@@ -34,7 +34,7 @@ A reader arrives with a keyboard, a screen reader, a text size, a motion prefere
 
 A described system reaches hundreds of parts, layout runs on the same thread as the interface, and every part stays mounted whether it is visible or not.
 
-A digest proves a file has not moved, not that the file still does what a record claims, so a description can stay confirmed while the code it describes contradicts it.
+Observed in this repository: with every binding digest holding, reconciling the described interactions against the import graph still found three dependencies the description could not state and two hundred and fifty-three it never mentioned. A digest proves a file has not moved, not that it still does what a record claims, so agreement of description and code is read from the code and not inferred from bytes.
 
 Furnas, Generalized Fisheye Views, CHI 1986 (https://doi.org/10.1145/22627.22342): a display that holds full detail near the point of interest and degrades it with distance shows a structure larger than the screen, so how much detail a part gets is a function of interest rather than a separate view the reader has to open.
 

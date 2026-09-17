@@ -516,6 +516,50 @@ try {
       ),
       model.relations.find((edge) => edge.key === key).payload,
     );
+  // Reach: the question a reader asks before changing anything. The selected block
+  // is `engine`, whose leaves exchange with the gateway and the archive, so the
+  // panel must report both directions, the loop those parts stand in, and the way
+  // to a reached part once it is opened.
+  assert.deepEqual(
+    await b.evaluate(() => {
+      const reach = document.querySelector('#first [data-control=reach]');
+      const side = (which) =>
+        [
+          ...reach.querySelectorAll(`[data-reach-side=${which}] [data-reach]`),
+        ].map((element) => element.dataset.reach);
+      return {
+        downstream: side('downstream'),
+        upstream: side('upstream'),
+        cycles: [...reach.querySelectorAll('[data-reach-cycle]')].map(
+          (element) => element.dataset.reachCycle,
+        ),
+      };
+    }),
+    {
+      downstream: ['archive', 'gateway', 'portal', 'publisher'],
+      upstream: ['archive', 'gateway', 'portal', 'publisher'],
+      cycles: ['archive gateway portal publisher query ranking'],
+    },
+  );
+  await click(
+    '#first [data-reach-side=downstream] [data-reach=publisher] summary',
+  );
+  await until(
+    () => !!document.querySelector('#first [data-reach-path=publisher]'),
+  );
+  assert.deepEqual(
+    await b.evaluate(() =>
+      [
+        ...document.querySelectorAll(
+          '#first [data-reach-path=publisher] button',
+        ),
+      ].map((button) => button.textContent),
+    ),
+    // The way out starts at the member of the block that gets there first, not at
+    // the block, because that is the way a change would actually travel.
+    ['Candidate retrieval', 'Catalog index', 'Catalog provider'],
+  );
+
   // Now the reading surface: the inspector, its close control and its disclosures.
   await auditRings('reading');
   // Together the two passes have to have covered every control the surface owns,
