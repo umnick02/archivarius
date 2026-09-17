@@ -10,13 +10,13 @@ import {
 import {
   ReactFlow,
   Background,
-  MiniMap,
   useReactFlow,
   useViewport,
 } from '@xyflow/react';
 import { useArchitecture, format } from './context.jsx';
 import { ArchitectureNode } from './ArchitectureNode.jsx';
 import { ArchitectureEdge } from './ArchitectureEdge.jsx';
+import { Failure } from './Failure.jsx';
 import { Inspector } from './Inspector.jsx';
 import { MapHeader } from './MapHeader.jsx';
 import { MapChrome } from './MapChrome.jsx';
@@ -24,15 +24,30 @@ import { MapOverlays } from './MapOverlays.jsx';
 import { usePanelNavigation } from './usePanelNavigation.jsx';
 import { useMapProjection } from './useMapProjection.jsx';
 import { expandedAt, isVisible } from './view.mjs';
+import {
+  addressFailure,
+  addressKey,
+  addressSnapshot,
+  emptyView,
+  filterView,
+  neighbourhood,
+  parseAddress,
+  writeAddress,
+} from '../model/address.mjs';
+import { failureReport } from '../model/failure.mjs';
+import { levelName } from '../model/zoom.mjs';
 
 const nodeTypes = { architecture: ArchitectureNode },
   edgeTypes = { architecture: ArchitectureEdge };
+// A written address is restored once per page, by the first surface that reads it.
+// A model the host swaps in afterwards is a different architecture, so it opens
+// where the library decides rather than where the reader stood in the last one.
+const restored = new Set();
 const duration = () =>
   matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 280;
 
 export const App = forwardRef(function App({ onReady, announce }, ref) {
-  const { model, project, graph, layout, copy, rootColors, instanceId } =
-    useArchitecture();
+  const { model, project, graph, layout, copy, instanceId } = useArchitecture();
   const flow = useReactFlow(),
     viewport = useViewport();
   const maxZoom = useMemo(
@@ -52,10 +67,15 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     [focus, setFocus] = useState(null);
   const [mobileMap, setMobileMap] = useState(false);
   const [contextEnabled, setContextEnabled] = useState(true);
+  // The reader's filters and the last stated failure are presentation state: the
+  // model never changes, only how much of it the surface is willing to draw.
+  const [filters, setFilters] = useState(emptyView.filters);
+  const [failure, setFailure] = useState(null);
   const selectedRef = useRef(selected);
   selectedRef.current = selected;
   const root = useRef(null),
     initialized = useRef(false),
+    addressName = useRef('map'),
     readyCallback = useRef(onReady),
     pane = useRef(null),
     pointer = useRef(null),
@@ -252,18 +272,61 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
   // can reach. The level, its ring and that item are derived from the projection,
   // so the pointer's hover path never decides where the keyboard stands.
   const [cursor, setCursor] = useState(null);
-  const { interfaces, bundles, nodes, edges, outside, level, ring, anchor } =
-    useMapProjection({
-      expanded,
-      viewport,
-      size,
-      layer,
-      selected,
-      activeKey,
-      cursor,
-      panel,
-      showRelation,
-    });
+  const {
+    interfaces,
+    bundles,
+    nodes,
+    edges,
+    outside,
+    level,
+    ring,
+    anchor,
+    named,
+  } = useMapProjection({
+    expanded,
+    viewport,
+    size,
+    layer,
+    selected,
+    activeKey,
+    cursor,
+    panel,
+    showRelation,
+  });
+  // A filter never rewrites the drawing: it decides which of the parts the
+  // projection already placed are worth showing, so an unfiltered map is the
+  // very same node and edge arrays it was before.
+  const scope = useMemo(
+    () => filterView(model, graph, filters),
+    [model, graph, filters],
+  );
+  const shownNodes = useMemo(
+    () =>
+      scope.filtered
+        ? nodes.map((node) =>
+            scope.parts.has(node.id) ? node : { ...node, hidden: true },
+          )
+        : nodes,
+    [nodes, scope],
+  );
+  const shownEdges = useMemo(
+    () =>
+      scope.filtered
+        ? edges.filter((edge) =>
+            edge.data.bundle.relations.some((relation) =>
+              scope.relations.has(relation.key),
+            ),
+          )
+        : edges,
+    [edges, scope],
+  );
+  const neighbours = useMemo(
+    () =>
+      selected && interfaces.has(selected)
+        ? neighbourhood(interfaces.get(selected), filters)
+        : null,
+    [selected, interfaces, filters],
+  );
   const path = useMemo(() => {
     const result = [];
     let key = focus;
@@ -505,7 +568,9 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
       ? graph.nodes.get(panel.key).title
       : null;
   }, [panel, graph]);
-  const levelName = level ? graph.nodes.get(level).title : copy.wholeSystem;
+  const levelWords = level
+    ? graph.nodes.get(level).title
+    : levelName(copy, named);
   // WCAG 4.1.3: what the reader did not type — the panel that opened, the level
   // the zoom moved into — is said once, in the surface's one polite region.
   const spoken = useRef({ selection: null, level: null });
@@ -516,17 +581,17 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
       announce?.(format(copy.announcements.selected, { name: selectionName }));
   }, [selectionName, announce, copy]);
   useEffect(() => {
-    if (levelName === spoken.current.level) return;
+    if (levelWords === spoken.current.level) return;
     const first = spoken.current.level === null || !initialized.current;
-    spoken.current.level = levelName;
+    spoken.current.level = levelWords;
     if (!first)
-      announce?.(format(copy.announcements.level, { level: levelName }));
-  }, [levelName, announce, copy]);
+      announce?.(format(copy.announcements.level, { level: levelWords }));
+  }, [levelWords, announce, copy]);
   const snapshot = useRef(null);
   snapshot.current = () => ({
     viewport: flow.getViewport(),
     expanded: [...expanded],
-    visible: nodes.filter((n) => !n.hidden).map((n) => n.id),
+    visible: shownNodes.filter((n) => !n.hidden).map((n) => n.id),
     nodeGeometry: nodes.map((n) => ({
       id: n.id,
       position: n.position,
@@ -545,6 +610,58 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     layoutPasses: layout.layoutPasses,
     panel: panel?.type || null,
   });
+  // The address is the surface's one written-down view: where the reader stands,
+  // how close, which panel is open and what they filtered out. It is replaced,
+  // never pushed, so Back still leaves the page the reader came from.
+  const address = useMemo(
+    () => ({
+      at: selected,
+      level,
+      zoom: viewport.zoom,
+      panel: panel?.type ?? null,
+      edge:
+        panel?.type === 'relation'
+          ? (panel.bundle.relations[0]?.key ?? null)
+          : null,
+      filters,
+    }),
+    [selected, level, viewport.zoom, panel, filters],
+  );
+  const restore = useRef(null);
+  restore.current = async () => {
+    const key = addressKey(
+      root.current?.closest('.archivarius')?.parentElement?.id,
+    );
+    addressName.current = key;
+    if (restored.has(key)) return;
+    restored.add(key);
+    // Nothing written for this mount is not a view to restore: the opening frame
+    // the surface just fitted is already the right one.
+    if (!writeAddress('', parseAddress(location.search, { key }), { key }))
+      return;
+    const view = parseAddress(location.search, { key });
+    const raised = addressFailure(view, addressSnapshot(model, graph));
+    if (raised) {
+      setFailure(failureReport(raised));
+      return;
+    }
+    setFilters(view.filters);
+    const stand = view.at ?? view.level;
+    if (stand) await fitNode(stand, view.panel !== 'node');
+    if (view.zoom) flow.zoomTo(view.zoom, { duration: 0 });
+    if (view.panel === 'relation' && view.edge) {
+      const held = bundles.find((entry) =>
+        entry.bundle.relations.some((relation) => relation.key === view.edge),
+      );
+      if (held) showRelation(held.bundle);
+    } else if (view.panel === 'record' && view.at) showRecord(view.at);
+    else if (
+      view.panel === 'project' ||
+      view.panel === 'contracts' ||
+      view.panel === 'about'
+    )
+      openPanel({ type: view.panel });
+  };
   const api = useMemo(
     () => ({
       home,
@@ -575,12 +692,15 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     let active = true;
     const timer = setTimeout(
       () =>
-        home().then(() => {
-          if (active) {
+        home()
+          .then(async () => {
+            if (!active) return;
             initialized.current = true;
-            readyCallback.current?.(api);
-          }
-        }),
+            await restore.current?.();
+          })
+          .then(() => {
+            if (active) readyCallback.current?.(api);
+          }),
       0,
     );
     return () => {
@@ -588,6 +708,22 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
       clearTimeout(timer);
     };
   }, [flowReady, home, api, size.width, size.height]);
+  // Writing waits a beat so a pan or a zoom leaves one address behind, not one
+  // per frame.
+  useEffect(() => {
+    if (!initialized.current) return;
+    const timer = setTimeout(() => {
+      const search = writeAddress(location.search, address, {
+        key: addressName.current,
+      });
+      history.replaceState(
+        history.state,
+        '',
+        location.pathname + (search ? '?' + search : '') + location.hash,
+      );
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [address]);
 
   const overviewZoom = Math.min(
     (size.width - 70) / layout.bounds.width,
@@ -612,6 +748,8 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
       <MapHeader
         layer={layer}
         setLayer={setLayer}
+        filters={filters}
+        setFilters={setFilters}
         panel={panel}
         mobileMap={mobileMap}
         setMobileMap={setMobileMap}
@@ -643,8 +781,8 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         </h2>
         <ReactFlow
           id={instanceId}
-          nodes={nodes}
-          edges={edges}
+          nodes={shownNodes}
+          edges={shownEdges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           minZoom={Math.min(0.025, overviewZoom)}
@@ -676,24 +814,16 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
           onNodeDoubleClick={(_, n) => fitNode(n.id)}
           onEdgeClick={(_, e) => showRelation(e.data.bundle)}
           attributionPosition="bottom-left"
-          ariaLabelConfig={{ 'minimap.ariaLabel': copy.minimapLabel }}
         >
           <Background gap={24} size={0.8} color="#ccd5c5" />
-          <MiniMap
-            style={{
-              width: size.width < 780 ? 92 : 170,
-              height: size.width < 780 ? 68 : 104,
-            }}
-            pannable
-            zoomable
-            nodeColor={(n) => rootColors[layout.nodes[n.id].root] + '25'}
-            nodeStrokeColor={(n) => rootColors[layout.nodes[n.id].root]}
-            nodeStrokeWidth={2}
-            maskColor="#f9fbf3bb"
-            position="bottom-left"
-          />
         </ReactFlow>
-        <MapOverlays zoom={viewport.zoom} />
+        <MapOverlays
+          zoom={viewport.zoom}
+          neighbours={neighbours}
+          follow={fitNode}
+          empty={scope.filtered && scope.parts.size === 0}
+        />
+        <Failure report={failure} dismiss={() => setFailure(null)} />
       </div>
       <MapChrome
         path={path}

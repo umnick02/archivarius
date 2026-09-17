@@ -5,14 +5,54 @@
     BlinkMacSystemFont,
     'Segoe UI',
     sans-serif;
-  color: #28362e;
-  background: #f5f7ef;
+  color: var(--text);
+  background: var(--surface);
   font-synthesis: none;
-  /* One ring tone for the whole surface, dark enough to clear 3:1 against every
-     background here — the panels, the cards and the pane — so it reads the same
-     whichever colour scheme the reader prefers. */
-  --focus-ring: #17513c;
-  --focus-halo: #fffefbdd;
+  /* The surface is drawn from one palette, and every entry in it names both
+     schemes: `color-scheme` tells the browser this map can be dark, and
+     `light-dark()` picks the reader's side of each pair, so a dark scheme is a
+     value substitution and not a second stylesheet that can drift from this one.
+     The pairs are chosen to hold 4.5:1 for text and 3:1 for lines on both sides
+     (WCAG 1.4.3, 1.4.11); the accents a node carries are model data, so they
+     arrive as `--accent` and are lightened for a dark card below. */
+  color-scheme: light dark;
+  --surface: light-dark(#f5f7ef, #10140f);
+  --surface-veil: light-dark(#f5f7efe8, #10140fe8);
+  --raised: light-dark(#fcfdf8, #1a1f18);
+  --raised-veil: light-dark(#fcfdf8ef, #1a1f18f2);
+  --panel: light-dark(#fffefb, #1d221b);
+  --panel-veil: light-dark(#fffefbf5, #1d221bf7);
+  --soft: light-dark(#f2f5eb, #242b22);
+  --soft-hover: light-dark(#eaf1e2, #2e372b);
+  --field: light-dark(#fffef9, #171c15);
+  --field-strong: light-dark(#ffffff, #12160f);
+  --good-soft: light-dark(#e5f2e8, #16301f);
+  --warn-soft: light-dark(#fbf4e7, #33280f);
+  --error-soft: light-dark(#fff0e8, #351a10);
+  --text: light-dark(#28362e, #e7eee3);
+  /* The muted greys the surface used to spend read at 3.4:1 to 4.2:1 on their own
+     backgrounds; these hold 4.5:1 at the small sizes they are used at. */
+  --muted: light-dark(#4b5948, #b7c4b1);
+  --faint: light-dark(#5e6c5b, #9aa896);
+  --line: light-dark(#d7dfd1, #363f31);
+  --line-soft: light-dark(#e4e9df, #2c3428);
+  --line-strong: light-dark(#a9bda8, #55604d);
+  --link: light-dark(#356c49, #8fd4a5);
+  --link-hover: light-dark(#1f5c37, #b4e7c3);
+  --good: light-dark(#28765a, #64c89b);
+  --warn: light-dark(#8a5711, #e2ad5d);
+  --error: light-dark(#a3573a, #e89b79);
+  --shadow-soft: light-dark(#38582408, #00000040);
+  --shadow-panel: light-dark(#34462514, #00000059);
+  /* One ring tone per scheme, each dark or light enough to clear 3:1 against every
+     background here — the panels, the cards and the pane — with a halo in the
+     opposite direction so the ring never lands on its own tone. */
+  --focus-ring: light-dark(#17513c, #a9edc6);
+  --focus-halo: light-dark(#fffefbdd, #0a0d09dd);
+  /* The chrome is measured in text, not in pixels: when the reader doubles their
+     text size the header, the panel and the overlays double with it instead of
+     clipping what they hold (WCAG 1.4.4). */
+  --header-height: 4.75rem;
 }
 .archivarius * {
   box-sizing: border-box;
@@ -47,7 +87,7 @@
 .archivarius .node-card:focus-visible {
   box-shadow:
     inset 0 3px 0 0 var(--zone),
-    0 0 0 6px var(--focus-halo);
+    0 0 0 0.375rem var(--focus-halo);
 }
 /* The pane and the panels fill their container, so a ring outside them would be
    clipped by it: draw theirs inside the edge instead (WCAG 2.4.11). */
@@ -78,36 +118,36 @@
   opacity: 0.35;
 }
 .archivarius header {
-  height: 76px;
+  height: var(--header-height);
   position: relative;
   z-index: 50;
-  background: #fcfdf8;
-  border-bottom: 1px solid #dce2d5;
+  background: var(--raised);
+  border-bottom: 1px solid var(--line);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 26px;
-  gap: 16px;
+  padding: 0 1.625rem;
+  gap: 1rem;
 }
 .archivarius .identity,
 .archivarius .header-right {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 0.875rem;
 }
 .archivarius .logo {
-  width: 35px;
-  height: 35px;
-  border: 1px solid #b6c8b5;
-  color: #548363;
-  border-radius: 10px;
+  width: 2.1875rem;
+  height: 2.1875rem;
+  border: 1px solid var(--line-strong);
+  color: var(--link);
+  border-radius: 0.625rem;
   display: grid;
   place-items: center;
-  font-size: 26px;
+  font-size: 1.625rem;
 }
 .archivarius .brand {
   font-weight: 650;
-  font-size: 17px;
+  font-size: 1.0625rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -122,33 +162,33 @@
 .archivarius .project-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 18px 0 10px;
+  gap: 0.5rem;
+  margin: 1.125rem 0 0.625rem;
 }
 .archivarius .project-filters input,
 .archivarius .project-filters select {
   box-sizing: border-box;
   width: 100%;
-  padding: 10px;
-  border: 1px solid #bdcabb;
-  border-radius: 6px;
-  background: #fff;
-  color: #263a2e;
+  padding: 0.625rem;
+  border: 1px solid var(--line);
+  border-radius: 0.375rem;
+  background: var(--field-strong);
+  color: var(--text);
 }
 .archivarius .project-records .panel-button,
 .archivarius .project-links .panel-button {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 0.3125rem;
   text-align: left;
-  margin: 8px 0;
-  padding: 12px;
+  margin: 0.5rem 0;
+  padding: 0.75rem;
 }
 .archivarius .project-records small,
 .archivarius .project-links small,
 .archivarius .record-count {
-  color: #62725f;
-  font-size: 11px;
+  color: var(--muted);
+  font-size: 0.6875rem;
 }
 .archivarius .project-records .panel-button span {
   display: -webkit-box;
@@ -156,78 +196,78 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   font-weight: 400;
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.5;
 }
 .archivarius .record-link {
   display: inline-block;
   padding: 3px 0;
-  margin: 0 8px 0 0;
+  margin: 0 0.5rem 0 0;
   text-decoration: underline;
   text-underline-offset: 3px;
-  color: #356c49;
+  color: var(--link);
   background: transparent;
   border: none;
   text-align: left;
   overflow-wrap: anywhere;
 }
 .archivarius .record-field h3 {
-  margin: 18px 0 6px;
-  font-size: 12px;
-  color: #62725f;
+  margin: 1.125rem 0 0.375rem;
+  font-size: 0.75rem;
+  color: var(--muted);
 }
 .archivarius .record-field p {
-  margin: 6px 0;
+  margin: 0.375rem 0;
 }
 .archivarius .record-field dd {
-  margin-left: 16px;
+  margin-left: 1rem;
   overflow-wrap: anywhere;
 }
 .archivarius .record-technical {
   display: block;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font-size: 10px;
+  font-size: 0.625rem;
   max-width: 100%;
 }
 .archivarius .record-provenance {
-  margin-top: 24px;
+  margin-top: 1.5rem;
 }
 .archivarius .brand span {
-  color: #a4b4a3;
-  padding: 0 6px;
+  color: var(--faint);
+  padding: 0 0.375rem;
   font-weight: 400;
 }
 .archivarius .subtitle {
-  font-size: 11px;
-  margin-top: 5px;
-  color: #7c897a;
+  font-size: 0.6875rem;
+  margin-top: 0.3125rem;
+  color: var(--muted);
 }
 .archivarius .tag {
-  font-size: 11px;
-  color: #71816c;
+  font-size: 0.6875rem;
+  color: var(--muted);
 }
 .archivarius select,
 .archivarius .quiet {
-  background: #fffef9;
-  border: 1px solid #d7dfd1;
-  border-radius: 7px;
-  padding: 9px 11px;
-  font-size: 12px;
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: 0.4375rem;
+  padding: 0.5625rem 0.6875rem;
+  font-size: 0.75rem;
 }
 .archivarius .quiet:hover,
 .archivarius select:hover {
-  background: #edf3e8;
+  background: var(--soft-hover);
 }
 .archivarius .map-pane {
   position: absolute;
-  top: 76px;
+  top: var(--header-height);
   bottom: 0;
   left: 0;
   right: 0;
 }
 .archivarius .react-flow {
-  background: #f5f7ef;
+  background: var(--surface);
 }
 .archivarius .react-flow__node-architecture {
   padding: 0;
@@ -238,35 +278,47 @@
   position: relative;
   width: 100%;
   height: 100%;
-  border-color: color-mix(in srgb, var(--accent) 55%, #fff);
-  background: color-mix(in srgb, var(--accent) 6%, #fffefb);
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--panel));
+  background: color-mix(in srgb, var(--accent) 6%, var(--panel));
   /* The zone reads as a tone along the top edge: the root colour says which
      container a card belongs to, the zone says what kind of work it does. The
      tone and the outline come from the shared appearance table. */
   box-shadow: inset 0 3px 0 0 var(--zone);
   overflow: hidden;
-  color: #2c392f;
+  color: var(--text);
   cursor: pointer;
 }
 .archivarius .node-card:hover,
 .archivarius .node-card.highlighted {
   border-color: var(--accent);
 }
+/* A card's accent is model data, chosen once for the whole picture: it identifies
+   the container the part sits in. On a dark card that same tone would read at
+   about 3.5:1, so the text it colours uses a variant mixed toward the card's own
+   light while the edge keeps the tone itself. */
+.archivarius .node-card {
+  --accent-ink: var(--accent);
+}
+@media (prefers-color-scheme: dark) {
+  .archivarius .node-card {
+    --accent-ink: color-mix(in oklab, var(--accent) 45%, #ffffff);
+  }
+}
 .archivarius .implementation-mark {
   display: inline-block;
   flex-shrink: 0;
-  color: #7b8277;
+  color: var(--muted);
 }
 .archivarius .implementation-mark[data-implementation-state='confirmed'] {
-  color: #28765a;
+  color: var(--good);
 }
 .archivarius .implementation-mark[data-implementation-state='partial'] {
-  color: #a56a17;
+  color: var(--warn);
 }
 .archivarius .node-implementation {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 0.375rem;
+  right: 0.375rem;
   width: var(--mark-size);
   height: var(--mark-size);
 }
@@ -279,42 +331,46 @@
   position: absolute;
   inset: 0 auto 0 0;
   width: 3px;
-  background: #a4aa9e;
+  background: var(--faint);
   pointer-events: none;
 }
 .archivarius .node-card[data-implementation-state='confirmed']::before {
-  background: #28765a;
+  background: var(--good);
 }
 .archivarius .node-card[data-implementation-state='partial']::before {
-  background: repeating-linear-gradient(135deg, #bb853d 0 3px, #fff7e8 3px 6px);
+  background: repeating-linear-gradient(
+    135deg,
+    var(--warn) 0 3px,
+    var(--warn-soft) 3px 0.375rem
+  );
 }
 .archivarius .implementation > p .implementation-mark {
-  width: 17px;
-  height: 17px;
+  width: 1.0625rem;
+  height: 1.0625rem;
   vertical-align: -3px;
 }
 .archivarius .implementation[data-implementation-state='partial'] {
-  background: #fbf4e7;
+  background: var(--warn-soft);
 }
 .archivarius .implementation-progress {
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .archivarius .node-card h2 {
-  padding-right: calc(var(--mark-size) + 5px);
+  padding-right: calc(var(--mark-size) + 0.3125rem);
 }
 .archivarius .implementation-legend {
   position: absolute;
-  right: 16px;
-  bottom: 88px;
+  right: 1rem;
+  bottom: 5.5rem;
   z-index: 25;
   display: grid;
-  gap: 5px;
-  padding: 9px 12px;
-  border: 1px solid #d7dfd1;
-  border-radius: 8px;
-  background: #fffefbf5;
-  font-size: 11px;
-  color: #52634f;
+  gap: 0.3125rem;
+  padding: 0.5625rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--panel-veil);
+  font-size: 0.6875rem;
+  color: var(--muted);
   pointer-events: auto;
 }
 .archivarius .implementation-legend strong {
@@ -323,11 +379,11 @@
 .archivarius .implementation-legend span {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 0.4375rem;
 }
 .archivarius .implementation-legend svg {
-  width: 15px;
-  height: 15px;
+  width: 0.9375rem;
+  height: 0.9375rem;
 }
 .archivarius .card-interfaces {
   margin-top: var(--gap);
@@ -337,75 +393,75 @@
 }
 .archivarius .card-interfaces .card-rules {
   font-size: var(--small);
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 .archivarius [data-control='node-search'] {
-  max-width: 200px;
+  max-width: 12.5rem;
 }
 .archivarius .interface-list h3,
 .archivarius .node-rules h3 {
-  font-size: 14px;
-  margin: 24px 0 10px;
+  font-size: 0.875rem;
+  margin: 1.5rem 0 0.625rem;
 }
 .archivarius .interface-list h3 span {
   font-weight: 400;
-  color: #85917d;
-  padding-left: 5px;
+  color: var(--muted);
+  padding-left: 0.3125rem;
 }
 .archivarius .interface-list details,
 .archivarius .node-rules details,
 .archivarius .node-example,
 .archivarius .internal-relations {
-  border-top: 1px solid #e0e6d9;
-  padding: 10px 0;
+  border-top: 1px solid var(--line-soft);
+  padding: 0.625rem 0;
 }
 .archivarius .interface-list summary,
 .archivarius .node-rules summary,
 .archivarius .node-example summary,
 .archivarius .internal-relations summary {
   cursor: pointer;
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.45;
 }
 .archivarius .interface-list summary strong {
   font-weight: 550;
 }
 .archivarius .interface-count {
-  font-size: 11px;
-  color: #788b75;
+  font-size: 0.6875rem;
+  color: var(--muted);
 }
 .archivarius .interface-member {
-  margin: 12px 0 0 15px;
+  margin: 0.75rem 0 0 0.9375rem;
 }
 .archivarius .interface-member + .interface-member {
-  border-top: 1px solid #e0e6d9;
-  padding-top: 12px;
+  border-top: 1px solid var(--line-soft);
+  padding-top: 0.75rem;
 }
 .archivarius .interface-member h4 {
   margin: 0;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 550;
 }
 .archivarius .interface-list summary span {
   display: block;
-  padding-left: 15px;
-  font-size: 11px;
-  color: #788b75;
+  padding-left: 0.9375rem;
+  font-size: 0.6875rem;
+  color: var(--muted);
   margin-top: 3px;
 }
 .archivarius .interface-list p,
 .archivarius .node-rules p {
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .archivarius .payload {
-  border-left: 2px solid #adbf98;
-  padding-left: 12px;
+  border-left: 2px solid var(--line-strong);
+  padding-left: 0.75rem;
 }
 .archivarius .node-example {
-  margin-top: 14px;
+  margin-top: 0.875rem;
 }
 .archivarius .node-card.expanded {
-  background: color-mix(in srgb, var(--accent) 3%, #f8faf2);
+  background: color-mix(in srgb, var(--accent) 3%, var(--soft));
 }
 .archivarius .card-copy {
   padding: var(--pad);
@@ -416,7 +472,7 @@
 }
 .archivarius .node-card h2 {
   margin: 0;
-  color: var(--accent);
+  color: var(--accent-ink);
   font-size: var(--title);
   font-weight: 620;
   line-height: 1.2;
@@ -425,7 +481,7 @@
 .archivarius .node-card .eyebrow {
   font-size: var(--small);
   margin-bottom: var(--gap);
-  color: var(--accent);
+  color: var(--accent-ink);
   opacity: 0.8;
 }
 .archivarius .node-card p {
@@ -444,7 +500,7 @@
   margin-top: auto;
   padding-top: var(--gap);
   font-size: var(--small);
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 .archivarius .expanded-heading {
   padding: 0 var(--pad);
@@ -458,35 +514,35 @@
   transform-origin: 0 0;
   position: absolute;
   pointer-events: all;
-  border: 1px solid #e0e7d8;
-  border-radius: 5px;
-  background: #fcfdf6f5;
-  font-size: 10px;
-  padding: 4px 6px;
+  border: 1px solid var(--line-soft);
+  border-radius: 0.3125rem;
+  background: var(--raised-veil);
+  font-size: 0.625rem;
+  padding: 4px 0.375rem;
   white-space: nowrap;
 }
 .archivarius .edge-label:hover {
-  background: #fff;
+  background: var(--field-strong);
   border-color: currentColor;
 }
 .archivarius .react-flow__edgelabel-renderer {
   z-index: 30;
 }
 .archivarius .react-flow__minimap {
-  width: 170px;
-  height: 104px;
-  border: 1px solid #d2ddcc;
-  border-radius: 10px;
+  width: 10.625rem;
+  height: 6.5rem;
+  border: 1px solid var(--line);
+  border-radius: 0.625rem;
   overflow: hidden;
-  bottom: 25px;
-  left: 8px;
+  bottom: 1.5625rem;
+  left: 0.5rem;
   box-shadow: none;
 }
 .archivarius .react-flow__attribution {
   background: transparent;
-  font-size: 9px;
+  font-size: 0.5625rem;
   opacity: 0.65;
-  margin-left: 25px;
+  margin-left: 1.5625rem;
 }
 .archivarius .marker-definitions {
   position: absolute;
@@ -494,20 +550,20 @@
 }
 .archivarius [data-control='breadcrumbs'] {
   position: absolute;
-  top: 94px;
-  left: 24px;
-  right: 24px;
+  top: calc(var(--header-height) + 1.125rem);
+  left: 1.5rem;
+  right: 1.5rem;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 9px;
+  gap: 0.5625rem;
   width: fit-content;
-  max-width: calc(100% - 48px);
-  padding: 8px 10px;
-  background: #fcfdf8ef;
-  border: 1px solid #dce4d6;
-  border-radius: 8px;
-  font-size: 12px;
+  max-width: calc(100% - 3rem);
+  padding: 0.5rem 0.625rem;
+  background: var(--raised-veil);
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
   z-index: 30;
 }
 .archivarius [data-control='breadcrumbs'] button {
@@ -516,80 +572,80 @@
   padding: 0;
 }
 .archivarius [data-control='breadcrumbs'] button:hover {
-  color: #397f5c;
+  color: var(--link-hover);
   text-decoration: underline;
 }
 .archivarius [data-control='breadcrumbs'] span {
-  color: #a6b3a0;
+  color: var(--faint);
 }
 .archivarius .hint {
   position: absolute;
-  bottom: 31px;
-  left: 215px;
-  font-size: 11px;
+  bottom: 1.9375rem;
+  left: 13.4375rem;
+  font-size: 0.6875rem;
   line-height: 1.85;
-  color: #7c8774;
-  background: #f5f7efe8;
+  color: var(--muted);
+  background: var(--surface-veil);
   pointer-events: none;
-  padding: 3px 7px;
-  border-radius: 5px;
+  padding: 3px 0.4375rem;
+  border-radius: 0.3125rem;
 }
 .archivarius .hint strong {
   font-weight: 550;
-  color: #58684d;
+  color: var(--text);
 }
 .archivarius .map-controls {
   position: absolute;
-  right: 24px;
-  bottom: 26px;
+  right: 1.5rem;
+  bottom: 1.625rem;
   display: flex;
   align-items: center;
   gap: 3px;
-  height: 46px;
+  height: 2.875rem;
   padding: 4px;
-  border: 1px solid #d3deca;
-  background: #fcfdf8;
-  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: var(--raised);
+  border-radius: 0.5625rem;
   z-index: 30;
-  box-shadow: 0 2px 9px #38582408;
+  box-shadow: 0 2px 0.5625rem var(--shadow-soft);
 }
 .archivarius .map-controls button {
-  width: 34px;
-  height: 34px;
+  width: 2.125rem;
+  height: 2.125rem;
   border: 0;
   background: none;
-  border-radius: 5px;
-  font-size: 21px;
+  border-radius: 0.3125rem;
+  font-size: 1.3125rem;
 }
 .archivarius .map-controls button:hover {
-  background: #ebf1e6;
+  background: var(--soft-hover);
 }
 .archivarius .map-controls span {
-  min-width: 48px;
+  min-width: 3rem;
   text-align: center;
-  font-size: 12px;
-  color: #738069;
+  font-size: 0.75rem;
+  color: var(--muted);
 }
 .archivarius .map-controls i {
-  height: 20px;
+  height: 1.25rem;
   width: 1px;
-  background: #e0e7da;
+  background: var(--line-soft);
   margin: 0 3px;
 }
 .archivarius [data-control='inspector'] {
   position: absolute;
   z-index: 40;
-  right: 12px;
-  top: 88px;
-  bottom: 12px;
-  width: calc(var(--inspector-width) - 24px);
-  padding: 16px 24px 24px;
-  background: #fffefb;
-  border: 1px solid #d4dfcc;
-  border-radius: 12px;
+  right: 0.75rem;
+  top: calc(var(--header-height) + 0.75rem);
+  bottom: 0.75rem;
+  width: calc(var(--inspector-width) - 1.5rem);
+  padding: 1rem 1.5rem 1.5rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
   overflow: auto;
-  box-shadow: 0 12px 50px #34462514;
-  font-size: 14px;
+  box-shadow: 0 0.75rem 3.125rem var(--shadow-panel);
+  font-size: 0.875rem;
   line-height: 1.6;
 }
 .archivarius [data-control='close'] {
@@ -597,199 +653,198 @@
   margin-left: auto;
   background: none;
   border: 0;
-  font-size: 25px;
-  color: #7c8974;
+  font-size: 1.5625rem;
+  color: var(--muted);
 }
 .archivarius .eyebrow {
   text-transform: uppercase;
   letter-spacing: 0.09em;
-  font-size: 10px;
-  color: #809074;
-  margin-bottom: 10px;
+  font-size: 0.625rem;
+  color: var(--muted);
+  margin-bottom: 0.625rem;
 }
 .archivarius [data-control='inspector'] h2 {
-  margin: 0 12px 16px 0;
+  margin: 0 0.75rem 1rem 0;
   font-weight: 600;
-  font-size: 23px;
+  font-size: 1.4375rem;
   line-height: 1.25;
 }
 .archivarius [data-control='inspector'] p {
-  margin: 12px 0;
+  margin: 0.75rem 0;
 }
 .archivarius [data-control='inspector'] ul {
-  padding-left: 18px;
+  padding-left: 1.125rem;
 }
 .archivarius [data-control='inspector'] li {
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
 }
 .archivarius .note {
-  background: #f2f5eb;
-  border-left: 2px solid #a6bc8c;
-  padding: 10px 13px;
+  background: var(--soft);
+  border-left: 2px solid var(--line-strong);
+  padding: 0.625rem 0.8125rem;
 }
 .archivarius .implementation {
-  background: #f2f5eb;
-  padding: 1px 10px;
-  border-radius: 6px;
+  background: var(--soft);
+  padding: 1px 0.625rem;
+  border-radius: 0.375rem;
   overflow-wrap: anywhere;
 }
 .archivarius .implementation p + p {
-  color: #63715a;
-  font-size: 12px;
+  color: var(--muted);
+  font-size: 0.75rem;
 }
 .archivarius .implementation summary {
   cursor: pointer;
 }
 .archivarius .implementation[data-implemented='true'] {
-  background: #e5f2e8;
+  background: var(--good-soft);
 }
 .archivarius .end {
-  color: #8a947f;
-  font-size: 11px;
-  border-top: 1px solid #e4e9df;
-  padding-top: 14px;
+  color: var(--muted);
+  font-size: 0.6875rem;
+  border-top: 1px solid var(--line-soft);
+  padding-top: 0.875rem;
 }
 .archivarius .panel-button,
 .archivarius .panel-relations button {
   display: block;
   width: 100%;
   text-align: left;
-  background: #f5f8f0;
-  border: 1px solid #dbe4d2;
-  border-radius: 7px;
-  padding: 9px 11px;
-  font-size: 12px;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 0.4375rem;
+  padding: 0.5625rem 0.6875rem;
+  font-size: 0.75rem;
   line-height: 1.5;
-  margin: 7px 0;
+  margin: 0.4375rem 0;
 }
 .archivarius .panel-button:hover,
 .archivarius .panel-relations button:hover {
-  background: #eaf1e2;
+  background: var(--soft-hover);
 }
 .archivarius .panel-relations section {
-  border-top: 1px solid #e1e7d9;
-  margin-top: 18px;
+  border-top: 1px solid var(--line-soft);
+  margin-top: 1.125rem;
   padding-top: 3px;
 }
 .archivarius .contract-list details {
-  border-top: 1px solid #e1e7d9;
-  padding: 11px 0;
+  border-top: 1px solid var(--line-soft);
+  padding: 0.6875rem 0;
 }
 .archivarius .contract-list summary {
   cursor: pointer;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 550;
 }
 .archivarius .contract-list p {
-  color: #63715a;
-  font-size: 12px;
+  color: var(--muted);
+  font-size: 0.75rem;
 }
 .archivarius .model-error {
-  margin: 40px;
-  padding: 20px;
-  background: #fff0e8;
-  border: 1px solid #b26b4b;
+  margin: 2.5rem;
+  padding: 1.25rem;
+  background: var(--error-soft);
+  border: 1px solid var(--error);
 }
 @container (max-width: 1190px) {
   .archivarius .tag {
     display: none;
   }
   .archivarius .header-right {
-    gap: 8px;
+    gap: 0.5rem;
   }
 }
 @container (max-width: 780px) {
+  .archivarius .map-app {
+    --header-height: 6rem;
+  }
   .archivarius header {
-    padding: 0 12px;
-    gap: 8px;
-    height: 96px;
+    padding: 0 0.75rem;
+    gap: 0.5rem;
     align-items: flex-start;
   }
   .archivarius .identity {
-    padding-top: 12px;
+    padding-top: 0.75rem;
   }
   .archivarius .logo,
   .archivarius .subtitle {
     display: none;
   }
   .archivarius .brand {
-    font-size: 15px;
+    font-size: 0.9375rem;
   }
   .archivarius .header-right {
     position: absolute;
-    top: 47px;
-    left: 12px;
-    right: 12px;
+    top: 2.9375rem;
+    left: 0.75rem;
+    right: 0.75rem;
     overflow-x: auto;
     padding-bottom: 4px;
   }
   .archivarius [data-control='node-search'] {
-    max-width: 130px;
+    max-width: 8.125rem;
   }
   .archivarius .header-right {
-    gap: 5px;
+    gap: 0.3125rem;
   }
   .archivarius .header-right > * {
     flex-shrink: 0;
   }
   .archivarius [data-control='contracts'] {
-    font-size: 10px;
-    padding: 8px 6px;
+    font-size: 0.625rem;
+    padding: 0.5rem 0.375rem;
   }
   .archivarius select,
   .archivarius .quiet {
-    padding: 7px 10px;
-  }
-  .archivarius .map-pane {
-    top: 96px;
+    padding: 0.4375rem 0.625rem;
   }
   .archivarius [data-control='breadcrumbs'] {
-    top: 109px;
-    left: 12px;
-    right: 12px;
-    max-width: calc(100% - 24px);
-    font-size: 10px;
-    gap: 6px;
+    top: calc(var(--header-height) + 0.8125rem);
+    left: 0.75rem;
+    right: 0.75rem;
+    max-width: calc(100% - 1.5rem);
+    font-size: 0.625rem;
+    gap: 0.375rem;
   }
   .archivarius .hint {
     display: none;
   }
   .archivarius .react-flow__minimap {
-    width: 92px;
-    height: 68px;
+    width: 5.75rem;
+    height: 4.25rem;
     left: -4px;
-    bottom: 20px;
+    bottom: 1.25rem;
   }
   .archivarius .react-flow__attribution {
-    margin-left: 12px;
-    font-size: 8px;
+    margin-left: 0.75rem;
+    font-size: 0.5rem;
   }
   .archivarius .map-controls {
-    right: 12px;
-    bottom: 18px;
+    right: 0.75rem;
+    bottom: 1.125rem;
     gap: 0;
-    height: 42px;
+    height: 2.625rem;
   }
   .archivarius .map-controls button {
-    width: 28px;
-    height: 30px;
+    width: 1.75rem;
+    height: 1.875rem;
   }
   .archivarius .map-controls span {
-    min-width: 43px;
-    font-size: 10px;
+    min-width: 2.6875rem;
+    font-size: 0.625rem;
   }
   .archivarius .map-controls i {
     margin: 0 2px;
   }
   .archivarius [data-control='inspector'] {
-    top: 148px;
-    right: 12px;
-    bottom: 12px;
-    width: calc(100% - 24px);
-    padding: 12px 20px 24px;
+    top: calc(var(--header-height) + 3.25rem);
+    right: 0.75rem;
+    bottom: 0.75rem;
+    width: calc(100% - 1.5rem);
+    padding: 0.75rem 1.25rem 1.5rem;
   }
   .archivarius [data-control='inspector'] h2 {
-    font-size: 21px;
+    font-size: 1.3125rem;
   }
 }
 
@@ -800,7 +855,7 @@
 }
 .archivarius .map-app {
   position: relative;
-  --inspector-width: clamp(360px, 34%, 460px);
+  --inspector-width: clamp(22.5rem, 34%, 28.75rem);
 }
 .archivarius .map-loading {
   position: absolute;
@@ -817,24 +872,24 @@
 
 .archivarius .inspector-navigation {
   position: sticky;
-  top: -16px;
+  top: -1rem;
   z-index: 2;
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: #fffefb;
-  min-height: 40px;
-  padding: 0 0 8px;
-  margin-bottom: 12px;
+  gap: 0.375rem;
+  background: var(--panel);
+  min-height: 2.5rem;
+  padding: 0 0 0.5rem;
+  margin-bottom: 0.75rem;
 }
 .archivarius .inspector-navigation [data-control='close'] {
-  width: 32px;
-  height: 32px;
+  width: 2rem;
+  height: 2rem;
   line-height: 1;
   padding: 0;
 }
 .archivarius .inspector-navigation .quiet {
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 /* The panel takes focus programmatically when it opens; only a keyboard gets the
    ring the focus block draws. */
@@ -853,30 +908,30 @@
   white-space: nowrap;
 }
 .archivarius .project-questions .panel-button {
-  padding: 14px;
+  padding: 0.875rem;
 }
 .archivarius .project-questions strong,
 .archivarius .project-questions span {
   display: block;
 }
 .archivarius .project-questions strong {
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .archivarius .project-questions span {
-  margin-top: 5px;
-  color: #52634f;
+  margin-top: 0.3125rem;
+  color: var(--muted);
 }
 .archivarius .project-purpose {
-  font-size: 16px;
+  font-size: 1rem;
 }
 .archivarius .project-result {
-  margin: 12px 0;
+  margin: 0.75rem 0;
 }
 .archivarius .project-result > .record-link {
-  margin: 0 0 0 12px;
+  margin: 0 0 0 0.75rem;
 }
 .archivarius .record-primary {
-  margin: 0 0 18px;
+  margin: 0 0 1.125rem;
 }
 .archivarius .record-primary .record-field:first-child h3 {
   margin-top: 0;
@@ -886,20 +941,20 @@
 }
 .archivarius .record-values {
   display: flex;
-  gap: 10px;
+  gap: 0.625rem;
   flex-wrap: wrap;
-  margin: 8px 0;
+  margin: 0.5rem 0;
 }
 .archivarius .record-values > div {
-  min-width: 80px;
+  min-width: 5rem;
   max-width: 100%;
-  padding: 7px 12px;
-  background: #f2f5eb;
-  border-radius: 6px;
+  padding: 0.4375rem 0.75rem;
+  background: var(--soft);
+  border-radius: 0.375rem;
 }
 .archivarius .record-values dt {
-  font-size: 12px;
-  color: #52634f;
+  font-size: 0.75rem;
+  color: var(--muted);
 }
 .archivarius .record-values dd {
   margin: 0;
@@ -907,7 +962,7 @@
 }
 .archivarius .record-links {
   list-style: none;
-  margin: 6px 0;
+  margin: 0.375rem 0;
   padding: 0 !important;
 }
 .archivarius .record-links li {
@@ -915,33 +970,33 @@
 }
 .archivarius .record-secondary,
 .archivarius .project-links > details {
-  border-top: 1px solid #dbe4d2;
-  padding: 12px 0;
+  border-top: 1px solid var(--line);
+  padding: 0.75rem 0;
 }
 .archivarius .record-secondary {
-  margin-top: 18px;
+  margin-top: 1.125rem;
 }
 .archivarius .reason-group {
-  border-top: 1px solid #dbe4d2;
-  padding: 10px 0;
+  border-top: 1px solid var(--line);
+  padding: 0.625rem 0;
 }
 .archivarius .reason-group summary {
   font-weight: 550;
 }
 .archivarius .reason-group small {
   display: block;
-  margin-left: 16px;
+  margin-left: 1rem;
   font-weight: 400;
 }
 .archivarius .reason-area {
-  margin: 10px 0 10px 12px;
+  margin: 0.625rem 0 0.625rem 0.75rem;
 }
 .archivarius summary {
   cursor: pointer;
 }
 .archivarius .node-card[data-muted='true'] {
-  background: #f5f7ef;
-  border-color: #dce1d5;
+  background: var(--surface);
+  border-color: var(--line);
 }
 .archivarius .node-card[data-muted='true'] .card-copy,
 .archivarius .node-card[data-muted='true'] .expanded-heading {
@@ -949,22 +1004,22 @@
 }
 .archivarius .map-context {
   position: absolute;
-  top: 134px;
-  left: 24px;
+  top: calc(var(--header-height) + 3.625rem);
+  left: 1.5rem;
   z-index: 30;
-  max-width: 290px;
+  max-width: 18.125rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
+  gap: 0.5rem;
 }
 .archivarius .external-connections {
-  border: 1px solid #d4dfcc;
-  background: #fffefb;
-  border-radius: 8px;
-  padding: 10px;
-  font-size: 12px;
-  max-height: 230px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 0.5rem;
+  padding: 0.625rem;
+  font-size: 0.75rem;
+  max-height: 14.375rem;
   overflow: auto;
 }
 .archivarius .external-connections .record-link {
@@ -978,37 +1033,37 @@
     right: var(--inspector-width);
   }
   .archivarius [data-panel-open='true'] .map-controls {
-    right: calc(var(--inspector-width) + 16px);
+    right: calc(var(--inspector-width) + 1rem);
   }
   .archivarius [data-panel-open='true'] [data-control='breadcrumbs'] {
-    max-width: calc(100% - var(--inspector-width) - 48px);
+    max-width: calc(100% - var(--inspector-width) - 3rem);
   }
   .archivarius [data-panel-open='true'] .hint {
-    right: calc(var(--inspector-width) + 16px);
+    right: calc(var(--inspector-width) + 1rem);
   }
 }
 @container (max-width: 780px) {
   .archivarius .mobile-view-switch {
     position: absolute;
     display: flex;
-    gap: 8px;
-    top: 104px;
-    left: 12px;
+    gap: 0.5rem;
+    top: calc(var(--header-height) + 0.5rem);
+    left: 0.75rem;
     z-index: 35;
   }
   .archivarius .mobile-view-switch [aria-pressed='true'] {
-    background: #e5eedf;
+    background: var(--soft-hover);
   }
   .archivarius [data-panel-open='true'] [data-control='breadcrumbs'] {
-    top: 148px;
+    top: calc(var(--header-height) + 3.25rem);
   }
   .archivarius [data-panel-open='true'] .map-context {
-    top: 188px;
+    top: calc(var(--header-height) + 5.75rem);
   }
   .archivarius .map-context {
-    left: 12px;
-    top: 148px;
-    max-width: calc(100% - 24px);
+    left: 0.75rem;
+    top: calc(var(--header-height) + 3.25rem);
+    max-width: calc(100% - 1.5rem);
   }
   .archivarius [data-mobile-reading='true'] .map-pane,
   .archivarius [data-mobile-reading='true'] [data-control='breadcrumbs'],
@@ -1017,7 +1072,7 @@
     visibility: hidden;
   }
   .archivarius .inspector-navigation {
-    top: -12px;
+    top: -0.75rem;
   }
 }
 .archivarius [hidden] {
@@ -1025,7 +1080,7 @@
 }
 
 .archivarius .project-document > details {
-  margin: 12px 0;
+  margin: 0.75rem 0;
 }
 .archivarius .project-document-table {
   overflow: auto;
@@ -1033,12 +1088,111 @@
 }
 .archivarius .project-document-table table {
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .archivarius .project-document-table td,
 .archivarius .project-document-table th {
-  min-width: 140px;
-  padding: 8px;
-  border: 1px solid #cbd5e1;
+  min-width: 8.75rem;
+  padding: 0.5rem;
+  border: 1px solid var(--line);
   vertical-align: top;
+}
+
+/* A reader who asked for less motion gets none of it: WCAG 2.3.3 is about the
+   animation an interaction starts, and the map's own camera already asks
+   `prefers-reduced-motion` before it moves, so this holds everything else the
+   surface — or a dependency inside it — might animate to zero rather than trusting
+   each rule to remember. */
+@media (prefers-reduced-motion: reduce) {
+  .archivarius *,
+  .archivarius *::before,
+  .archivarius *::after {
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* A forced palette drops author colours, background images and shadows. The
+   chrome here floats over the map on translucent backgrounds and leans on shadows
+   to separate itself, so it restates its own edges and fills in the reader's
+   colours; without this the panel and the overlays would read as text lying
+   directly on the map (WCAG 1.4.8, 1.4.12). Only colours change: the outline
+   styles that carry a node's kind and a relation's line stay where they are. */
+@media (forced-colors: active) {
+  .archivarius
+    :is(
+      [data-control='breadcrumbs'],
+      [data-control='inspector'],
+      .inspector-navigation,
+      .map-controls,
+      .implementation-legend,
+      .external-connections,
+      .edge-label,
+      .hint,
+      .note,
+      .implementation,
+      .record-values > div,
+      .panel-button,
+      .map-overview,
+      .legend
+    ) {
+    background: Canvas;
+    color: CanvasText;
+    border-color: CanvasText;
+  }
+  .archivarius
+    :is(
+      .eyebrow,
+      .subtitle,
+      .tag,
+      .end,
+      .interface-count,
+      .faint,
+      .map-controls span,
+      .record-count
+    ) {
+    color: CanvasText;
+  }
+  .archivarius .record-link,
+  .archivarius [data-control='breadcrumbs'] button {
+    color: LinkText;
+  }
+  /* The zone tone, the implementation stripe and the muted state are all colour,
+     so in a forced palette they are dropped: each is also stated in words on the
+     card and in the panel, and the legend names every one of them. */
+  .archivarius .node-card {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+  .archivarius .node-card[data-muted='true'] .card-copy,
+  .archivarius .node-card[data-muted='true'] .expanded-heading {
+    opacity: 1;
+    color: GrayText;
+  }
+  .archivarius button:disabled {
+    opacity: 1;
+    color: GrayText;
+  }
+}
+
+/* A reader who asked for more contrast gets the edges and the quiet text at full
+   strength rather than the tuned greys above. */
+@media (prefers-contrast: more) {
+  .archivarius {
+    --muted: light-dark(#2c3729, #eef4ec);
+    --faint: light-dark(#394636, #dfe7dc);
+    --line: light-dark(#8c9a88, #8fa08b);
+    --line-soft: light-dark(#9aa895, #7d8d79);
+    --line-strong: light-dark(#5c6b58, #b3c3af);
+    --link: light-dark(#1c4d31, #b6ebc6);
+    --focus-ring: light-dark(#000000, #ffffff);
+  }
+  .archivarius .node-card {
+    border-color: var(--accent);
+  }
 }

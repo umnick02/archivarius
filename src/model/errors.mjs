@@ -676,6 +676,12 @@ export const failureCodes = {
     remedy:
       'Read a context over the whole closure and pass the review keys with a reason.',
   },
+  UNKNOWN_LAYER: {
+    meaning:
+      'The layer or filter value asked for is outside the contract enum it belongs to.',
+    remedy:
+      'Ask for a zone, kind or interaction kind the contract lists, or clear the filter.',
+  },
   UNKNOWN_NODE: {
     meaning: 'The key given to the map names no drawn node.',
     remedy: 'Pass the key of a component the current model draws.',

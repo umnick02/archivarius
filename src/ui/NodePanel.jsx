@@ -1,4 +1,5 @@
-import { useArchitecture } from './context.jsx';
+import { mapLegend, useArchitecture } from './context.jsx';
+import { panelWords } from '../model/legend.mjs';
 import { ImplementationSummary } from './ImplementationSummary.jsx';
 import { Interactions, InternalRelations } from './Interactions.jsx';
 
@@ -9,7 +10,8 @@ export function NodePanel({ node, interfaces, fitNode, showRelation }) {
   return (
     <>
       <div className="eyebrow" data-control="panel-kind">
-        {copy.nodeKinds[node.kind]} · {copy.zones[node.zone]}
+        {panelWords(mapLegend(copy), 'kind', node.kind)} ·{' '}
+        {panelWords(mapLegend(copy), 'zone', node.zone)}
       </div>
       <h2>{node.title}</h2>
       <ImplementationSummary

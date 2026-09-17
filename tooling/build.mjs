@@ -71,8 +71,14 @@ css.walkRules((rule) => {
     return '.archivarius ' + selector;
   });
 });
-const own = await read('src/ui/styles.css');
+// Every stylesheet the surface owns is bundled, so a component can keep its
+// own rules in its own file instead of one shared sheet growing without end.
+const sheets = (await fs.readdir(new URL('src/ui/', root)))
+  .filter((name) => name.endsWith('.css'))
+  .sort();
+const own = [];
+for (const sheet of sheets) own.push(await read('src/ui/' + sheet));
 await fs.writeFile(
   new URL('dist/style.css', root),
-  css.toString() + '\n' + own,
+  [css.toString(), ...own].join('\n'),
 );

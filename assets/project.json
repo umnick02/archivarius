@@ -203,6 +203,37 @@
   "documentTable": "Document table",
   "openRecord": "Open record",
   "documentIntro": "About this document",
+  "legend": {
+    "title": "How to read the picture",
+    "note": "Every value reads without colour: a token, a shape, a border or a line.",
+    "columns": [
+      "Group",
+      "Value",
+      "Token",
+      "Drawn as"
+    ],
+    "groups": {
+      "kind": "Kind",
+      "zone": "Layer",
+      "relation": "Interaction"
+    },
+    "channels": {
+      "shape": {
+        "box": "Rectangle",
+        "cylinder": "Barrel",
+        "stadium": "Pill"
+      },
+      "outline": {
+        "solid": "Unbroken border",
+        "dashed": "Broken border"
+      },
+      "line": {
+        "solid": "Thin arrow",
+        "thick": "Thick arrow",
+        "dotted": "Dotted arrow"
+      }
+    }
+  },
   "quickstart": {
     "heading": "Quickstart",
     "install": "npm install {name}",

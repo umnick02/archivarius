@@ -5,13 +5,44 @@
   "subtitle": "Target architecture · components and interactions",
   "layerLabel": "Emphasize interaction type",
   "findNode": "Find a component…",
+  "filters": {
+    "label": "Narrow the map",
+    "zone": "Responsibility zone",
+    "kind": "Component kind",
+    "relation": "Interaction type",
+    "all": "All",
+    "empty": "Nothing in the model matches this combination. Widen a filter to see the map again."
+  },
+  "neighbours": {
+    "label": "What the selected component exchanges with",
+    "incoming": "Receives from",
+    "outgoing": "Sends to"
+  },
+  "failure": {
+    "title": "This view cannot be shown",
+    "code": "Code",
+    "meaning": "What it means",
+    "remedy": "What to do",
+    "issues": "Affected",
+    "statements": "What was read",
+    "record": "Record",
+    "field": "Field",
+    "value": "Read",
+    "expected": "Expected",
+    "uncatalogued": "This code is not in the library's failure catalogue, so there is no explanation to give here yet.",
+    "dismiss": "Show the map without it"
+  },
   "layers": {
     "all": "All interactions",
     "data": "Data",
     "command": "Commands",
     "state": "State"
   },
-  "kinds": { "data": "Data", "command": "Command", "state": "State" },
+  "kinds": {
+    "data": "Data",
+    "command": "Command",
+    "state": "State"
+  },
   "nodeKinds": {
     "subsystem": "Subsystem",
     "component": "Component",
@@ -69,6 +100,7 @@
   "wholeSystem": "Whole system",
   "wholeArchitecture": "Whole architecture",
   "positionLabel": "Position in the architecture",
+  "previousPosition": "Back to where you were",
   "minimapLabel": "Architecture overview",
   "mapRegionLabel": "Architecture map",
   "zoomIn": "Zoom in",
@@ -149,5 +181,31 @@
     "UNROUTED_RELATION": "An interaction has no route: {key}",
     "OUTSIDE_PARENT": "A part lies outside its parent: {key}",
     "INVALID_GEOMETRY": "Invalid geometry: {key}"
+  },
+  "legend": {
+    "title": "How to read the picture",
+    "note": "Every value reads without colour: a token, a shape, a border or a line.",
+    "columns": ["Group", "Value", "Token", "Drawn as"],
+    "groups": {
+      "kind": "Kind",
+      "zone": "Layer",
+      "relation": "Interaction"
+    },
+    "channels": {
+      "shape": {
+        "box": "Rectangle",
+        "cylinder": "Barrel",
+        "stadium": "Pill"
+      },
+      "outline": {
+        "solid": "Unbroken border",
+        "dashed": "Broken border"
+      },
+      "line": {
+        "solid": "Thin arrow",
+        "thick": "Thick arrow",
+        "dotted": "Dotted arrow"
+      }
+    }
   }
 }

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useArchitecture } from './context.jsx';
+import { Filters } from './Filters.jsx';
 import { searchArchitecture } from '../model/search.mjs';
 
 // The chrome above the map: identity, the ways in, and the reading/map switch a
@@ -10,6 +11,8 @@ import { searchArchitecture } from '../model/search.mjs';
 export function MapHeader({
   layer,
   setLayer,
+  filters,
+  setFilters,
   panel,
   mobileMap,
   setMobileMap,
@@ -127,6 +130,15 @@ export function MapHeader({
               </option>
             ))}
           </select>
+          {!!graph.nodes.size && (
+            <Filters
+              filters={filters}
+              setFilter={(field, value) => {
+                clearClick();
+                setFilters({ ...filters, [field]: value });
+              }}
+            />
+          )}
           <button
             className="quiet"
             data-control="contracts"

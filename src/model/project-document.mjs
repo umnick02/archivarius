@@ -8,6 +8,7 @@ import { analyzeProject } from './project-analysis.mjs';
 import { projectArchitecture } from './project-architecture.mjs';
 import { assertProject } from './project-contract.mjs';
 import { failureCatalogue, failureCodes } from './errors.mjs';
+import { legendTable } from './legend.mjs';
 import { recordReferences } from './records.mjs';
 
 import {
@@ -116,6 +117,23 @@ export function architectureDiagram(model) {
   ];
 }
 
+// The picture explains itself only if the key beside it says the same thing the
+// appearance table says. It is generated from that table rather than written
+// down, so a contract value the diagram gains is explained the same day. The
+// diagram itself is untouched: the key is prose beside it, never a statement
+// inside it, and the words are the caller's.
+function architectureLegend(copy, diagram) {
+  if (!copy.legend || !diagram.length) return [];
+  return legendTable({
+    ...copy.legend,
+    words: copy.legend.words ?? {
+      kind: copy.values,
+      zone: copy.values,
+      relation: copy.values,
+    },
+  });
+}
+
 // A caught failure names a code and nothing else, so the reference prints the
 // table the raising module owns instead of a second copy of it.
 function failureTable() {
@@ -146,6 +164,7 @@ export function renderProjectDocumentation(model, copy) {
     records = new Map(model.records.map((r) => [r.key, r]));
   const link = (key) =>
     '[' + inline(records.get(key)?.title || key) + '](#record-' + key + ')';
+  const diagram = architectureDiagram(model);
   const lines = [
     '# ' + inline(model.title),
     '',
@@ -153,7 +172,8 @@ export function renderProjectDocumentation(model, copy) {
     '',
     copy.snapshot + ': `' + digest(model) + '`',
     '',
-    ...architectureDiagram(model),
+    ...diagram,
+    ...architectureLegend(copy, diagram),
   ];
   for (const record of model.records) {
     lines.push(

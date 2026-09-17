@@ -2,13 +2,25 @@ import { useEffect } from 'react';
 import { Handle, useViewport, useUpdateNodeInternals } from '@xyflow/react';
 import { nodeAppearance } from '../model/appearance.mjs';
 import { format, useArchitecture } from './context.jsx';
-import { shapeRadii } from './view.mjs';
+import { cardMetrics, shapeRadii } from './view.mjs';
 import { ImplementationMark } from './ImplementationMark.jsx';
 
 export function ArchitectureNode({ data }) {
   const { copy, rootColors, completion } = useArchitecture();
   const { zoom } = useViewport();
-  const { item, box, expanded, handles, interfaces, highlighted, muted } = data;
+  const {
+    item,
+    box,
+    expanded,
+    handles,
+    interfaces,
+    highlighted,
+    muted,
+    // A part the camera cannot reach keeps its place, its outline and its
+    // confirmation mark, and builds none of the copy nobody can read. Default
+    // true: a caller that has not decided gets the whole card.
+    mounted = true,
+  } = data;
   const updateInternals = useUpdateNodeInternals();
   const handleKey = handles.map((h) => h.id).join('/');
   useEffect(() => {
@@ -22,19 +34,18 @@ export function ArchitectureNode({ data }) {
   const look = nodeAppearance(item);
   const confirmation =
     copy.mapImplementation.label + ': ' + copy.mapImplementation[state];
-  const pad = Math.min(22, w * 0.065),
-    title = expanded
-      ? Math.min(17, Math.max(11, h * 0.055))
-      : Math.min(box.depth === 1 ? 21 : 18, Math.max(9, w / 12));
+  // Every size the card writes its words at comes from one place, and comes back
+  // in the reader's unit rather than this surface's pixels.
+  const text = cardMetrics({ width: w, height: h, depth: box.depth }, expanded);
   const style = {
     '--accent': rootColors[box.root],
     '--zone': look.tone,
-    '--pad': pad + 'px',
-    '--title': title + 'px',
-    '--small': '10px',
-    '--body': '13px',
-    '--gap': '10px',
-    '--mark-size': Math.min(18, Math.max(8, w * 0.1), h * 0.3) + 'px',
+    '--pad': text.pad,
+    '--title': text.title,
+    '--small': text.small,
+    '--body': text.body,
+    '--gap': text.gap,
+    '--mark-size': text.mark,
     width: w,
     height: h,
     transform: `scale(${1 / zoom})`,
@@ -78,12 +89,15 @@ export function ArchitectureNode({ data }) {
         <span className="node-implementation" title={confirmation}>
           <ImplementationMark state={state} />
         </span>
-        {expanded ? (
+        {!mounted ? null : expanded ? (
           <div
             className="expanded-heading"
             style={{
               maxHeight: h * 0.17,
-              paddingTop: Math.min(pad, h * 0.035),
+              // The padding follows the reader's setting up to the share of the
+              // card the heading is allowed, so a bigger text never pushes the
+              // title out of its own band.
+              paddingTop: 'min(' + text.pad + ', ' + h * 0.035 + 'px)',
             }}
           >
             <h2>{item.title}</h2>

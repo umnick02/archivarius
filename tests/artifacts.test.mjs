@@ -43,6 +43,22 @@ test('package retains external data resources and project-independent scripts', 
   assert(!scripts.includes("document.addEventListener('keydown'"));
 });
 
+test('every stylesheet the surface owns is in the packaged CSS', async () => {
+  const bundle = await read('dist/style.css');
+  const sheets = (
+    await fs.readdir(new URL('../src/ui/', import.meta.url))
+  ).filter((name) => name.endsWith('.css'));
+  assert(sheets.length, 'the surface owns no stylesheet');
+  for (const sheet of sheets) {
+    const text = await read('src/ui/' + sheet);
+    const rule = text
+      .split('\n')
+      .find((line) => line.trim().startsWith('.archivarius'));
+    assert(rule, sheet + ' carries no scoped rule');
+    assert(bundle.includes(rule.trim()), sheet + ' is not bundled');
+  }
+});
+
 test('packaged CSS is confined to map containers, including animations', async () => {
   const css = postcss.parse(await read('dist/style.css'));
   css.walkRules((rule) => {

@@ -4,6 +4,12 @@
 // of each inventing an aesthetic. A tone is a line colour — how much of it a
 // surface spends on a fill, and what background it sits on, belongs to that
 // surface, as do stroke widths, dash lengths and corner radii.
+//
+// No value is carried by its tone alone: every drawn enum value also has a
+// token, and a shape, an outline or a line where the surface draws one, so a
+// reader who cannot separate two hues — or who printed the page — still reads it.
+// `legend.mjs` reads this table out loud, which is why nothing may be added here
+// without a channel that is not a colour.
 
 /** @type {Record<string, string>} zone -> the tone that carries it */
 export const zoneTones = {
@@ -22,6 +28,43 @@ export const nodeShapes = {
   external: 'stadium',
 };
 
+/** @type {Record<string, string>} node kind -> whether its border is broken */
+export const nodeOutlines = {
+  subsystem: 'solid',
+  component: 'solid',
+  store: 'solid',
+  external: 'dashed',
+};
+
+// Colour is not a channel on its own: two hues a reader cannot separate, a
+// printed page or a theme that shifts them all carry no meaning. Every drawn
+// value therefore also has a token — short, upper case, unique inside its enum —
+// that a legend, a card and a panel print alike. A shape says a store is a
+// store; a token says which store it is looking at even with no colour at all.
+/** @type {Record<string, string>} node kind -> its colour-free token */
+export const nodeTags = {
+  subsystem: 'SYS',
+  component: 'CMP',
+  store: 'DB',
+  external: 'EXT',
+};
+
+/** @type {Record<string, string>} zone -> its colour-free token */
+export const zoneTags = {
+  presentation: 'UI',
+  application: 'APP',
+  infrastructure: 'IO',
+  pure: 'FN',
+  external: 'EXT',
+};
+
+/** @type {Record<string, string>} relation kind -> its colour-free token */
+export const relationTags = {
+  data: 'DATA',
+  command: 'CMD',
+  state: 'STATE',
+};
+
 /** @type {Record<string, string>} relation kind -> the tone that carries it */
 export const relationTones = {
   data: '#537e68',
@@ -34,6 +77,25 @@ export const relationLines = {
   data: 'solid',
   command: 'thick',
   state: 'dotted',
+};
+
+// The three enums a picture of this library may spend, each with the tone it is
+// allowed (a node kind has none: the zone carries the node's tone) and the
+// channels that survive without colour. A legend is generated from this, so a
+// value the contract gains cannot be drawn until it is named here.
+export const drawnEnums = {
+  kind: {
+    tones: null,
+    channels: { tag: nodeTags, shape: nodeShapes, outline: nodeOutlines },
+  },
+  zone: {
+    tones: zoneTones,
+    channels: { tag: zoneTags },
+  },
+  relation: {
+    tones: relationTones,
+    channels: { tag: relationTags, line: relationLines },
+  },
 };
 
 // Root containers are told apart from each other, not from their zone, so this
@@ -58,23 +120,26 @@ const held = (table, value, what) => {
 
 /**
  * @param {{kind: string, zone: string}} node
- * @returns {{tone: string, shape: string, outline: string}}
+ * @returns {{tone: string, shape: string, outline: string, tag: string, zoneTag: string}}
  */
 export function nodeAppearance(node) {
   return {
     tone: held(zoneTones, node.zone, 'zone'),
     shape: held(nodeShapes, node.kind, 'node kind'),
-    outline: node.kind === 'external' ? 'dashed' : 'solid',
+    outline: held(nodeOutlines, node.kind, 'node kind'),
+    tag: held(nodeTags, node.kind, 'node kind'),
+    zoneTag: held(zoneTags, node.zone, 'zone'),
   };
 }
 
 /**
  * @param {{kind: string}} relation
- * @returns {{tone: string, line: string}}
+ * @returns {{tone: string, line: string, tag: string}}
  */
 export function relationAppearance(relation) {
   return {
     tone: held(relationTones, relation.kind, 'relation kind'),
     line: held(relationLines, relation.kind, 'relation kind'),
+    tag: held(relationTags, relation.kind, 'relation kind'),
   };
 }

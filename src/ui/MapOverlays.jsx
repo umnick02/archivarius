@@ -1,15 +1,30 @@
 import { useArchitecture } from './context.jsx';
 import { ImplementationMark } from './ImplementationMark.jsx';
+import { Legend } from './Legend.jsx';
+import { Overview } from './Overview.jsx';
 import { relationTones } from '../model/appearance.mjs';
 
-// Drawn inside the pane: the legend that reads the implementation marks, and the
-// arrow heads the edges point with, sized against the current zoom so they hold
-// their apparent size. Markers are namespaced per instance so two maps on one
-// page cannot claim the same definition.
-export function MapOverlays({ zoom }) {
+// Drawn inside the pane: the constant overview a reader keeps their place in, the
+// key that reads the drawing itself, the legend that reads the implementation
+// marks, what the selected part exchanges with, and the arrow heads the edges
+// point with, sized against the current zoom so they hold their apparent size.
+// Markers are namespaced per instance so two maps on one page cannot claim the
+// same definition.
+//
+// The neighbours are the one place the map answers "and then what?": a part's
+// exchanges in the current filtered view, each a way to follow the relation to the
+// other end. The grouping is decided in `model/address.mjs`; here it is only
+// drawn.
+const sides = ['incoming', 'outgoing'];
+
+export function MapOverlays({ zoom, neighbours, follow, empty }) {
   const { graph, copy, instanceId } = useArchitecture();
   return (
     <>
+      {!!graph.nodes.size && <Overview />}
+      {/* The key draws itself from the appearance table, so a value the contract
+          gains appears beside the map without anybody writing a row. */}
+      <Legend />
       {!!graph.nodes.size && (
         <div
           className="implementation-legend"
@@ -24,6 +39,40 @@ export function MapOverlays({ zoom }) {
             </span>
           ))}
         </div>
+      )}
+      {empty && (
+        <p className="map-empty" data-control="filter-empty" role="status">
+          {copy.filters.empty}
+        </p>
+      )}
+      {!!neighbours?.total && (
+        <nav
+          className="map-neighbours"
+          data-control="neighbours"
+          aria-label={copy.neighbours.label}
+        >
+          {sides
+            .filter((side) => neighbours[side].length > 0)
+            .map((side) => (
+              <div className="neighbour-side" key={side}>
+                <span className="neighbour-label">{copy.neighbours[side]}</span>
+                {neighbours[side].map((entry) => (
+                  <button
+                    className="quiet"
+                    key={entry.part + '-' + entry.kind}
+                    data-neighbour={entry.part}
+                    data-relation-kind={entry.kind}
+                    onClick={() => follow(entry.part)}
+                  >
+                    {graph.nodes.get(entry.part).title}
+                    <span className="neighbour-kind">
+                      {copy.kinds[entry.kind]}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ))}
+        </nav>
       )}
       <svg width="0" height="0" className="marker-definitions">
         <defs>

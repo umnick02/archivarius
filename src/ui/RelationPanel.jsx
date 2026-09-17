@@ -1,4 +1,5 @@
-import { relationCount, useArchitecture } from './context.jsx';
+import { mapLegend, relationCount, useArchitecture } from './context.jsx';
+import { panelWords } from '../model/legend.mjs';
 import { ImplementationSummary } from './ImplementationSummary.jsx';
 import { ProjectConfirmation } from './ProjectInspector.jsx';
 import { aggregateImplementation } from '../model/implementation.mjs';
@@ -10,7 +11,7 @@ export function RelationPanel({ panel, fitNode, showRecord }) {
   return (
     <>
       <div className="eyebrow" data-control="panel-kind">
-        {copy.kinds[panel.bundle.kind]} ·{' '}
+        {panelWords(mapLegend(copy), 'relation', panel.bundle.kind)} ·{' '}
         {relationCount(copy, panel.bundle.relations.length)}
       </div>
       <h2>

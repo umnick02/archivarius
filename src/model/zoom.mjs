@@ -1,0 +1,157 @@
+/**
+ * Named levels of abstraction, the thresholds that open and close a container,
+ * and the positions a reader can return to. Zoom is a decision about the model,
+ * so it is decided here and only drawn in `ui/`: the map surface asks this module
+ * which containers are open, what the level it stands in is called, and where
+ * "back" leads.
+ *
+ * @typedef {{ key: string, parent: string | null, x: number, y: number,
+ *   width: number, height: number, depth: number }} Box
+ * @typedef {{ nodes: Record<string, Box> }} Layout
+ * @typedef {{ width: number, height: number }} Size
+ * @typedef {{ x: number, y: number, zoom: number }} Position
+ * @typedef {{ id: string, depth: number, container: string | null,
+ *   kinds: string[] }} Level
+ */
+
+// The abstraction the contract's kinds are ordered by: a level that reveals
+// several kinds at once is named after the most abstract one it shows, because
+// that is the reading the reader is being offered.
+export const kindOrder = ['subsystem', 'component', 'store', 'external'];
+
+// One tenth of the threshold is the band nothing happens in. It has to be wide
+// enough that a wheel notch or a trackpad's inertia cannot cross it twice, and
+// narrow enough that the reader never notices they are inside it.
+export const hysteresis = 0.1;
+
+/**
+ * The size a container's box has to reach on screen before it is worth opening,
+ * and the smaller size it has to fall back to before it closes again. Two
+ * different numbers are the whole point: a single threshold makes a box resting
+ * on it open and close on every pixel of drift.
+ *
+ * @param {Box} box
+ * @param {Size} size
+ * @param {number} [band]
+ * @returns {{ expand: Size, collapse: Size }}
+ */
+export function expansionThresholds(box, size, band = hysteresis) {
+  // A container is legible when its children have room: at most a chunk of the
+  // pane, never less than a card, and always the box's own proportions.
+  const width = Math.max(
+    160,
+    Math.min(
+      560,
+      size.width * 0.75,
+      ((size.height - 170) * 0.8 * box.width) / box.height,
+    ),
+  );
+  const height = Math.min(320, (width * box.height) / box.width);
+  return {
+    expand: { width, height },
+    collapse: { width: width * (1 - band), height: height * (1 - band) },
+  };
+}
+
+/**
+ * The containers open at a scale. `previous` is what was open a moment ago, and
+ * it is what makes the answer stable: an open container is held to the collapsing
+ * threshold and a closed one to the expanding threshold, so the band between them
+ * changes nothing.
+ *
+ * @param {{ layout: Layout, zoom: number, size: Size,
+ *   previous?: Set<string>, band?: number }} options
+ * @returns {Set<string>}
+ */
+export function expansionAt({
+  layout,
+  zoom,
+  size,
+  previous = new Set(),
+  band = hysteresis,
+}) {
+  const boxes = Object.values(layout.nodes);
+  const expanded = new Set();
+  for (const box of boxes) {
+    if (!boxes.some((child) => child.parent === box.key)) continue;
+    const thresholds = expansionThresholds(box, size, band);
+    const wanted = previous.has(box.key)
+      ? thresholds.collapse
+      : thresholds.expand;
+    if (box.width * zoom >= wanted.width && box.height * zoom >= wanted.height)
+      expanded.add(box.key);
+  }
+  return expanded;
+}
+
+/**
+ * The level a reader stands in, given the chain of containers the zoom has
+ * opened around their focus. The name is the abstraction the level reveals — the
+ * kinds of the parts now on screen — and not the container's own title, so two
+ * different subsystems opened to the same depth read as the same level.
+ *
+ * @param {{ nodes: Map<string, { kind: string, children?: { kind: string }[] }> }} graph
+ * @param {string[]} path
+ * @returns {Level}
+ */
+export function namedLevel(graph, path) {
+  for (let i = path.length - 1; i >= 0; i--) {
+    const children = graph.nodes.get(path[i])?.children;
+    if (!children?.length) continue;
+    const kinds = [...new Set(children.map((child) => child.kind))];
+    return {
+      id: kindOrder.find((kind) => kinds.includes(kind)) || 'system',
+      depth: i + 1,
+      container: path[i],
+      kinds,
+    };
+  }
+  return { id: 'system', depth: 0, container: null, kinds: [] };
+}
+
+/**
+ * The words for a level. Every one of them is a name the strings file already
+ * carries: the whole system, or one of the contract's kinds.
+ *
+ * @param {{ wholeSystem: string, nodeKinds: Record<string, string> }} copy
+ * @param {Level} level
+ * @returns {string}
+ */
+export function levelName(copy, level) {
+  return level.id === 'system'
+    ? copy.wholeSystem
+    : copy.nodeKinds[level.id] || copy.wholeSystem;
+}
+
+const samePosition = (a, b) =>
+  Math.abs(a.x - b.x) < 1 &&
+  Math.abs(a.y - b.y) < 1 &&
+  Math.abs(a.zoom / b.zoom - 1) < 0.005;
+
+/**
+ * A settled position added to the return path. Two positions a reader cannot
+ * tell apart are one position, so drift never fills the stack with places that
+ * are already here, and the stack is bounded: an old enough position is not a
+ * place anybody remembers.
+ *
+ * @param {Position[]} history
+ * @param {Position} position
+ * @param {{ limit?: number }} [options]
+ * @returns {Position[]}
+ */
+export function pushPosition(history, position, { limit = 8 } = {}) {
+  const last = history.at(-1);
+  if (last && samePosition(last, position)) return history;
+  return [...history, position].slice(-limit);
+}
+
+/**
+ * The position before the one the map is at, or nothing when there is no way
+ * back yet.
+ *
+ * @param {Position[]} history
+ * @returns {Position | null}
+ */
+export function previousPosition(history) {
+  return history.length > 1 ? history[history.length - 2] : null;
+}

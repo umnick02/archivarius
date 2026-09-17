@@ -5,30 +5,127 @@ import {
   nodeAppearance,
   relationAppearance,
   nodeShapes,
+  nodeOutlines,
+  nodeTags,
+  zoneTags,
   zoneTones,
+  relationTags,
   relationTones,
   relationLines,
   rootTones,
+  drawnEnums,
 } from '../src/model/appearance.mjs';
 import { shapeRadii } from '../src/ui/view.mjs';
 
-const schema = JSON.parse(
-  await fs.readFile(
-    new URL('../assets/architecture.schema.json', import.meta.url),
-    'utf8',
-  ),
-);
+const read = async (name) =>
+  JSON.parse(
+    await fs.readFile(new URL('../assets/' + name, import.meta.url), 'utf8'),
+  );
+const schema = await read('architecture.schema.json');
 const nodeEnum = (field) =>
   schema.$defs.nodeFields.properties[field].enum.slice();
 const relationEnum = schema.$defs.relationFields.properties.kind.enum.slice();
+
+// The authoring contract states the same closed enums as the rendering one, and
+// both are read here rather than copied: a value either schema gains has to
+// reach the appearance table before this suite is green again.
+const model = await read('model.schema.json');
+const branch = (type) =>
+  model.$defs.record.oneOf.find((one) => one.properties?.type?.const === type);
+const contractValues = {
+  kind: branch('component').properties.kind.enum.slice(),
+  zone: branch('component').properties.zone.enum.slice(),
+  relation: branch('interaction').properties.kind.enum.slice(),
+};
 
 // The appearance table is keyed on the rendering contract's closed enums, so a
 // value the schema allows can never reach a renderer without a display token.
 test('every contract value the map can carry has exactly one display token', () => {
   assert.deepEqual(Object.keys(zoneTones).sort(), nodeEnum('zone').sort());
   assert.deepEqual(Object.keys(nodeShapes).sort(), nodeEnum('kind').sort());
+  assert.deepEqual(Object.keys(nodeOutlines).sort(), nodeEnum('kind').sort());
   assert.deepEqual(Object.keys(relationTones).sort(), relationEnum.sort());
   assert.deepEqual(Object.keys(relationLines).sort(), relationEnum.sort());
+});
+
+// Both shipped schemas close the same enums; if they ever disagreed, one surface
+// would draw a value the other cannot state.
+test('the two shipped contracts close the same drawn enums', () => {
+  assert.deepEqual(contractValues.kind.slice().sort(), nodeEnum('kind').sort());
+  assert.deepEqual(contractValues.zone.slice().sort(), nodeEnum('zone').sort());
+  assert.deepEqual(
+    contractValues.relation.slice().sort(),
+    relationEnum.slice().sort(),
+  );
+  assert.deepEqual(
+    Object.keys(drawnEnums).sort(),
+    Object.keys(contractValues).sort(),
+  );
+});
+
+// Colour is not a channel on its own: a reader who cannot separate two hues, or
+// who prints the page, still has to be able to read every value. So each drawn
+// enum value carries at least one token that is not a tone.
+test('no drawn contract value is carried by its tone alone', () => {
+  for (const [group, values] of Object.entries(contractValues)) {
+    const spec = drawnEnums[group];
+    assert(spec, 'the appearance table draws no ' + group);
+    for (const value of values) {
+      const channels = Object.entries(spec.channels).filter(
+        ([, table]) =>
+          Object.hasOwn(table, value) &&
+          typeof table[value] === 'string' &&
+          table[value].length,
+      );
+      assert(
+        channels.length,
+        group + ' ' + value + ' has a tone and no other channel',
+      );
+      for (const [name, table] of channels)
+        assert(
+          !/^#[0-9a-f]{3,8}$/i.test(table[value]),
+          group + ' ' + value + ' spends a colour on channel ' + name,
+        );
+    }
+    // And one of those channels has to separate every value of the enum, or two
+    // values would read alike everywhere colour is missing.
+    const separating = Object.entries(spec.channels).filter(([, table]) => {
+      const drawn = values.map((value) => table[value]);
+      return new Set(drawn).size === drawn.length;
+    });
+    assert(
+      separating.length,
+      'no colourless channel tells the values of ' + group + ' apart',
+    );
+  }
+});
+
+// A token is what a legend, a card badge and a panel all print, so it stays
+// short, colour-free and unique inside its enum.
+test('every drawn value carries a short colourless token', () => {
+  for (const [group, table] of Object.entries({
+    kind: nodeTags,
+    zone: zoneTags,
+    relation: relationTags,
+  })) {
+    assert.deepEqual(
+      Object.keys(table).sort(),
+      contractValues[group].slice().sort(),
+    );
+    for (const value of contractValues[group]) {
+      assert.match(table[value], /^[A-Z]{2,5}$/, group + ' ' + value);
+    }
+    assert.equal(
+      new Set(Object.values(table)).size,
+      contractValues[group].length,
+      'two values of ' + group + ' share a token',
+    );
+  }
+  assert.equal(
+    nodeAppearance({ kind: 'store', zone: 'pure' }).tag,
+    nodeTags.store,
+  );
+  assert.equal(relationAppearance({ kind: 'state' }).tag, relationTags.state);
 });
 
 test('appearance answers with a tone, a shape and an outline for any allowed node', () => {

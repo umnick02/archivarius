@@ -1,6 +1,7 @@
 import { Position } from '@xyflow/react';
 import { ArchitectureGraph } from '../model/graph.mjs';
 import { rootTones } from '../model/appearance.mjs';
+import { expansionAt } from '../model/zoom.mjs';
 
 // The palette is the model's display vocabulary; this surface only decides the
 // pixels it is drawn with. Dash lengths belong here, tones never do.
@@ -13,6 +14,29 @@ export const shapeRadii = {
   cylinder: (w, h) => w / 2 + 'px / ' + Math.min(22, h * 0.16) + 'px',
   stadium: (w, h) => h / 2 + 'px',
 };
+
+// The sizes a card draws its words at. The numbers are the card's geometry — a
+// title is measured against the box it has to fit — but the unit is the reader's:
+// every one is stated in rem, so a doubled text setting doubles the card's text
+// while the arithmetic stays the one the layout asked for. `box` is the card in
+// screen pixels (its layout size times the camera's zoom).
+const rem = (px) => px / 16 + 'rem';
+export function cardMetrics(box, expanded) {
+  const w = box.width,
+    h = box.height;
+  return {
+    pad: rem(Math.min(22, w * 0.065)),
+    title: rem(
+      expanded
+        ? Math.min(17, Math.max(11, h * 0.055))
+        : Math.min(box.depth === 1 ? 21 : 18, Math.max(9, w / 12)),
+    ),
+    small: rem(10),
+    body: rem(13),
+    gap: rem(10),
+    mark: rem(Math.min(18, Math.max(8, w * 0.1), h * 0.3)),
+  };
+}
 
 export function groupInteractions(edges, incoming = false) {
   const groups = new Map();
@@ -47,25 +71,41 @@ export function edgeImplementationPoint(edge, zoom) {
   };
 }
 
+// Which containers a scale has opened is a decision about abstraction, so it is
+// made in `model/zoom.mjs`; this surface only passes on the scale it is drawn at.
 export function expandedAt(layout, zoom, size, previous = new Set()) {
-  const expanded = new Set();
-  for (const n of Object.values(layout.nodes)) {
-    if (!Object.values(layout.nodes).some((child) => child.parent === n.key))
-      continue;
-    const factor = previous.has(n.key) ? 0.9 : 1;
-    const width = Math.max(
-      160,
-      Math.min(
-        560,
-        size.width * 0.75,
-        ((size.height - 170) * 0.8 * n.width) / n.height,
-      ),
-    );
-    const height = Math.min(320, (width * n.height) / n.width);
-    if (n.width * zoom >= width * factor && n.height * zoom >= height * factor)
-      expanded.add(n.key);
-  }
-  return expanded;
+  return expansionAt({ layout, zoom, size, previous });
+}
+
+// The overview is drawn from the layout rather than from what is mounted, so it
+// keeps showing the whole snapshot while the detail mounts a screenful of it.
+// `box` is the little view's own pixels; the window is the part of the snapshot
+// the detail is currently showing, in those same pixels.
+export function overviewFrame(bounds, viewport, size, box) {
+  const scale = Math.min(box.width / bounds.width, box.height / bounds.height);
+  const offsetX = (box.width - bounds.width * scale) / 2 - bounds.x * scale;
+  const offsetY = (box.height - bounds.height * scale) / 2 - bounds.y * scale;
+  return {
+    scale,
+    offsetX,
+    offsetY,
+    window: {
+      x: offsetX + (-viewport.x / viewport.zoom) * scale,
+      y: offsetY + (-viewport.y / viewport.zoom) * scale,
+      width: (size.width / viewport.zoom) * scale,
+      height: (size.height / viewport.zoom) * scale,
+    },
+  };
+}
+
+// The inverse: a point a reader touched inside the overview becomes the position
+// the detail moves to, centred on what they pointed at.
+export function overviewViewport(frame, point, size, zoom) {
+  return {
+    x: size.width / 2 - ((point.x - frame.offsetX) / frame.scale) * zoom,
+    y: size.height / 2 - ((point.y - frame.offsetY) / frame.scale) * zoom,
+    zoom,
+  };
 }
 
 export function isVisible(key, graph, expanded) {
@@ -191,7 +231,10 @@ export function projectedEdges(model, graph, layout, expanded, completion) {
   });
 }
 
-export function placeEdgeLabels(edges, nodes, viewport, size, layer) {
+// Labels are placed for the arrows the view actually draws. A layer is a
+// projection now, not a tint, so an off-layer arrow never reaches this far and
+// there is nothing here to hide.
+export function placeEdgeLabels(edges, nodes, viewport, size) {
   const { x, y, zoom } = viewport;
   const obstacles = nodes
     .filter((n) => !n.hidden)
@@ -217,8 +260,6 @@ export function placeEdgeLabels(edges, nodes, viewport, size, layer) {
     a.y < b.y + b.height &&
     a.y + a.height > b.y;
   return edges.map((edge) => {
-    if (layer !== 'all' && edge.bundle.kind !== layer)
-      return { ...edge, labelVisible: false };
     const width =
         edge.bundle.label.length * 5.7 +
         18 +
