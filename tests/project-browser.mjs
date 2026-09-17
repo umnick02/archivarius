@@ -14,7 +14,10 @@ const project = JSON.parse(
   ),
 );
 const copy = JSON.parse(
-  await fs.readFile(new URL('../assets/project.json', import.meta.url), 'utf8'),
+  await fs.readFile(
+    new URL('../assets/archivarius-project-strings.json', import.meta.url),
+    'utf8',
+  ),
 );
 const harness = await startHarness();
 const b = harness.browser;

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ProjectChange",
+  "type": "object",
+  "additionalProperties": false,
+  "minProperties": 1,
+  "properties": {
+    "put": {
+      "type": "array",
+      "items": {
+        "$ref": "archivarius-model.schema.json#/$defs/record"
+      }
+    },
+    "remove": {
+      "$ref": "archivarius-model.schema.json#/$defs/keys"
+    },
+    "review": {
+      "$ref": "archivarius-model.schema.json#/$defs/keys"
+    },
+    "reason": {
+      "$ref": "archivarius-model.schema.json#/$defs/text"
+    },
+    "at": {
+      "$ref": "archivarius-model.schema.json#/$defs/instant"
+    },
+    "by": {
+      "$ref": "archivarius-model.schema.json#/$defs/text"
+    },
+    "bindings": {
+      "$ref": "archivarius-model.schema.json#/properties/bindings"
+    },
+    "title": {
+      "$ref": "archivarius-model.schema.json#/properties/title"
+    },
+    "root": {
+      "$ref": "archivarius-model.schema.json#/properties/root"
+    },
+    "entry": {
+      "$ref": "archivarius-model.schema.json#/properties/entry"
+    }
+  }
+}

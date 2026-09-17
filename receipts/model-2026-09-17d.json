@@ -1,0 +1,234 @@
+{
+  "version": 1,
+  "check": "check-model",
+  "contract": "ede45027cd4fef963304bf9acdceeb0baaa97d2e13b50110a12ffd6c4db680d1",
+  "realization": "b11e6e82b195f926ab9f47b8114e4d81324792df737256c147f517f2b5e16333",
+  "bindings": {
+    "apply-change": {
+      "path": "src/node.mjs",
+      "digest": "e040f925e31c62ff51374731472d685eb2ecc0c98cfc2305225b44eae4808c81"
+    },
+    "archivarius": {
+      "path": "package.json",
+      "digest": "a89b57056ce75037a326a0daaa2a346a460438ccde12983dda1c5eb2c6c68a71"
+    },
+    "basis-value": {
+      "path": "src/model/project-digest.mjs",
+      "digest": "d05e6d59649820e57aa97ae93ef168e775b2c47a00a09aa7ac9dd9f5fd1f261f"
+    },
+    "change-input": {
+      "path": "src/model/project-authoring.mjs",
+      "digest": "6167a49396d2e581c35d0b4b75e81574d81c2d58ed337e04fb87c9dd67b9dcde"
+    },
+    "check-references": {
+      "path": "src/model/project-contract.mjs",
+      "digest": "d1906838268d4a57dc4227d7ce8837c16507b47c0d3727b0a7215801b7b9312e"
+    },
+    "cli": {
+      "path": "src/cli.mjs",
+      "digest": "dd97c53150e684a09757cee0f2797b24347695bf2024ca235dddd9d2c388c701"
+    },
+    "compute-basis": {
+      "path": "src/model/project-digest.mjs",
+      "digest": "d05e6d59649820e57aa97ae93ef168e775b2c47a00a09aa7ac9dd9f5fd1f261f"
+    },
+    "core": {
+      "parts": [
+        {
+          "path": "src/core.mjs",
+          "digest": "e033feca174947767f96039278263379101953ab878ea91696478fc048b0426d"
+        },
+        {
+          "path": "src/model/parse.mjs",
+          "digest": "e31b118e7fffad84529963ba22287ae17798784310496dc4653c56bb9f08e403"
+        },
+        {
+          "path": "src/model/project-contract.mjs",
+          "digest": "d1906838268d4a57dc4227d7ce8837c16507b47c0d3727b0a7215801b7b9312e"
+        },
+        {
+          "path": "src/model/project-architecture.mjs",
+          "digest": "aae94eaedca11b85656aa0c57b21836af89949fd754bd30f085aa885deb37574"
+        },
+        {
+          "path": "src/model/project-analysis.mjs",
+          "digest": "caeffe1982b28ef43d23804797e2daeeac6c15c822e63acaf0a46295ff8447f2"
+        }
+      ]
+    },
+    "digest": {
+      "path": "src/model/digest.mjs",
+      "digest": "cff43d0d16a94ad4490162347bca9672998b938f594eb0a19413c8afe37fc5f6"
+    },
+    "evidence": {
+      "path": "src/model/evidence.mjs",
+      "digest": "37662fc84d17d9446aac809fc108af42ddbbbb367c7dddee6b8c22a66793d4f9"
+    },
+    "evidence-artifact": {
+      "path": "src/model/evidence.mjs",
+      "digest": "37662fc84d17d9446aac809fc108af42ddbbbb367c7dddee6b8c22a66793d4f9"
+    },
+    "graph": {
+      "path": "src/model/graph.mjs",
+      "digest": "cc7b2e6d0a55869d32467bbd0d51a95f2095301f4ea18cdccb0c4ae3a9c818f9"
+    },
+    "hash-evidence": {
+      "path": "src/model/evidence.mjs",
+      "digest": "37662fc84d17d9446aac809fc108af42ddbbbb367c7dddee6b8c22a66793d4f9"
+    },
+    "hash-record": {
+      "path": "src/ui/ProjectInspector.jsx",
+      "digest": "27d7a4dd1655ddcd1e1cbb8f5bdb81d16c2379fd8d077324d0d1be06a40b92a4"
+    },
+    "index-nodes": {
+      "path": "src/ui/useMapProjection.jsx",
+      "digest": "cbf8de521ed62ba6beef32f23aa1e1f77396e283d8c1aee69914a9d89bf04c37"
+    },
+    "inspect-record": {
+      "path": "src/index.jsx",
+      "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+    },
+    "inspector": {
+      "parts": [
+        {
+          "path": "src/ui/ProjectInspector.jsx",
+          "digest": "27d7a4dd1655ddcd1e1cbb8f5bdb81d16c2379fd8d077324d0d1be06a40b92a4"
+        },
+        {
+          "path": "src/ui/Inspector.jsx",
+          "digest": "779d62ce7dc73c78e7f5675837875699b7147c4422d34b5a5f17f24071727c43"
+        },
+        {
+          "path": "src/ui/NodePanel.jsx",
+          "digest": "c05ce9d823acefb9e67bbb315f2399844f94903f99326585d5320421ede729a9"
+        },
+        {
+          "path": "src/ui/RelationPanel.jsx",
+          "digest": "28b7d80e12b9c9ed21f12d448a2b830cd8fddc04962f3a519c06c79fcfe485b4"
+        },
+        {
+          "path": "src/ui/Reach.jsx",
+          "digest": "19f9638ef48276891145208929ff02190b5d20903c291b0b556cfe7f864bf192"
+        },
+        {
+          "path": "src/ui/Interactions.jsx",
+          "digest": "fc05c6c59fe220e0ac437c37d429c9ef7707b58ce2c95d86b2d2f1823bcc09cc"
+        },
+        {
+          "path": "src/ui/ProjectOverview.jsx",
+          "digest": "65d3ff8e056faa2a9606240b71b4044b79cb86fb1f54e663255d30b89ad2cc75"
+        },
+        {
+          "path": "src/ui/ProjectDocument.jsx",
+          "digest": "6d589d2855243b366434b1a49b593a807c07f16a83af5c6c61df00559d691b54"
+        },
+        {
+          "path": "src/ui/usePanelNavigation.jsx",
+          "digest": "7a626e89deffc4ccf9dd07ec47ff6359fc90e885757bef8c1fc2683d55afb425"
+        }
+      ]
+    },
+    "load-model": {
+      "path": "src/ui/load.mjs",
+      "digest": "2a49d0d47803ec30d4dd78e15ba48e25f145e9ee7089067bc1c209f63a3df0f7"
+    },
+    "map": {
+      "parts": [
+        {
+          "path": "src/ui/ArchitectureMap.jsx",
+          "digest": "c59df23f11b953bdeb9da1df39a5938f36e652c5fba4312225102d06f245cd65"
+        },
+        {
+          "path": "src/ui/App.jsx",
+          "digest": "dc72a2776f0f605f46810b181e03248557738117c34dd6fa6da3cb94fe12d314"
+        },
+        {
+          "path": "src/ui/ArchitectureNode.jsx",
+          "digest": "0dd3280c1d68402514f8ff4ee53a6d939b97f3929b5987016f75d16af2a6229a"
+        },
+        {
+          "path": "src/ui/ArchitectureEdge.jsx",
+          "digest": "5337ca3c5ff6e6cc6f8dcf18e40d2c1f5ccdc4a98e7a10b2829118ab51511f48"
+        },
+        {
+          "path": "src/ui/MapChrome.jsx",
+          "digest": "489ef7880cf52fcf9ba419590c5ae5f7916e1e38b611a336f54f39d375fd5522"
+        },
+        {
+          "path": "src/ui/MapHeader.jsx",
+          "digest": "77fa3d0120f96ee47693be67ec7846812323403925fba51c4af776392968dfdd"
+        },
+        {
+          "path": "src/ui/MapOverlays.jsx",
+          "digest": "4217a3999146e47537ce84dcc2af4c68f02b82b4c30c90a166fa782645454640"
+        },
+        {
+          "path": "src/ui/Overview.jsx",
+          "digest": "3424c65204922b6102d0cda022a3b9cb28b2aeff9e7b5324711c4c4ffca1c75c"
+        },
+        {
+          "path": "src/ui/Filters.jsx",
+          "digest": "fe1eef67f353c963392ba411288858bb74f60e5ea2e37357357199c4f65b8b53"
+        },
+        {
+          "path": "src/ui/useMapProjection.jsx",
+          "digest": "cbf8de521ed62ba6beef32f23aa1e1f77396e283d8c1aee69914a9d89bf04c37"
+        }
+      ]
+    },
+    "model": {
+      "path": "assets/archivarius-model.schema.json",
+      "digest": "a5338d64aa4b756cdcc1ae829316d5333640ebce52e603a9d4a10a587190006e"
+    },
+    "model-source": {
+      "path": "src/ui/load.mjs",
+      "digest": "2a49d0d47803ec30d4dd78e15ba48e25f145e9ee7089067bc1c209f63a3df0f7"
+    },
+    "node-api": {
+      "path": "src/node.mjs",
+      "digest": "e040f925e31c62ff51374731472d685eb2ecc0c98cfc2305225b44eae4808c81"
+    },
+    "node-index": {
+      "path": "src/model/graph.mjs",
+      "digest": "cc7b2e6d0a55869d32467bbd0d51a95f2095301f4ea18cdccb0c4ae3a9c818f9"
+    },
+    "record-detail": {
+      "path": "src/model/project-view.mjs",
+      "digest": "c5d55cdf4bf062e2bba86eec4a3cd0faea2c591f005462c327312517b337cbf2"
+    },
+    "reference-set": {
+      "path": "src/model/records.mjs",
+      "digest": "169993d9b21260390e6b08cf327c8319c0678a0c5331d632f6d2c7db3ea74eea"
+    },
+    "render": {
+      "path": "src/index.jsx",
+      "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+    },
+    "validate-before-verify": {
+      "path": "src/model/evidence.mjs",
+      "digest": "37662fc84d17d9446aac809fc108af42ddbbbb367c7dddee6b8c22a66793d4f9"
+    },
+    "verify-evidence": {
+      "path": "src/node.mjs",
+      "digest": "e040f925e31c62ff51374731472d685eb2ecc0c98cfc2305225b44eae4808c81"
+    }
+  },
+  "command": [
+    "node",
+    "--test",
+    "tests/model.test.mjs",
+    "tests/project.test.mjs",
+    "tests/contract.test.mjs",
+    "tests/project-authoring.test.mjs"
+  ],
+  "startedAt": "2026-09-17T19:10:02.559Z",
+  "finishedAt": "2026-09-17T19:10:03.023Z",
+  "outcome": "pass",
+  "exitCode": 0,
+  "stdout": "✔ a contract shape names the version, the fields and the bounds a schema promises (1.62075ms)\n✔ each variant of a discriminated record is a shape of its own (0.275458ms)\n✔ a new optional field, a new value and a looser bound grade as additive (0.657667ms)\n✔ a removed field, a newly required field, a removed value and a tighter bound grade as breaking (0.716458ms)\n✔ a whole variant or definition that disappears is breaking, a new one is additive (0.449875ms)\n✔ a closed object that opens is additive and one that closes is breaking (0.683208ms)\n✔ the shipped contracts grade as unchanged against themselves (7.053958ms)\n✔ an optional field added to the shipped contract grades as additive (3.475ms)\n✔ the shipped contracts describe every record type as a shape of its own (1.352208ms)\n✔ a contract version is read from a schema, a model or a number (0.508292ms)\n✔ a snapshot from a newer contract major is refused by name (0.224916ms)\n✔ reading a model from a newer contract major stops at the version, not at every field it cannot read (0.596542ms)\n✔ example meets both file schema and whole-graph contract (4.25475ms)\n✔ file schema and runtime reject malformed structure and unknown fields (7.777333ms)\n✔ graph validation rejects missing endpoints, placeholders and disconnected islands (1.168208ms)\n✔ confirmation requires verified parts and all internal and boundary interactions (1.214542ms)\n✔ every containment cut preserves interaction membership and conservative confirmation (0.532208ms)\n✔ legacy partial marks preserve separate node and relation identities (0.263416ms)\n✔ objects are copied, files parsed and cancellation honored without executing data (0.966417ms)\n✔ diagnostics identify structural fields and missing graph endpoints without mutating input (0.549959ms)\n✔ strict JSON rejects duplicate properties including escaped names and reports their location (0.328417ms)\n✔ search finds a part by key, name, kind and zone in both accepted contract versions (0.543458ms)\n✔ search ranks an exact key, then a title prefix, then a title substring, then a kind or zone (0.308958ms)\n✔ a query that matches nothing returns an empty list instead of throwing (0.125417ms)\n✔ a rejected change names the record, the field, the value read and the accepted shape (20.065208ms)\n✔ a diagnostic summarises the value it read instead of carrying it (4.002791ms)\n✔ a broken reference and a stale receipt name the record, the field, the value read and what was accepted (9.798209ms)\n✔ scoped reviews retain guards and owning prose without unrelated or cosmetic invalidation (114.355875ms)\n✔ disjoint receipts rebase but changed, trimmed and newly expanded reads reject (21.452583ms)\n✔ archive migration preserves exact models, appends immutable segments and fails closed (138.919042ms)\n✔ scoped check reviews never make results portable to a different full contract (21.585417ms)\n✔ scoped bases must match the preserved source snapshot, including after unrelated edits (15.843333ms)\n✔ a review records the definitions it rested on, when and by whom (10.713875ms)\n✔ requirements can be explored before architecture exists without inventing participants (6.30075ms)\n✔ compact project is valid, typed, navigable and deliberately incomplete (120.329125ms)\n✔ confirmation needs current external evidence, complete coverage and integration (18.524542ms)\n✔ realization is claimed for the bound record, not for whatever else is bound (1.754417ms)\n✔ partial confirmation requires current criterion evidence and still needs integration for the whole component (4.485292ms)\n✔ completed prerequisites are not counted as implementation progress of the dependent task (1.182125ms)\n✔ all declared unit checks are required and full criterion coverage still does not replace integration (2.247666ms)\n✔ component completion follows contained parts and contracts without propagating unrelated project gaps (2.361291ms)\n✔ unchecked applicable requirements and task prerequisites prevent full confirmation even when existing criteria pass (1.175583ms)\n✔ LLM context carries exact definitions, inherited constraints and an unforgeable-by-trimming read set (39.148333ms)\nℹ tests 43\nℹ suites 0\nℹ pass 43\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 421.145291\n",
+  "stderr": "",
+  "output": {
+    "bytes": 4350,
+    "digest": "8d7c90ef2f1f2ea73c71603c29fa6a4fca6dd28b9a72cfe86c6b41eb5b38ed1b"
+  }
+}

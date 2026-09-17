@@ -159,7 +159,10 @@ test('the history command writes the document and refuses drift', async (t) => {
 });
 
 test('the help text offers history', async () => {
-  const help = await fs.readFile(new URL('assets/cli-help.txt', root), 'utf8');
+  const help = await fs.readFile(
+    new URL('assets/archivarius-cli-help.txt', root),
+    'utf8',
+  );
   assert.match(help, /^\s+archivarius history <project\.json> --output/m);
 });
 

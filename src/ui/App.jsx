@@ -787,6 +787,12 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
           edgeTypes={edgeTypes}
           minZoom={Math.min(0.025, overviewZoom)}
           maxZoom={maxZoom}
+          // Mount what is visible. A model of hundreds of parts places every box the
+          // level asks for, but only the ones inside the viewport - and a margin
+          // around it - are kept in the document; the rest are released and mounted
+          // again when the reader pans to them. Nothing here is focusable or
+          // draggable, so a released box costs the reader nothing.
+          onlyRenderVisibleElements
           nodesDraggable={false}
           nodesConnectable={false}
           elementsSelectable={false}

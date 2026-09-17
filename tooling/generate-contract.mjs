@@ -9,19 +9,19 @@ const output = new URL('src/generated/', root);
 await fs.mkdir(output, { recursive: true });
 for (const [file, name, validatorName, typeName] of [
   [
-    'architecture.schema.json',
+    'archivarius-architecture.schema.json',
     'ArchitectureModel',
     'validate.mjs',
     'model.d.mts',
   ],
   [
-    'model.schema.json',
+    'archivarius-model.schema.json',
     'ProjectModel',
     'validate-project.mjs',
     'project.d.mts',
   ],
   [
-    'change.schema.json',
+    'archivarius-change.schema.json',
     'ProjectChange',
     'validate-change.mjs',
     'change.d.mts',
@@ -39,9 +39,12 @@ for (const [file, name, validatorName, typeName] of [
   if (name === 'ProjectChange')
     ajv.addSchema(
       JSON.parse(
-        await fs.readFile(new URL('assets/model.schema.json', root), 'utf8'),
+        await fs.readFile(
+          new URL('assets/archivarius-model.schema.json', root),
+          'utf8',
+        ),
       ),
-      'model.schema.json',
+      'archivarius-model.schema.json',
     );
   const validator = ajv.compile(schema);
   const bundled = await build({

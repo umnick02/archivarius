@@ -24,7 +24,7 @@ const run = (args) =>
 
 test('documentation uses every component and original interaction, with stable links and bytes', async () => {
   const strings = JSON.parse(
-    await fs.readFile(new URL('assets/strings.json', root), 'utf8'),
+    await fs.readFile(new URL('assets/archivarius-strings.json', root), 'utf8'),
   );
   const markdown = await generateDocumentation(model);
   assert.equal(markdown, renderDocumentation(model, strings));
@@ -214,7 +214,10 @@ test('CLI validates whole models, detects documentation drift and preserves file
 // The help text is what a user reads and the model record is what an agent
 // reads; a command that reaches one and not the other is drift nobody notices.
 test('the help text and the documented CLI record name the same commands', async () => {
-  const help = await fs.readFile(new URL('assets/cli-help.txt', root), 'utf8');
+  const help = await fs.readFile(
+    new URL('assets/archivarius-cli-help.txt', root),
+    'utf8',
+  );
   const commands = [...help.matchAll(/^\s+archivarius (\w[\w-]*)/gm)].map(
     (match) => match[1],
   );

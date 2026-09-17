@@ -14,7 +14,7 @@ import { root, input } from './framework.mjs';
 // for a reading it does not need.
 export const files = {
   archivarius: 'package.json',
-  model: 'assets/model.schema.json',
+  model: 'assets/archivarius-model.schema.json',
   // The core is what it claims: the parse and validation surface, the projection
   // the map draws and the freshness and completion analysis - republished by
   // src/core.mjs, carried by these files.
@@ -31,8 +31,33 @@ export const files = {
   cli: 'src/cli.mjs',
   evidence: 'src/model/evidence.mjs',
   render: 'src/index.jsx',
-  map: 'src/ui/ArchitectureMap.jsx',
-  inspector: 'src/ui/ProjectInspector.jsx',
+  // The map is not one file: the mount, the surface that draws it, a card, an
+  // edge, the chrome around it and the geometry it derives all carry it. A part
+  // that claims one file of several is a binding that lets the rest change
+  // unread, so each file the map rests on is named.
+  map: [
+    { path: 'src/ui/ArchitectureMap.jsx' },
+    { path: 'src/ui/App.jsx' },
+    { path: 'src/ui/ArchitectureNode.jsx' },
+    { path: 'src/ui/ArchitectureEdge.jsx' },
+    { path: 'src/ui/MapChrome.jsx' },
+    { path: 'src/ui/MapHeader.jsx' },
+    { path: 'src/ui/MapOverlays.jsx' },
+    { path: 'src/ui/Overview.jsx' },
+    { path: 'src/ui/Filters.jsx' },
+    { path: 'src/ui/useMapProjection.jsx' },
+  ],
+  inspector: [
+    { path: 'src/ui/ProjectInspector.jsx' },
+    { path: 'src/ui/Inspector.jsx' },
+    { path: 'src/ui/NodePanel.jsx' },
+    { path: 'src/ui/RelationPanel.jsx' },
+    { path: 'src/ui/Reach.jsx' },
+    { path: 'src/ui/Interactions.jsx' },
+    { path: 'src/ui/ProjectOverview.jsx' },
+    { path: 'src/ui/ProjectDocument.jsx' },
+    { path: 'src/ui/usePanelNavigation.jsx' },
+  ],
   'model-source': 'src/ui/load.mjs',
   'hash-evidence': 'src/model/evidence.mjs',
   'validate-before-verify': 'src/model/evidence.mjs',
@@ -46,6 +71,8 @@ export const files = {
   'check-references': 'src/model/project-contract.mjs',
   'compute-basis': 'src/model/project-digest.mjs',
   'inspect-record': 'src/index.jsx',
+  'node-index': 'src/model/graph.mjs',
+  'index-nodes': 'src/ui/useMapProjection.jsx',
   'apply-change': 'src/node.mjs',
   'verify-evidence': 'src/node.mjs',
 };

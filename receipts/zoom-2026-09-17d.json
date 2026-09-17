@@ -1,0 +1,231 @@
+{
+  "version": 1,
+  "check": "check-zoom",
+  "contract": "ede45027cd4fef963304bf9acdceeb0baaa97d2e13b50110a12ffd6c4db680d1",
+  "realization": "b11e6e82b195f926ab9f47b8114e4d81324792df737256c147f517f2b5e16333",
+  "bindings": {
+    "apply-change": {
+      "path": "src/node.mjs",
+      "digest": "e040f925e31c62ff51374731472d685eb2ecc0c98cfc2305225b44eae4808c81"
+    },
+    "archivarius": {
+      "path": "package.json",
+      "digest": "a89b57056ce75037a326a0daaa2a346a460438ccde12983dda1c5eb2c6c68a71"
+    },
+    "basis-value": {
+      "path": "src/model/project-digest.mjs",
+      "digest": "d05e6d59649820e57aa97ae93ef168e775b2c47a00a09aa7ac9dd9f5fd1f261f"
+    },
+    "change-input": {
+      "path": "src/model/project-authoring.mjs",
+      "digest": "6167a49396d2e581c35d0b4b75e81574d81c2d58ed337e04fb87c9dd67b9dcde"
+    },
+    "check-references": {
+      "path": "src/model/project-contract.mjs",
+      "digest": "d1906838268d4a57dc4227d7ce8837c16507b47c0d3727b0a7215801b7b9312e"
+    },
+    "cli": {
+      "path": "src/cli.mjs",
+      "digest": "dd97c53150e684a09757cee0f2797b24347695bf2024ca235dddd9d2c388c701"
+    },
+    "compute-basis": {
+      "path": "src/model/project-digest.mjs",
+      "digest": "d05e6d59649820e57aa97ae93ef168e775b2c47a00a09aa7ac9dd9f5fd1f261f"
+    },
+    "core": {
+      "parts": [
+        {
+          "path": "src/core.mjs",
+          "digest": "e033feca174947767f96039278263379101953ab878ea91696478fc048b0426d"
+        },
+        {
+          "path": "src/model/parse.mjs",
+          "digest": "e31b118e7fffad84529963ba22287ae17798784310496dc4653c56bb9f08e403"
+        },
+        {
+          "path": "src/model/project-contract.mjs",
+          "digest": "d1906838268d4a57dc4227d7ce8837c16507b47c0d3727b0a7215801b7b9312e"
+        },
+        {
+          "path": "src/model/project-architecture.mjs",
+          "digest": "aae94eaedca11b85656aa0c57b21836af89949fd754bd30f085aa885deb37574"
+        },
+        {
+          "path": "src/model/project-analysis.mjs",
+          "digest": "caeffe1982b28ef43d23804797e2daeeac6c15c822e63acaf0a46295ff8447f2"
+        }
+      ]
+    },
+    "digest": {
+      "path": "src/model/digest.mjs",
+      "digest": "cff43d0d16a94ad4490162347bca9672998b938f594eb0a19413c8afe37fc5f6"
+    },
+    "evidence": {
+      "path": "src/model/evidence.mjs",
+      "digest": "37662fc84d17d9446aac809fc108af42ddbbbb367c7dddee6b8c22a66793d4f9"
+    },
+    "evidence-artifact": {
+      "path": "src/model/evidence.mjs",
+      "digest": "37662fc84d17d9446aac809fc108af42ddbbbb367c7dddee6b8c22a66793d4f9"
+    },
+    "graph": {
+      "path": "src/model/graph.mjs",
+      "digest": "cc7b2e6d0a55869d32467bbd0d51a95f2095301f4ea18cdccb0c4ae3a9c818f9"
+    },
+    "hash-evidence": {
+      "path": "src/model/evidence.mjs",
+      "digest": "37662fc84d17d9446aac809fc108af42ddbbbb367c7dddee6b8c22a66793d4f9"
+    },
+    "hash-record": {
+      "path": "src/ui/ProjectInspector.jsx",
+      "digest": "27d7a4dd1655ddcd1e1cbb8f5bdb81d16c2379fd8d077324d0d1be06a40b92a4"
+    },
+    "index-nodes": {
+      "path": "src/ui/useMapProjection.jsx",
+      "digest": "cbf8de521ed62ba6beef32f23aa1e1f77396e283d8c1aee69914a9d89bf04c37"
+    },
+    "inspect-record": {
+      "path": "src/index.jsx",
+      "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+    },
+    "inspector": {
+      "parts": [
+        {
+          "path": "src/ui/ProjectInspector.jsx",
+          "digest": "27d7a4dd1655ddcd1e1cbb8f5bdb81d16c2379fd8d077324d0d1be06a40b92a4"
+        },
+        {
+          "path": "src/ui/Inspector.jsx",
+          "digest": "779d62ce7dc73c78e7f5675837875699b7147c4422d34b5a5f17f24071727c43"
+        },
+        {
+          "path": "src/ui/NodePanel.jsx",
+          "digest": "c05ce9d823acefb9e67bbb315f2399844f94903f99326585d5320421ede729a9"
+        },
+        {
+          "path": "src/ui/RelationPanel.jsx",
+          "digest": "28b7d80e12b9c9ed21f12d448a2b830cd8fddc04962f3a519c06c79fcfe485b4"
+        },
+        {
+          "path": "src/ui/Reach.jsx",
+          "digest": "19f9638ef48276891145208929ff02190b5d20903c291b0b556cfe7f864bf192"
+        },
+        {
+          "path": "src/ui/Interactions.jsx",
+          "digest": "fc05c6c59fe220e0ac437c37d429c9ef7707b58ce2c95d86b2d2f1823bcc09cc"
+        },
+        {
+          "path": "src/ui/ProjectOverview.jsx",
+          "digest": "65d3ff8e056faa2a9606240b71b4044b79cb86fb1f54e663255d30b89ad2cc75"
+        },
+        {
+          "path": "src/ui/ProjectDocument.jsx",
+          "digest": "6d589d2855243b366434b1a49b593a807c07f16a83af5c6c61df00559d691b54"
+        },
+        {
+          "path": "src/ui/usePanelNavigation.jsx",
+          "digest": "7a626e89deffc4ccf9dd07ec47ff6359fc90e885757bef8c1fc2683d55afb425"
+        }
+      ]
+    },
+    "load-model": {
+      "path": "src/ui/load.mjs",
+      "digest": "2a49d0d47803ec30d4dd78e15ba48e25f145e9ee7089067bc1c209f63a3df0f7"
+    },
+    "map": {
+      "parts": [
+        {
+          "path": "src/ui/ArchitectureMap.jsx",
+          "digest": "c59df23f11b953bdeb9da1df39a5938f36e652c5fba4312225102d06f245cd65"
+        },
+        {
+          "path": "src/ui/App.jsx",
+          "digest": "dc72a2776f0f605f46810b181e03248557738117c34dd6fa6da3cb94fe12d314"
+        },
+        {
+          "path": "src/ui/ArchitectureNode.jsx",
+          "digest": "0dd3280c1d68402514f8ff4ee53a6d939b97f3929b5987016f75d16af2a6229a"
+        },
+        {
+          "path": "src/ui/ArchitectureEdge.jsx",
+          "digest": "5337ca3c5ff6e6cc6f8dcf18e40d2c1f5ccdc4a98e7a10b2829118ab51511f48"
+        },
+        {
+          "path": "src/ui/MapChrome.jsx",
+          "digest": "489ef7880cf52fcf9ba419590c5ae5f7916e1e38b611a336f54f39d375fd5522"
+        },
+        {
+          "path": "src/ui/MapHeader.jsx",
+          "digest": "77fa3d0120f96ee47693be67ec7846812323403925fba51c4af776392968dfdd"
+        },
+        {
+          "path": "src/ui/MapOverlays.jsx",
+          "digest": "4217a3999146e47537ce84dcc2af4c68f02b82b4c30c90a166fa782645454640"
+        },
+        {
+          "path": "src/ui/Overview.jsx",
+          "digest": "3424c65204922b6102d0cda022a3b9cb28b2aeff9e7b5324711c4c4ffca1c75c"
+        },
+        {
+          "path": "src/ui/Filters.jsx",
+          "digest": "fe1eef67f353c963392ba411288858bb74f60e5ea2e37357357199c4f65b8b53"
+        },
+        {
+          "path": "src/ui/useMapProjection.jsx",
+          "digest": "cbf8de521ed62ba6beef32f23aa1e1f77396e283d8c1aee69914a9d89bf04c37"
+        }
+      ]
+    },
+    "model": {
+      "path": "assets/archivarius-model.schema.json",
+      "digest": "a5338d64aa4b756cdcc1ae829316d5333640ebce52e603a9d4a10a587190006e"
+    },
+    "model-source": {
+      "path": "src/ui/load.mjs",
+      "digest": "2a49d0d47803ec30d4dd78e15ba48e25f145e9ee7089067bc1c209f63a3df0f7"
+    },
+    "node-api": {
+      "path": "src/node.mjs",
+      "digest": "e040f925e31c62ff51374731472d685eb2ecc0c98cfc2305225b44eae4808c81"
+    },
+    "node-index": {
+      "path": "src/model/graph.mjs",
+      "digest": "cc7b2e6d0a55869d32467bbd0d51a95f2095301f4ea18cdccb0c4ae3a9c818f9"
+    },
+    "record-detail": {
+      "path": "src/model/project-view.mjs",
+      "digest": "c5d55cdf4bf062e2bba86eec4a3cd0faea2c591f005462c327312517b337cbf2"
+    },
+    "reference-set": {
+      "path": "src/model/records.mjs",
+      "digest": "169993d9b21260390e6b08cf327c8319c0678a0c5331d632f6d2c7db3ea74eea"
+    },
+    "render": {
+      "path": "src/index.jsx",
+      "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+    },
+    "validate-before-verify": {
+      "path": "src/model/evidence.mjs",
+      "digest": "37662fc84d17d9446aac809fc108af42ddbbbb367c7dddee6b8c22a66793d4f9"
+    },
+    "verify-evidence": {
+      "path": "src/node.mjs",
+      "digest": "e040f925e31c62ff51374731472d685eb2ecc0c98cfc2305225b44eae4808c81"
+    }
+  },
+  "command": [
+    "npm",
+    "run",
+    "test:browser"
+  ],
+  "startedAt": "2026-09-17T19:10:53.700Z",
+  "finishedAt": "2026-09-17T19:11:30.838Z",
+  "outcome": "pass",
+  "exitCode": 0,
+  "stdout": "\n> archivarius@0.5.0 test:browser\n> node tests/browser.mjs && node tests/project-browser.mjs && node tests/accessibility.mjs && node tests/diagram.mjs\n\nPASS: installed package, independent maps, scoped CSS and keyboard, semantic zoom, file replacement, cancellation, failures, implementation evidence, StrictMode, destroy/remount, mobile, external resources.\nPASS: project views, uncovered requirements, trace links, fixed map geometry, mobile controls, plain-text rendering, the open-questions list and claim attribution.\naxe-core 4.13.0\n  mounted map                       29 rules pass, 1 violations (0 serious or critical), 2 needing review\n    note moderate · landmark-banner-is-top-level · Banner landmark should not be contained in another landmark ×1\n      div[data-instance=\"archivarius-r0\"] > .map-app[aria-label=\"Catalog search\"][data-engine=\"react-flow\"] > header :: Fix any of the following: The null landmark is contained in another landmark.\n    review color-contrast · Elements must meet minimum color contrast ratio thresholds ×16\n    review target-size · All touch targets must be 24px large, or leave sufficient space ×1\n  second mounted map                29 rules pass, 1 violations (0 serious or critical), 2 needing review\n    note moderate · landmark-banner-is-top-level · Banner landmark should not be contained in another landmark ×1\n      div[data-instance=\"archivarius-r1\"] > .map-app[aria-label=\"Catalog search\"][data-engine=\"react-flow\"] > header :: Fix any of the following: The null landmark is contained in another landmark.\n    review color-contrast · Elements must meet minimum color contrast ratio thresholds ×16\n    review target-size · All touch targets must be 24px large, or leave sufficient space ×1\n  React component                   28 rules pass, 1 violations (0 serious or critical), 2 needing review\n    note moderate · landmark-banner-is-top-level · Banner landmark should not be contained in another landmark ×1\n      div[data-instance=\"archivarius-r2\"] > .map-app[aria-label=\"Catalog search\"][data-engine=\"react-flow\"] > header :: Fix any of the following: The null landmark is contained in another landmark.\n    review color-contrast · Elements must meet minimum color contrast ratio thresholds ×26\n    review target-size · All touch targets must be 24px large, or leave sufficient space ×1\n  map with a panel open             28 rules pass, 1 violations (0 serious or critical), 1 needing review\n    note moderate · landmark-banner-is-top-level · Banner landmark should not be contained in another landmark ×1\n      div[data-panel-open=\"true\"] > header :: Fix any of the following: The null landmark is contained in another landmark.\n    review color-contrast · Elements must meet minimum color contrast ratio thresholds ×12\n  dark scheme                       28 rules pass, 1 violations (0 serious or critical), 1 needing review\n    note moderate · landmark-banner-is-top-level · Banner landmark should not be contained in another landmark ×1\n      div[data-panel-open=\"true\"] > header :: Fix any of the following: The null landmark is contained in another landmark.\n    review color-contrast · Elements must meet minimum color contrast ratio thresholds ×12\n  reduced motion                    28 rules pass, 1 violations (0 serious or critical), 1 needing review\n    note moderate · landmark-banner-is-top-level · Banner landmark should not be contained in another landmark ×1\n      div[data-panel-open=\"true\"] > header :: Fix any of the following: The null landmark is contained in another landmark.\n    review color-contrast · Elements must meet minimum color contrast ratio thresholds ×12\n  more contrast                     28 rules pass, 1 violations (0 serious or critical), 1 needing review\n    note moderate · landmark-banner-is-top-level · Banner landmark should not be contained in another landmark ×1\n      div[data-panel-open=\"true\"] > header :: Fix any of the following: The null landmark is contained in another landmark.\n    review color-contrast · Elements must meet minimum color contrast ratio thresholds ×12\n  text zoom 200%: inspector 14→28px, brand 15→30px, breadcrumbs 10→20px, control 10→20px\n  forced colours: {\"text\":\"rgb(0, 0, 0)\",\"canvas\":\"rgb(255, 255, 255)\",\"gray\":\"rgb(96, 0, 0)\"}\n  forced colours                    28 rules pass, 1 violations (0 serious or critical), 1 needing review\n    note moderate · landmark-banner-is-top-level · Banner landmark should not be contained in another landmark ×1\n      div[data-panel-open=\"true\"] > header :: Fix any of the following: The null landmark is contained in another landmark.\n    review color-contrast · Elements must meet minimum color contrast ratio thresholds ×12\n  keyboard walk: tab 1 → node-search | tab 2 → layer | tab 3 → filter-zone | tab 4 → filter-kind | tab 5 → filter-relation | tab 6 → contracts | tab 7 → about | tab 8 → node:portal | ArrowRight → node:search | ArrowLeft → node:portal | Space → inspector | tab inside the panel → close | Escape → node:portal | F6 → map-pane\n  F6 landed on: map-pane\n  one column at 320px               28 rules pass, 1 violations (0 serious or critical), 1 needing review\n    note moderate · landmark-banner-is-top-level · Banner landmark should not be contained in another landmark ×1\n      div[data-instance=\"archivarius-r0\"] > .map-app[aria-label=\"Catalog search\"][data-engine=\"react-flow\"] > header :: Fix any of the following: The null landmark is contained in another landmark.\n    review color-contrast · Elements must meet minimum color contrast ratio thresholds ×12\n  one column with a panel open      28 rules pass, 1 violations (0 serious or critical), 1 needing review\n    note moderate · landmark-banner-is-top-level · Banner landmark should not be contained in another landmark ×1\n      div[data-panel-open=\"true\"] > header :: Fix any of the following: The null landmark is contained in another landmark.\n    review color-contrast · Elements must meet minimum color contrast ratio thresholds ×4\nPASS: axe-core audit in every reader setting, text zoom, reduced motion, forced colours, one-column reflow and a keyboard walk-through of the map and its panel.\nPASS: mermaid parses every generated diagram (7 checked, including hostile titles).\n",
+  "stderr": "",
+  "output": {
+    "bytes": 6330,
+    "digest": "f5e438d76f869c887b5c0c59b71aec7a48a38412582804c722bb1df574e9e741"
+  }
+}

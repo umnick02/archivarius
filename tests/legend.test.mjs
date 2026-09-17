@@ -16,8 +16,8 @@ import { clone } from './project-fixture.mjs';
 const root = new URL('../', import.meta.url);
 const readJSON = async (name) =>
   JSON.parse(await fs.readFile(new URL(name, root), 'utf8'));
-const schema = await readJSON('assets/model.schema.json');
-const project = await readJSON('assets/project.json');
+const schema = await readJSON('assets/archivarius-model.schema.json');
+const project = await readJSON('assets/archivarius-project-strings.json');
 
 // The enums are read off the shipped contract, never listed here: a value the
 // schema gains has to reach the legend or these cases fail.
@@ -210,7 +210,7 @@ test('the reference carries the legend its copy words, and none without it', () 
 // under `nodeKinds`, `zones` or `kinds` until somebody writes one, and a panel
 // that cannot name a value would be left with a colour.
 test('the map copy names every contract value a panel can be shown', async () => {
-  const strings = await readJSON('assets/strings.json');
+  const strings = await readJSON('assets/archivarius-strings.json');
   const words = { kind: 'nodeKinds', zone: 'zones', relation: 'kinds' };
   for (const group of legendOrder)
     for (const value of contractValues[group]) {
@@ -218,14 +218,18 @@ test('the map copy names every contract value a panel can be shown', async () =>
       assert.equal(
         typeof word,
         'string',
-        'assets/strings.json ' + words[group] + '.' + value + ' is missing',
+        'assets/archivarius-strings.json ' +
+          words[group] +
+          '.' +
+          value +
+          ' is missing',
       );
       assert(word.length, words[group] + '.' + value + ' is empty');
     }
 });
 
 test('a panel names the value in words, never a tone alone', async () => {
-  const strings = await readJSON('assets/strings.json');
+  const strings = await readJSON('assets/archivarius-strings.json');
   const words = {
     kind: strings.nodeKinds,
     zone: strings.zones,

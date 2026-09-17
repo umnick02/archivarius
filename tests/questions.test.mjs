@@ -6,7 +6,10 @@ import { validateProject } from '../src/model/project-contract.mjs';
 import { clone, get } from './project-fixture.mjs';
 
 const copy = JSON.parse(
-  await fs.readFile(new URL('../assets/project.json', import.meta.url), 'utf8'),
+  await fs.readFile(
+    new URL('../assets/archivarius-project-strings.json', import.meta.url),
+    'utf8',
+  ),
 );
 // A question is a record of the contract, so the fixture states one the way a
 // model does rather than inventing a shape the schema would reject.
@@ -76,7 +79,7 @@ test('the project copy names the open list, its note and its empty state', () =>
     assert.equal(
       typeof copy[key],
       'string',
-      'assets/project.json needs ' + key,
+      'assets/archivarius-project-strings.json needs ' + key,
     );
   assert.equal(copy.values.question, 'Open question');
   assert.equal(typeof get(clone(), 'project').purpose, 'string');

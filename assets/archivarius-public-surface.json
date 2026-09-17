@@ -1,6 +1,6 @@
 {
   "surface": 1,
-  "release": "0.4.0",
+  "release": "0.5.0",
   "note": "What this package promises: the named exports of every published subpath, the files and assets that ship, and the fields, values and bounds of every contract a consumer writes against. A minor release may only add to what is listed here; only a release that raises the major may remove, rename, require or tighten anything. The recorded contract shapes are also the previous contract - a release grades the shipped schemas against them with gradeContract. Re-record with npm run build && node tooling/record-surface.mjs.",
   "entryPoints": [
     {
@@ -83,7 +83,7 @@
     },
     {
       "subpath": "./model.schema.json",
-      "path": "dist/assets/model.schema.json",
+      "path": "dist/assets/archivarius-model.schema.json",
       "minor": "May change additively; the subpath stays.",
       "major": "May be removed or point at a different contract."
     },
@@ -91,16 +91,16 @@
       "subpath": "./assets/*",
       "path": "dist/assets",
       "assets": [
-        "architecture.schema.json",
-        "authoring.md",
-        "change.schema.json",
-        "cli-help.txt",
-        "contract.md",
-        "contracts.json",
-        "model.schema.json",
-        "project.json",
-        "public-surface.json",
-        "strings.json"
+        "archivarius-architecture.schema.json",
+        "archivarius-authoring.md",
+        "archivarius-change.schema.json",
+        "archivarius-cli-help.txt",
+        "archivarius-contract.md",
+        "archivarius-contracts.json",
+        "archivarius-model.schema.json",
+        "archivarius-project-strings.json",
+        "archivarius-public-surface.json",
+        "archivarius-strings.json"
       ],
       "minor": "May gain an asset file.",
       "major": "May remove or rename an asset file."
@@ -116,8 +116,8 @@
   ],
   "contracts": [
     {
-      "subpath": "./assets/model.schema.json",
-      "path": "assets/model.schema.json",
+      "subpath": "./assets/archivarius-model.schema.json",
+      "path": "assets/archivarius-model.schema.json",
       "title": "ProjectModel",
       "version": 4,
       "minor": "May gain an optional field, a value in an enum or a looser bound.",
@@ -1265,8 +1265,8 @@
       }
     },
     {
-      "subpath": "./assets/architecture.schema.json",
-      "path": "assets/architecture.schema.json",
+      "subpath": "./assets/archivarius-architecture.schema.json",
+      "path": "assets/archivarius-architecture.schema.json",
       "title": "ArchitectureModel",
       "version": 3,
       "minor": "May gain an optional field, a value in an enum or a looser bound.",
@@ -1510,8 +1510,8 @@
       }
     },
     {
-      "subpath": "./assets/change.schema.json",
-      "path": "assets/change.schema.json",
+      "subpath": "./assets/archivarius-change.schema.json",
+      "path": "assets/archivarius-change.schema.json",
       "title": "ProjectChange",
       "version": null,
       "minor": "May gain an optional field or a value in an enum.",
@@ -1537,37 +1537,37 @@
           }
         },
         ".at": {
-          "ref": "model.schema.json#/$defs/instant"
+          "ref": "archivarius-model.schema.json#/$defs/instant"
         },
         ".bindings": {
-          "ref": "model.schema.json#/properties/bindings"
+          "ref": "archivarius-model.schema.json#/properties/bindings"
         },
         ".by": {
-          "ref": "model.schema.json#/$defs/text"
+          "ref": "archivarius-model.schema.json#/$defs/text"
         },
         ".entry": {
-          "ref": "model.schema.json#/properties/entry"
+          "ref": "archivarius-model.schema.json#/properties/entry"
         },
         ".put": {
           "types": ["array"]
         },
         ".put[]": {
-          "ref": "model.schema.json#/$defs/record"
+          "ref": "archivarius-model.schema.json#/$defs/record"
         },
         ".reason": {
-          "ref": "model.schema.json#/$defs/text"
+          "ref": "archivarius-model.schema.json#/$defs/text"
         },
         ".remove": {
-          "ref": "model.schema.json#/$defs/keys"
+          "ref": "archivarius-model.schema.json#/$defs/keys"
         },
         ".review": {
-          "ref": "model.schema.json#/$defs/keys"
+          "ref": "archivarius-model.schema.json#/$defs/keys"
         },
         ".root": {
-          "ref": "model.schema.json#/properties/root"
+          "ref": "archivarius-model.schema.json#/properties/root"
         },
         ".title": {
-          "ref": "model.schema.json#/properties/title"
+          "ref": "archivarius-model.schema.json#/properties/title"
         }
       }
     }

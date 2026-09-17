@@ -163,7 +163,11 @@ test('a dropped file and a passed object take the same contract as a fetched mod
 });
 
 test('shipped copy is read beside the package, or beside the base a host names', async (t) => {
-  const files = ['strings.json', 'contracts.json', 'project.json'];
+  const files = [
+    'archivarius-strings.json',
+    'archivarius-contracts.json',
+    'archivarius-project-strings.json',
+  ];
   const bodies = Object.fromEntries(
     await Promise.all(
       files.map(async (file) => [

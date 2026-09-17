@@ -92,10 +92,11 @@ flowchart LR
     c-evidence ==>|"Hash an artifact"| c-digest
     c-inspector ==>|"Digest a record"| c-digest
     c-evidence ==>|"Validate before verifying"| c-core
+    c-map -->|"Index the parts"| c-graph
     style c-model stroke:#558574
     style c-node-api stroke:#b07852
     style c-render stroke:#5779a6
-    linkStyle 0,5 stroke:#537e68
+    linkStyle 0,5,9 stroke:#537e68
     linkStyle 1,2,4,6,7,8 stroke:#8b6ead
     linkStyle 3 stroke:#5d8796
     classDef pure stroke:#558574
@@ -136,6 +137,7 @@ flowchart LR
 | Hash an artifact | The canonical definitions and their SHA-256 basis. | Equal definitions yield an equal basis whatever their order or edit history, so a differing basis means a definition really changed. |
 | Digest a record | The canonical definitions and their SHA-256 basis. | Equal definitions yield an equal basis whatever their order or edit history, so a differing basis means a definition really changed. |
 | Validate before verifying | A v4 JSON snapshot as a URL, File, Blob or parsed object. | Any accepted source resolves to one parsed snapshot before anything renders, and a snapshot that fails validation is never partly displayed. |
+| Index the parts | Every part of the snapshot by key, with the container each one sits in. | The index is built once from a validated snapshot, so placing a part never walks the tree again and a key that is drawn is a key the model has. |
 
 | Requirement | Rule | Conditions | Exceptions |
 | --- | --- | --- | --- |

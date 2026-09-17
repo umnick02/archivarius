@@ -19,7 +19,10 @@ const nodesByKey = new Map();
   }
 })(model.nodes);
 const copy = JSON.parse(
-  await fs.readFile(new URL('../assets/strings.json', import.meta.url), 'utf8'),
+  await fs.readFile(
+    new URL('../assets/archivarius-strings.json', import.meta.url),
+    'utf8',
+  ),
 );
 const format = (template, values) =>
   template.replace(/\{(\w+)\}/g, (_, key) => String(values[key]));
@@ -411,8 +414,10 @@ try {
   }
   // A kind is a silhouette, not only a label: a store and an external
   // participant are told apart from a plain component at a glance, and the pill
-  // is a pill however wide the card is.
-  await focus('engine');
+  // is a pill however wide the card is. Read at home, where every part is inside
+  // the viewport: zoomed into one part the map mounts only what the reader sees.
+  await b.evaluate(() => window.consumer.first.home());
+  await settled(camera);
   const silhouettes = await b.evaluate(() =>
     [...document.querySelectorAll('#first [data-node]')].map((card) => ({
       kind: card.dataset.kind,
@@ -884,6 +889,10 @@ try {
   assert.equal(shared.members.length, 2);
   assert.equal(shared.implemented, false);
   assert.equal(shared.state, 'partial');
+  // Read at home: the map draws what is verified and what is not, and only the
+  // parts inside the viewport are in the document.
+  await b.evaluate(() => window.consumer.first.home());
+  await settled(camera);
   assert(
     await b.evaluate(
       () =>

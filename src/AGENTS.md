@@ -13,7 +13,7 @@ names its layer:
 | `model/`     | Contract, graph, analysis, document rendering                  | no         |
 | `io/`        | Filesystem readers/writers behind `node.mjs`                   | yes        |
 | `layout/`    | ELK geometry, loaded lazily by `ui/load.mjs`                   | no         |
-| `generated/` | Compiled from `assets/model.schema.json`                       | no         |
+| `generated/` | Compiled from `assets/archivarius-model.schema.json`           | no         |
 
 Invariants:
 
@@ -34,7 +34,7 @@ Invariants:
 - `ui/Inspector.jsx` is the panel shell: it holds the navigation and dispatches on
   `panel.type` to one module per panel. A second panel that shows the same facts
   reuses that panel's component and passes its own wrapper attributes.
-- `generated/` is compiled from `assets/model.schema.json`; regenerate with
+- `generated/` is compiled from `assets/archivarius-model.schema.json`; regenerate with
   `npm run generate`, never hand-edit it.
 - `model/project-architecture.mjs` projects the `component` and `interaction`
   records into the graph the map draws and the readme embeds; there is no
@@ -51,7 +51,7 @@ Invariants:
   spends a tone on strokes and leaves the page to the reader's theme.
 - `model/documents.mjs` owns the single Markdown escaper every renderer uses; it
   neutralizes structure, not punctuation.
-- `ui/context.jsx` pluralizes with `one`/`other` against `assets/strings.json`.
+- `ui/context.jsx` pluralizes with `one`/`other` against `assets/archivarius-strings.json`.
 - `npm run lint:types` type-checks `model/` with `tsc --checkJs` against JSDoc,
   so a boundary that types cannot infer is described where it is produced —
   `errors.mjs` owns the `Diagnostic` shape every validator returns. Add the next

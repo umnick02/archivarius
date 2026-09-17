@@ -42,10 +42,16 @@ export async function readArchitectureFile(file) {
 
 export async function generateDocumentation(model) {
   const copy = JSON.parse(
-    await readFile(new URL('../assets/strings.json', import.meta.url), 'utf8'),
+    await readFile(
+      new URL('../assets/archivarius-strings.json', import.meta.url),
+      'utf8',
+    ),
   );
   copy.project = JSON.parse(
-    await readFile(new URL('../assets/project.json', import.meta.url), 'utf8'),
+    await readFile(
+      new URL('../assets/archivarius-project-strings.json', import.meta.url),
+      'utf8',
+    ),
   );
   return renderDocumentation(model, copy);
 }
@@ -57,7 +63,7 @@ export async function generateReadme(model) {
     model,
     JSON.parse(
       await readFile(
-        new URL('../assets/project.json', import.meta.url),
+        new URL('../assets/archivarius-project-strings.json', import.meta.url),
         'utf8',
       ),
     ),

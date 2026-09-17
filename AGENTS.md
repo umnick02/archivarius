@@ -16,10 +16,10 @@ by LLM agents. Read the directory instructions before editing.
 - The public API is `src/index.jsx` (browser), `src/core.mjs` (validation) and
   `src/node.mjs` (files/CLI); each export has one owner, and the browser entry
   republishes only the parse surface a host needs to feed a map and catch its
-  failures. `assets/model.schema.json` is the versioned contract; `src/generated/`
+  failures. `assets/archivarius-model.schema.json` is the versioned contract; `src/generated/`
   holds its compiled validators and types — do not hand-edit them, regenerate with
   `npm run generate`.
-- English is the only language. `assets/strings.json` keeps `"locale":"en"`; there
+- English is the only language. `assets/archivarius-strings.json` keeps `"locale":"en"`; there
   is no locale parameter on any exported function.
 - `README.md` is generated from the documentation model by the library's own
   `readme` command (`npm run docs:readme`), including its Mermaid architecture
@@ -35,7 +35,7 @@ by LLM agents. Read the directory instructions before editing.
 | Browser map, mount, panels                | `src/index.jsx`, `src/ui/`               | [src/AGENTS.md](src/AGENTS.md)                   |
 | Validation, parse, document render        | `src/core.mjs`, `src/model/`             | [src/AGENTS.md](src/AGENTS.md)                   |
 | File reads, CLI, project check            | `src/node.mjs`, `src/cli.mjs`, `src/io/` | [src/AGENTS.md](src/AGENTS.md)                   |
-| Shipped contract, schemas, strings        | `assets/model.schema.json`               | [assets/AGENTS.md](assets/AGENTS.md)             |
+| Shipped contract, schemas, strings        | `assets/archivarius-model.schema.json`   | [assets/AGENTS.md](assets/AGENTS.md)             |
 | Build, contract generation, package check | `tooling/build.mjs`, `tooling/*.mjs`     | [tooling/AGENTS.md](tooling/AGENTS.md)           |
 | Tests and consumer fixture                | `tests/*.test.mjs`, `tests/consumer/`    | [tests/AGENTS.md](tests/AGENTS.md)               |
 | Demo models for suites and the example    | `models/*.json`                          | [models/AGENTS.md](models/AGENTS.md)             |

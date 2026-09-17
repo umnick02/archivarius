@@ -1,0 +1,235 @@
+{
+  "version": 1,
+  "check": "check-documents",
+  "contract": "ede45027cd4fef963304bf9acdceeb0baaa97d2e13b50110a12ffd6c4db680d1",
+  "realization": "b11e6e82b195f926ab9f47b8114e4d81324792df737256c147f517f2b5e16333",
+  "bindings": {
+    "apply-change": {
+      "path": "src/node.mjs",
+      "digest": "e040f925e31c62ff51374731472d685eb2ecc0c98cfc2305225b44eae4808c81"
+    },
+    "archivarius": {
+      "path": "package.json",
+      "digest": "a89b57056ce75037a326a0daaa2a346a460438ccde12983dda1c5eb2c6c68a71"
+    },
+    "basis-value": {
+      "path": "src/model/project-digest.mjs",
+      "digest": "d05e6d59649820e57aa97ae93ef168e775b2c47a00a09aa7ac9dd9f5fd1f261f"
+    },
+    "change-input": {
+      "path": "src/model/project-authoring.mjs",
+      "digest": "6167a49396d2e581c35d0b4b75e81574d81c2d58ed337e04fb87c9dd67b9dcde"
+    },
+    "check-references": {
+      "path": "src/model/project-contract.mjs",
+      "digest": "d1906838268d4a57dc4227d7ce8837c16507b47c0d3727b0a7215801b7b9312e"
+    },
+    "cli": {
+      "path": "src/cli.mjs",
+      "digest": "dd97c53150e684a09757cee0f2797b24347695bf2024ca235dddd9d2c388c701"
+    },
+    "compute-basis": {
+      "path": "src/model/project-digest.mjs",
+      "digest": "d05e6d59649820e57aa97ae93ef168e775b2c47a00a09aa7ac9dd9f5fd1f261f"
+    },
+    "core": {
+      "parts": [
+        {
+          "path": "src/core.mjs",
+          "digest": "e033feca174947767f96039278263379101953ab878ea91696478fc048b0426d"
+        },
+        {
+          "path": "src/model/parse.mjs",
+          "digest": "e31b118e7fffad84529963ba22287ae17798784310496dc4653c56bb9f08e403"
+        },
+        {
+          "path": "src/model/project-contract.mjs",
+          "digest": "d1906838268d4a57dc4227d7ce8837c16507b47c0d3727b0a7215801b7b9312e"
+        },
+        {
+          "path": "src/model/project-architecture.mjs",
+          "digest": "aae94eaedca11b85656aa0c57b21836af89949fd754bd30f085aa885deb37574"
+        },
+        {
+          "path": "src/model/project-analysis.mjs",
+          "digest": "caeffe1982b28ef43d23804797e2daeeac6c15c822e63acaf0a46295ff8447f2"
+        }
+      ]
+    },
+    "digest": {
+      "path": "src/model/digest.mjs",
+      "digest": "cff43d0d16a94ad4490162347bca9672998b938f594eb0a19413c8afe37fc5f6"
+    },
+    "evidence": {
+      "path": "src/model/evidence.mjs",
+      "digest": "37662fc84d17d9446aac809fc108af42ddbbbb367c7dddee6b8c22a66793d4f9"
+    },
+    "evidence-artifact": {
+      "path": "src/model/evidence.mjs",
+      "digest": "37662fc84d17d9446aac809fc108af42ddbbbb367c7dddee6b8c22a66793d4f9"
+    },
+    "graph": {
+      "path": "src/model/graph.mjs",
+      "digest": "cc7b2e6d0a55869d32467bbd0d51a95f2095301f4ea18cdccb0c4ae3a9c818f9"
+    },
+    "hash-evidence": {
+      "path": "src/model/evidence.mjs",
+      "digest": "37662fc84d17d9446aac809fc108af42ddbbbb367c7dddee6b8c22a66793d4f9"
+    },
+    "hash-record": {
+      "path": "src/ui/ProjectInspector.jsx",
+      "digest": "27d7a4dd1655ddcd1e1cbb8f5bdb81d16c2379fd8d077324d0d1be06a40b92a4"
+    },
+    "index-nodes": {
+      "path": "src/ui/useMapProjection.jsx",
+      "digest": "cbf8de521ed62ba6beef32f23aa1e1f77396e283d8c1aee69914a9d89bf04c37"
+    },
+    "inspect-record": {
+      "path": "src/index.jsx",
+      "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+    },
+    "inspector": {
+      "parts": [
+        {
+          "path": "src/ui/ProjectInspector.jsx",
+          "digest": "27d7a4dd1655ddcd1e1cbb8f5bdb81d16c2379fd8d077324d0d1be06a40b92a4"
+        },
+        {
+          "path": "src/ui/Inspector.jsx",
+          "digest": "779d62ce7dc73c78e7f5675837875699b7147c4422d34b5a5f17f24071727c43"
+        },
+        {
+          "path": "src/ui/NodePanel.jsx",
+          "digest": "c05ce9d823acefb9e67bbb315f2399844f94903f99326585d5320421ede729a9"
+        },
+        {
+          "path": "src/ui/RelationPanel.jsx",
+          "digest": "28b7d80e12b9c9ed21f12d448a2b830cd8fddc04962f3a519c06c79fcfe485b4"
+        },
+        {
+          "path": "src/ui/Reach.jsx",
+          "digest": "19f9638ef48276891145208929ff02190b5d20903c291b0b556cfe7f864bf192"
+        },
+        {
+          "path": "src/ui/Interactions.jsx",
+          "digest": "fc05c6c59fe220e0ac437c37d429c9ef7707b58ce2c95d86b2d2f1823bcc09cc"
+        },
+        {
+          "path": "src/ui/ProjectOverview.jsx",
+          "digest": "65d3ff8e056faa2a9606240b71b4044b79cb86fb1f54e663255d30b89ad2cc75"
+        },
+        {
+          "path": "src/ui/ProjectDocument.jsx",
+          "digest": "6d589d2855243b366434b1a49b593a807c07f16a83af5c6c61df00559d691b54"
+        },
+        {
+          "path": "src/ui/usePanelNavigation.jsx",
+          "digest": "7a626e89deffc4ccf9dd07ec47ff6359fc90e885757bef8c1fc2683d55afb425"
+        }
+      ]
+    },
+    "load-model": {
+      "path": "src/ui/load.mjs",
+      "digest": "2a49d0d47803ec30d4dd78e15ba48e25f145e9ee7089067bc1c209f63a3df0f7"
+    },
+    "map": {
+      "parts": [
+        {
+          "path": "src/ui/ArchitectureMap.jsx",
+          "digest": "c59df23f11b953bdeb9da1df39a5938f36e652c5fba4312225102d06f245cd65"
+        },
+        {
+          "path": "src/ui/App.jsx",
+          "digest": "dc72a2776f0f605f46810b181e03248557738117c34dd6fa6da3cb94fe12d314"
+        },
+        {
+          "path": "src/ui/ArchitectureNode.jsx",
+          "digest": "0dd3280c1d68402514f8ff4ee53a6d939b97f3929b5987016f75d16af2a6229a"
+        },
+        {
+          "path": "src/ui/ArchitectureEdge.jsx",
+          "digest": "5337ca3c5ff6e6cc6f8dcf18e40d2c1f5ccdc4a98e7a10b2829118ab51511f48"
+        },
+        {
+          "path": "src/ui/MapChrome.jsx",
+          "digest": "489ef7880cf52fcf9ba419590c5ae5f7916e1e38b611a336f54f39d375fd5522"
+        },
+        {
+          "path": "src/ui/MapHeader.jsx",
+          "digest": "77fa3d0120f96ee47693be67ec7846812323403925fba51c4af776392968dfdd"
+        },
+        {
+          "path": "src/ui/MapOverlays.jsx",
+          "digest": "4217a3999146e47537ce84dcc2af4c68f02b82b4c30c90a166fa782645454640"
+        },
+        {
+          "path": "src/ui/Overview.jsx",
+          "digest": "3424c65204922b6102d0cda022a3b9cb28b2aeff9e7b5324711c4c4ffca1c75c"
+        },
+        {
+          "path": "src/ui/Filters.jsx",
+          "digest": "fe1eef67f353c963392ba411288858bb74f60e5ea2e37357357199c4f65b8b53"
+        },
+        {
+          "path": "src/ui/useMapProjection.jsx",
+          "digest": "cbf8de521ed62ba6beef32f23aa1e1f77396e283d8c1aee69914a9d89bf04c37"
+        }
+      ]
+    },
+    "model": {
+      "path": "assets/archivarius-model.schema.json",
+      "digest": "a5338d64aa4b756cdcc1ae829316d5333640ebce52e603a9d4a10a587190006e"
+    },
+    "model-source": {
+      "path": "src/ui/load.mjs",
+      "digest": "2a49d0d47803ec30d4dd78e15ba48e25f145e9ee7089067bc1c209f63a3df0f7"
+    },
+    "node-api": {
+      "path": "src/node.mjs",
+      "digest": "e040f925e31c62ff51374731472d685eb2ecc0c98cfc2305225b44eae4808c81"
+    },
+    "node-index": {
+      "path": "src/model/graph.mjs",
+      "digest": "cc7b2e6d0a55869d32467bbd0d51a95f2095301f4ea18cdccb0c4ae3a9c818f9"
+    },
+    "record-detail": {
+      "path": "src/model/project-view.mjs",
+      "digest": "c5d55cdf4bf062e2bba86eec4a3cd0faea2c591f005462c327312517b337cbf2"
+    },
+    "reference-set": {
+      "path": "src/model/records.mjs",
+      "digest": "169993d9b21260390e6b08cf327c8319c0678a0c5331d632f6d2c7db3ea74eea"
+    },
+    "render": {
+      "path": "src/index.jsx",
+      "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+    },
+    "validate-before-verify": {
+      "path": "src/model/evidence.mjs",
+      "digest": "37662fc84d17d9446aac809fc108af42ddbbbb367c7dddee6b8c22a66793d4f9"
+    },
+    "verify-evidence": {
+      "path": "src/node.mjs",
+      "digest": "e040f925e31c62ff51374731472d685eb2ecc0c98cfc2305225b44eae4808c81"
+    }
+  },
+  "command": [
+    "node",
+    "--test",
+    "tests/documents.test.mjs",
+    "tests/project-documents.test.mjs",
+    "tests/document-package.test.mjs",
+    "tests/readme.test.mjs",
+    "tests/legend.test.mjs"
+  ],
+  "startedAt": "2026-09-17T19:11:50.922Z",
+  "finishedAt": "2026-09-17T19:11:52.454Z",
+  "outcome": "pass",
+  "exitCode": 0,
+  "stdout": "✔ owned definitions drive Markdown and JSON views; a stale generated view fails (31.900417ms)\n✔ documents refuse dangling/invalid fields, traversal, format collisions and malformed tables (6.0055ms)\n✔ document export preflights symlinks and prevents overwriting the input (4.390084ms)\n✔ focused authoring includes owned sections, without unrelated document sections or peer-task expansion (7.448ms)\n✔ documentation uses every component and original interaction, with stable links and bytes (4.950458ms)\n✔ documentation preserves boundaries and evidence, escapes markup, and refuses invalid models (1.389583ms)\n✔ the documentation renderer draws markup, a link and a script in a record as text (0.928042ms)\n✔ the reference renderer draws markup, a link and a script in a record as text (12.550042ms)\n✔ a hostile record title stays one mermaid label (0.45975ms)\n✔ CLI validates whole models, detects documentation drift and preserves files on rejection (678.7315ms)\n✔ the help text and the documented CLI record name the same commands (7.077291ms)\n✔ every described part of this repository is bound to a file that exists (11.088042ms)\n✔ changed bytes name the parts whose description needs a fresh read (0.203584ms)\n✔ the legend covers every contract value the schema allows (0.91225ms)\n✔ the legend gives every value a word and a channel that is not a colour (0.201417ms)\n✔ one colourless channel tells every value of an enum apart (0.082458ms)\n✔ a value the copy has no word for stops the legend instead of drawing a colour (0.266834ms)\n✔ the panel words name the value and the token it is drawn with (0.237041ms)\n✔ the legend table states every value in a row of its own (0.3435ms)\n✔ the generated reference carries the legend read from the appearance table (10.889541ms)\n✔ the legend adds no active content to the generated page (3.033167ms)\n✔ the reference carries the legend its copy words, and none without it (4.246125ms)\n✔ the map copy names every contract value a panel can be shown (2.334917ms)\n✔ a panel names the value in words, never a tone alone (0.468708ms)\n✔ documentation and history retain records and links without a separate prose source (26.042542ms)\n✔ documentation renders the architecture as a diagram generated from components and interactions (4.5575ms)\n✔ the diagram distinguishes a node by its zone and its kind, not by one flat rectangle (2.443083ms)\n✔ diagram identifiers never collide with Mermaid keywords (273.494708ms)\n✔ a hostile title stays one inert Mermaid label (2.574834ms)\n✔ documentation omits fields without a value instead of printing them (1.894542ms)\n✔ documentation ends with the generated notice so the file is not hand-edited (1.820333ms)\n✔ documentation escapes only what Markdown needs, leaving prose readable (2.075667ms)\n✔ the CLI writes the readme and reports drift without touching the file (306.971541ms)\n✔ the readme keeps an external part and its edges without a file behind them (1.525458ms)\n✔ every failure code raised in the source is described once by the module that owns them (7.167083ms)\n✔ documentation publishes the failure catalogue held by the module that raises the codes (4.215583ms)\n✔ the landing page opens with a quickstart the shipped package can run (286.548125ms)\n✔ a project that binds neither the package nor the mount entry gets no quickstart (1.189542ms)\n✔ the reference lists the open questions instead of filing them as facts (7.322875ms)\n✔ the readme opens with the scope and writes no heading of its own (127.424292ms)\n✔ the readme states the purpose and the sources from the model (101.645042ms)\n✔ the readme carries the diagram the map draws, not a separate picture (97.88325ms)\n✔ the readme carries no text of its own (97.893292ms)\n✔ the readme drops the inspector furniture and never grows into a report (100.236834ms)\n✔ the prose table is derived from the schema, not written by hand (2.725333ms)\n✔ the readme states what every part does and what crosses every edge (100.668542ms)\n✔ the readme states only the parts whose realization the model binds (202.0425ms)\n✔ the readme reads the model, not the state of its evidence (0.621ms)\n✔ the generator never names a field of the schema (0.562917ms)\n✔ every table states its columns with the labels the map uses (99.925458ms)\n✔ every prose field the schema declares has a label in the copy (0.101917ms)\n✔ the public entry renders the readme with the shipped copy (195.769292ms)\n✔ rendering the same model twice gives the same readme (190.474583ms)\n✔ the readme quotes no raw record (93.1945ms)\nℹ tests 54\nℹ suites 0\nℹ pass 54\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 1491.760792\n",
+  "stderr": "",
+  "output": {
+    "bytes": 4755,
+    "digest": "df538ca58f693d0f13d33b8afedd5a5216a66c34e19e0ac961a91f90e0e2396e"
+  }
+}

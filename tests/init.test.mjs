@@ -12,7 +12,10 @@ import { readArchitectureFile } from '../src/node.mjs';
 
 const root = new URL('../', import.meta.url);
 const schema = JSON.parse(
-  await fs.readFile(new URL('assets/model.schema.json', root), 'utf8'),
+  await fs.readFile(
+    new URL('assets/archivarius-model.schema.json', root),
+    'utf8',
+  ),
 );
 const branch = (type) =>
   schema.$defs.record.oneOf.find((one) => one.properties?.type?.const === type);
@@ -134,7 +137,10 @@ test('init refuses to write over a file that already exists', async (t) => {
 });
 
 test('the help text offers init and the CLI refuses it with unrelated flags', async () => {
-  const help = await fs.readFile(new URL('assets/cli-help.txt', root), 'utf8');
+  const help = await fs.readFile(
+    new URL('assets/archivarius-cli-help.txt', root),
+    'utf8',
+  );
   assert.match(help, /^\s+archivarius init <project\.json>/m);
   const bad = spawnSync(
     process.execPath,

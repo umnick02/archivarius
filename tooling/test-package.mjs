@@ -23,7 +23,9 @@ const [pack] = JSON.parse(
 );
 assert(pack.files.some((file) => file.path === 'dist/src/index.js'));
 assert(
-  pack.files.some((file) => file.path === 'dist/assets/model.schema.json'),
+  pack.files.some(
+    (file) => file.path === 'dist/assets/archivarius-model.schema.json',
+  ),
 );
 assert(
   pack.files.some((file) => file.path === 'LICENSE'),
@@ -114,9 +116,9 @@ run(
   consumer,
 );
 for (const shipped of [
-  'dist/assets/authoring.md',
-  'dist/assets/contract.md',
-  'dist/assets/public-surface.json',
+  'dist/assets/archivarius-authoring.md',
+  'dist/assets/archivarius-contract.md',
+  'dist/assets/archivarius-public-surface.json',
 ])
   assert(
     pack.files.some((file) => file.path === shipped),
@@ -126,7 +128,10 @@ for (const shipped of [
 // declaration, file and asset the surface names has to be in the bytes a consumer
 // installs, and the binary it names has to be the one package.json points at.
 const surface = JSON.parse(
-  await fs.readFile(path.join(root, 'assets/public-surface.json'), 'utf8'),
+  await fs.readFile(
+    path.join(root, 'assets/archivarius-public-surface.json'),
+    'utf8',
+  ),
 );
 const packed = new Set(pack.files.map((file) => file.path));
 const promised = [
@@ -154,10 +159,15 @@ assert(pack.files.some((file) => file.path === 'dist/example.json'));
 run('node', ['node_modules/vite/bin/vite.js', 'build'], consumer);
 const files = await fs.readdir(path.join(consumer, 'dist/assets'));
 assert(
-  files.some((file) => file.startsWith('strings-') && file.endsWith('.json')),
+  files.some(
+    (file) => file.startsWith('archivarius-strings-') && file.endsWith('.json'),
+  ),
 );
 assert(
-  files.some((file) => file.startsWith('contracts-') && file.endsWith('.json')),
+  files.some(
+    (file) =>
+      file.startsWith('archivarius-contracts-') && file.endsWith('.json'),
+  ),
 );
 const scripts = (
   await Promise.all(
@@ -170,7 +180,7 @@ const model = JSON.parse(
   await fs.readFile(path.join(consumer, 'public/architecture.json'), 'utf8'),
 );
 const copy = JSON.parse(
-  await fs.readFile(path.join(root, 'assets/strings.json'), 'utf8'),
+  await fs.readFile(path.join(root, 'assets/archivarius-strings.json'), 'utf8'),
 );
 assert(!scripts.includes(model.nodes[0].title));
 assert(!scripts.includes(copy.interpretationNote));

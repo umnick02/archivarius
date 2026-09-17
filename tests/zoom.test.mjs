@@ -16,7 +16,10 @@ import {
 import { expandedAt } from '../src/ui/view.mjs';
 
 const copy = JSON.parse(
-  await fs.readFile(new URL('../assets/strings.json', import.meta.url), 'utf8'),
+  await fs.readFile(
+    new URL('../assets/archivarius-strings.json', import.meta.url),
+    'utf8',
+  ),
 );
 const size = { width: 1440, height: 924 };
 // One container of 800x600 with one part inside it: the smallest layout that can

@@ -1,6 +1,6 @@
 // What a version promises.
 //
-// `assets/public-surface.json` is the promise itself: every named export, every
+// `assets/archivarius-public-surface.json` is the promise itself: every named export, every
 // published subpath, every shipped asset and every contract field a consumer may
 // depend on, each with what a minor release may do to it and what only a major
 // may. This suite holds the built package to that list. A promise nobody checks
@@ -26,7 +26,7 @@ const exists = (file) =>
     .then(() => true)
     .catch(() => false);
 
-const surface = await readJSON('assets/public-surface.json');
+const surface = await readJSON('assets/archivarius-public-surface.json');
 const pkg = await readJSON('package.json');
 const major = (version) => Number(String(version).split('.')[0]);
 const allowsBreaking = (recorded, version) =>
@@ -197,14 +197,40 @@ test('every file, asset and binary the surface promises is packaged', async () =
   );
 });
 
+// A shipped copy says it is a copy. A consumer installs this package into a
+// project that has its own `project.json` and its own strings, so an asset called
+// `project.json` or `strings.json` in a published directory is an invitation to
+// mistake the library's copy for the reader's own file. Every published asset
+// names the library it belongs to.
+test('no shipped asset wears a name a consumer could mistake for their own file', async () => {
+  const assets = await fs.readdir(new URL('dist/assets/', root));
+  assert.ok(assets.length > 4, 'the shipped assets went missing');
+  assert.deepEqual(
+    assets.filter((name) => !name.startsWith('archivarius-')),
+    [],
+  );
+  const promised = surface.files.flatMap((file) => file.assets ?? []);
+  assert.ok(promised.length > 4, 'the surface promises no assets');
+  assert.deepEqual(
+    promised.filter((name) => !name.startsWith('archivarius-')),
+    [],
+  );
+});
+
 test('the shipped surface list travels with the package it describes', async () => {
   assert.equal(
-    await fs.readFile(new URL('dist/assets/public-surface.json', root), 'utf8'),
-    await fs.readFile(new URL('assets/public-surface.json', root), 'utf8'),
+    await fs.readFile(
+      new URL('dist/assets/archivarius-public-surface.json', root),
+      'utf8',
+    ),
+    await fs.readFile(
+      new URL('assets/archivarius-public-surface.json', root),
+      'utf8',
+    ),
   );
   assert(
     surface.files.some((file) =>
-      (file.assets ?? []).includes('public-surface.json'),
+      (file.assets ?? []).includes('archivarius-public-surface.json'),
     ),
     'the list does not record itself as shipped',
   );
@@ -252,9 +278,9 @@ test('a lost export, a vanished subpath, a dropped asset or a tightened contract
   );
   assert.deepEqual(
     without((copy) =>
-      copy.assets.splice(copy.assets.indexOf('strings.json'), 1),
+      copy.assets.splice(copy.assets.indexOf('archivarius-strings.json'), 1),
     ),
-    [{ kind: 'asset-removed', subject: 'strings.json' }],
+    [{ kind: 'asset-removed', subject: 'archivarius-strings.json' }],
   );
   const contract = surface.contracts[0];
   const location = Object.keys(contract.shape).find(

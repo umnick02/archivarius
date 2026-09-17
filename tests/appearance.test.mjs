@@ -21,7 +21,7 @@ const read = async (name) =>
   JSON.parse(
     await fs.readFile(new URL('../assets/' + name, import.meta.url), 'utf8'),
   );
-const schema = await read('architecture.schema.json');
+const schema = await read('archivarius-architecture.schema.json');
 const nodeEnum = (field) =>
   schema.$defs.nodeFields.properties[field].enum.slice();
 const relationEnum = schema.$defs.relationFields.properties.kind.enum.slice();
@@ -29,7 +29,7 @@ const relationEnum = schema.$defs.relationFields.properties.kind.enum.slice();
 // The authoring contract states the same closed enums as the rendering one, and
 // both are read here rather than copied: a value either schema gains has to
 // reach the appearance table before this suite is green again.
-const model = await read('model.schema.json');
+const model = await read('archivarius-model.schema.json');
 const branch = (type) =>
   model.$defs.record.oneOf.find((one) => one.properties?.type?.const === type);
 const contractValues = {

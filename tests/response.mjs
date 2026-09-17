@@ -197,6 +197,48 @@ try {
       '   workers left running: ' +
       runs.at(-1).live,
   );
+  // Mount what is visible. Zoomed into one part, the surface has no reason to keep
+  // five hundred boxes alive: what the reader can see, and a margin around it, is
+  // the whole of the DOM. The same call back out has to bring them back, or the
+  // release is a loss rather than a saving.
+  const virtualized = await b.evaluate(async () => {
+    const settle = async () => {
+      for (let i = 0; i < 30; i++)
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+    };
+    const count = () => document.querySelectorAll('#first [data-node]').length;
+    const placed = () => window.consumer.first.snapshot().visible.length;
+    const groups = window.consumer.first.snapshot().visible;
+    await window.consumer.first.focus(groups[0]);
+    await settle();
+    const inside = { placed: placed(), mounted: count() };
+    await window.consumer.first.home();
+    await settle();
+    return { inside, home: { placed: placed(), mounted: count() } };
+  });
+  console.log(
+    '  zoomed into one part: ' +
+      virtualized.inside.mounted +
+      ' mounted of ' +
+      virtualized.inside.placed +
+      ' placed; back at home: ' +
+      virtualized.home.mounted +
+      ' of ' +
+      virtualized.home.placed,
+  );
+  assert.ok(
+    virtualized.inside.mounted * 2 <= virtualized.inside.placed,
+    'zoomed into one part the map mounted ' +
+      virtualized.inside.mounted +
+      ' of the ' +
+      virtualized.inside.placed +
+      ' parts it placed',
+  );
+  assert.equal(
+    virtualized.home.mounted,
+    virtualized.home.placed,
+    'back at home the map did not mount every part it placed',
+  );
   const over = verdicts.filter((verdict) => verdict.middle > verdict.allowed);
   assert.deepEqual(
     over.map(

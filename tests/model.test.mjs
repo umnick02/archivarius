@@ -13,7 +13,7 @@ const read = (name) =>
   JSON.parse(fs.readFileSync(new URL('../' + name, import.meta.url), 'utf8'));
 const model = read('models/rendering.json');
 const schema = new Ajv({ strict: false }).compile(
-  read('assets/architecture.schema.json'),
+  read('assets/archivarius-architecture.schema.json'),
 );
 const node = (model, key) => Graph.validate(model).nodes.get(key);
 const confirm = (item) =>

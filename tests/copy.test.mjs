@@ -7,7 +7,7 @@ import { failureCodes } from '../src/model/errors.mjs';
 // interface asks for must exist, a key nobody asks for is dead weight, and the
 // file stays English. Every failure names the key and the file that holds it.
 const root = new URL('../', import.meta.url);
-const COPY = 'assets/strings.json';
+const COPY = 'assets/archivarius-strings.json';
 const copy = JSON.parse(await fs.readFile(new URL(COPY, root), 'utf8'));
 
 const readers = new Map();

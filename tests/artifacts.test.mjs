@@ -22,7 +22,7 @@ test('package retains external data resources and project-independent scripts', 
     );
   }
   const model = JSON.parse(await read('models/rendering.json'));
-  const copy = JSON.parse(await read('assets/strings.json'));
+  const copy = JSON.parse(await read('assets/archivarius-strings.json'));
   let scripts = '';
   for (const file of await fs.readdir(new URL('dist/src/', root), {
     recursive: true,
@@ -30,7 +30,9 @@ test('package retains external data resources and project-independent scripts', 
     if (/\.(?:m?js)$/.test(file)) scripts += await read('dist/src/' + file);
   for (const node of model.nodes) assert(!scripts.includes(node.title));
   assert(!scripts.includes(copy.interpretationNote));
-  const projectCopy = JSON.parse(await read('assets/project.json'));
+  const projectCopy = JSON.parse(
+    await read('assets/archivarius-project-strings.json'),
+  );
   const project = JSON.parse(await read('models/documentation.json'));
   assert(!scripts.includes(projectCopy.conservative));
   assert(
@@ -76,7 +78,9 @@ test('a consumer can compile the shipped schemas, extensions and all', async () 
   // The schemas carry two annotations that no validator implements, so a
   // consumer needs ajv's strict mode off. Pin that surface: a third extension
   // would break every consumer that followed contract.md and passed only this.
-  const schemas = ['model', 'change'].map((name) => name + '.schema.json');
+  const schemas = ['model', 'change'].map(
+    (name) => 'archivarius-' + name + '.schema.json',
+  );
   const extensions = new Set();
   const collect = (value) => {
     if (Array.isArray(value)) return value.forEach(collect);
@@ -94,6 +98,6 @@ test('a consumer can compile the shipped schemas, extensions and all', async () 
   }
   for (const name of schemas) ajv.compile({ $ref: name });
   assert.deepEqual([...extensions].sort(), ['x-history', 'x-targets']);
-  const documented = await read('dist/assets/contract.md');
+  const documented = await read('dist/assets/archivarius-contract.md');
   for (const keyword of extensions) assert(documented.includes(keyword));
 });

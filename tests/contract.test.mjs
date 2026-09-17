@@ -181,9 +181,9 @@ test('a closed object that opens is additive and one that closes is breaking', (
 
 test('the shipped contracts grade as unchanged against themselves', async () => {
   for (const name of [
-    'model.schema.json',
-    'architecture.schema.json',
-    'change.schema.json',
+    'archivarius-model.schema.json',
+    'archivarius-architecture.schema.json',
+    'archivarius-change.schema.json',
   ]) {
     const schema = await readSchema(name);
     const report = gradeContract(schema, clone(schema));
@@ -197,7 +197,7 @@ test('the shipped contracts grade as unchanged against themselves', async () => 
 // optional field is what a minor may carry, and nothing about the reading depends
 // on the fields the schema happens to have today.
 test('an optional field added to the shipped contract grades as additive', async () => {
-  const schema = await readSchema('model.schema.json');
+  const schema = await readSchema('archivarius-model.schema.json');
   const next = clone(schema);
   const variant = next.$defs.record.oneOf.find(
     (branch) => branch.properties?.type?.const === 'decision',
@@ -216,7 +216,9 @@ test('an optional field added to the shipped contract grades as additive', async
 });
 
 test('the shipped contracts describe every record type as a shape of its own', async () => {
-  const shape = contractShape(await readSchema('model.schema.json'));
+  const shape = contractShape(
+    await readSchema('archivarius-model.schema.json'),
+  );
   assert.equal(shape.version, supportedContractVersion);
   const markdown =
     shape.locations['$defs/record[type=document][format=markdown]'];
@@ -234,9 +236,12 @@ test('the shipped contracts describe every record type as a shape of its own', a
 });
 
 test('a contract version is read from a schema, a model or a number', async () => {
-  assert.equal(contractVersion(await readSchema('model.schema.json')), 4);
   assert.equal(
-    contractVersion(await readSchema('architecture.schema.json')),
+    contractVersion(await readSchema('archivarius-model.schema.json')),
+    4,
+  );
+  assert.equal(
+    contractVersion(await readSchema('archivarius-architecture.schema.json')),
     3,
   );
   assert.equal(contractVersion({ version: 9 }), 9);

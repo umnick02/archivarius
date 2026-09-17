@@ -462,7 +462,7 @@ test('a project that binds neither the package nor the mount entry gets no quick
 test('the reference lists the open questions instead of filing them as facts', async () => {
   const copy = JSON.parse(
     await fs.readFile(
-      new URL('../assets/project.json', import.meta.url),
+      new URL('../assets/archivarius-project-strings.json', import.meta.url),
       'utf8',
     ),
   );

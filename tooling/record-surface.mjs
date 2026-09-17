@@ -1,6 +1,6 @@
 // Record the promise a version makes.
 //
-// `assets/public-surface.json` is what `tests/surface.test.mjs` holds the built
+// `assets/archivarius-public-surface.json` is what `tests/surface.test.mjs` holds the built
 // package to: the named exports of every published subpath, the files and assets
 // that ship, the binary, and the shape of every contract a consumer writes
 // against. This script reads all of that out of the built package and the shipped
@@ -64,19 +64,19 @@ const modules = [
 
 const schemas = [
   {
-    name: 'model.schema.json',
+    name: 'archivarius-model.schema.json',
     minor: 'May gain an optional field, a value in an enum or a looser bound.',
     major:
       'May remove a field, require one it did not, withdraw a value, tighten a bound or raise the contract version.',
   },
   {
-    name: 'architecture.schema.json',
+    name: 'archivarius-architecture.schema.json',
     minor: 'May gain an optional field, a value in an enum or a looser bound.',
     major:
       'May remove a field, require one it did not, withdraw a value, tighten a bound or raise the contract version.',
   },
   {
-    name: 'change.schema.json',
+    name: 'archivarius-change.schema.json',
     minor: 'May gain an optional field or a value in an enum.',
     major: 'May remove a field, require one it did not, or withdraw a value.',
   },
@@ -84,8 +84,8 @@ const schemas = [
 
 const pkg = await readJSON('package.json');
 const assets = (await fs.readdir(new URL('dist/assets/', root))).sort();
-if (!assets.includes('public-surface.json')) {
-  assets.push('public-surface.json');
+if (!assets.includes('archivarius-public-surface.json')) {
+  assets.push('archivarius-public-surface.json');
   assets.sort();
 }
 
@@ -129,7 +129,7 @@ const surface = {
     },
     {
       subpath: './model.schema.json',
-      path: 'dist/assets/model.schema.json',
+      path: 'dist/assets/archivarius-model.schema.json',
       minor: 'May change additively; the subpath stays.',
       major: 'May be removed or point at a different contract.',
     },
@@ -153,7 +153,7 @@ const surface = {
   contracts,
 };
 
-const file = 'assets/public-surface.json';
+const file = 'assets/archivarius-public-surface.json';
 await fs.writeFile(
   new URL(file, root),
   JSON.stringify(surface, null, 2) + '\n',

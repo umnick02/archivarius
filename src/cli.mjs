@@ -50,7 +50,7 @@ async function main() {
     if (values.help && positionals.length === 0) {
       process.stdout.write(
         await fs.readFile(
-          new URL('../assets/cli-help.txt', import.meta.url),
+          new URL('../assets/archivarius-cli-help.txt', import.meta.url),
           'utf8',
         ),
       );
@@ -126,7 +126,7 @@ async function main() {
   } catch {
     process.stderr.write(
       await fs.readFile(
-        new URL('../assets/cli-help.txt', import.meta.url),
+        new URL('../assets/archivarius-cli-help.txt', import.meta.url),
         'utf8',
       ),
     );

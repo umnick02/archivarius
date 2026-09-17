@@ -11,7 +11,7 @@ import { generateReadme } from '../src/node.mjs';
 const readCopy = async () =>
   JSON.parse(
     await fs.readFile(
-      new URL('../assets/project.json', import.meta.url),
+      new URL('../assets/archivarius-project-strings.json', import.meta.url),
       'utf8',
     ),
   );
@@ -148,7 +148,7 @@ test('the readme drops the inspector furniture and never grows into a report', (
 test('the prose table is derived from the schema, not written by hand', async () => {
   const schema = JSON.parse(
     await fs.readFile(
-      new URL('../assets/model.schema.json', import.meta.url),
+      new URL('../assets/archivarius-model.schema.json', import.meta.url),
       'utf8',
     ),
   );

@@ -109,9 +109,15 @@ async function readSource(source, signal) {
 }
 
 const resourceURLs = {
-  strings: new URL('../../assets/strings.json', import.meta.url),
-  contracts: new URL('../../assets/contracts.json', import.meta.url),
-  project: new URL('../../assets/project.json', import.meta.url),
+  strings: new URL('../../assets/archivarius-strings.json', import.meta.url),
+  contracts: new URL(
+    '../../assets/archivarius-contracts.json',
+    import.meta.url,
+  ),
+  project: new URL(
+    '../../assets/archivarius-project-strings.json',
+    import.meta.url,
+  ),
 };
 
 export async function readResources({ assetsBaseUrl, signal } = {}) {
@@ -121,7 +127,11 @@ export async function readResources({ assetsBaseUrl, signal } = {}) {
 
 async function readAssets(assetsBaseUrl, signal) {
   const names = ['strings', 'contracts', 'project'];
-  const files = ['strings.json', 'contracts.json', 'project.json'];
+  const files = [
+    'archivarius-strings.json',
+    'archivarius-contracts.json',
+    'archivarius-project-strings.json',
+  ];
   const [copy, contracts, projectCopy] = await Promise.all(
     names.map(async (name, i) => {
       const url = assetsBaseUrl

@@ -222,12 +222,7 @@
   "legend": {
     "title": "How to read the picture",
     "note": "Every value reads without colour: a token, a shape, a border or a line.",
-    "columns": [
-      "Group",
-      "Value",
-      "Token",
-      "Drawn as"
-    ],
+    "columns": ["Group", "Value", "Token", "Drawn as"],
     "groups": {
       "kind": "Kind",
       "zone": "Layer",

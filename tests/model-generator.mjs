@@ -8,7 +8,7 @@ import { validateArchitecture } from '../src/core.mjs';
 // model cannot drift from the contract either.
 const contract = JSON.parse(
   await fs.readFile(
-    new URL('../assets/architecture.schema.json', import.meta.url),
+    new URL('../assets/archivarius-architecture.schema.json', import.meta.url),
     'utf8',
   ),
 );
