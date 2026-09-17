@@ -1,5 +1,9 @@
 import { assertProject } from './project-contract.mjs';
-import { contractDigest, realizationDigest } from './project-digest.mjs';
+import {
+  contractDigest,
+  movedDefinitions,
+  realizationDigest,
+} from './project-digest.mjs';
 import { bindingHolds, bindingParts, partDigest } from './binding.mjs';
 import { hashBytes } from './digest.mjs';
 import { failureCodes } from './errors.mjs';
@@ -72,15 +76,18 @@ export function runEvidence(model, check, run) {
  * module asked for the output digest still confirms what it does state.
  *
  * @param {any} evidence the stored receipt
- * @param {{ result: any, check: any, contract: string, realization: string }} against
+ * @param {{ result: any, check: any, realization: string }} against
  * @returns {boolean}
  */
 export function evidenceDescribesRun(evidence, against) {
-  const { result, check, contract, realization } = against;
+  const { result, check, realization } = against;
   if (
     evidence.version !== 1 ||
     evidence.check !== result.check ||
-    evidence.contract !== contract ||
+    // The contract the run read is the one the result names, not whatever the
+    // snapshot says today: an edit elsewhere moves the current contract without
+    // touching either. The realization is bytes, so it is held to the present.
+    evidence.contract !== result.basis?.contract ||
     evidence.realization !== realization ||
     evidence.outcome !== result.outcome ||
     !check?.command ||
@@ -204,8 +211,12 @@ export async function verifyProjectEvidence(model, readBytes) {
   for (const result of model.records.filter((r) => r.type === 'result')) {
     try {
       if (!bindingsValid) throw unanchored;
+      // The same proportionate rule the analysis reads: a receipt stands while the
+      // definitions it names hold and the bytes it ran against are the bytes now.
+      // A receipt that names no definitions falls back to the whole contract.
+      const moved = movedDefinitions(model, result);
       if (
-        result.basis?.contract !== contract ||
+        (moved ? moved.length > 0 : result.basis?.contract !== contract) ||
         result.realization !== realization
       )
         throw new Error('BASIS_CHANGED');
@@ -215,14 +226,7 @@ export async function verifyProjectEvidence(model, readBytes) {
         const check = model.records.find(
           (r) => r.key === result.check && r.type === 'check',
         );
-        if (
-          !evidenceDescribesRun(evidence, {
-            result,
-            check,
-            contract,
-            realization,
-          })
-        )
+        if (!evidenceDescribesRun(evidence, { result, check, realization }))
           throw new Error('EVIDENCE_INVALID');
       }
       verifiedResults.push(result.key);

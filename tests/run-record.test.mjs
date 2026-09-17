@@ -18,10 +18,20 @@ import {
   contractDigest,
   realizationDigest,
 } from '../src/model/project-digest.mjs';
-import { bind, get, ready, receipt, seal } from './project-fixture.mjs';
+import {
+  bind,
+  edit,
+  get,
+  ready,
+  receipt,
+  scoped,
+  seal,
+} from './project-fixture.mjs';
 
 const root = new URL('../', import.meta.url);
 const encode = (value) => new TextEncoder().encode(value);
+// The basis a reviewed record carries: the contract it was read against and the
+// definitions it rested on, one digest each.
 
 // A project whose one result is confirmable from bytes this suite holds, so a
 // receipt can be rewritten field by field without touching a filesystem.
@@ -254,4 +264,109 @@ test('a passing run can answer the failure it clears', async (t) => {
     ),
     [],
   );
+});
+
+// Withdrawal is proportionate for every record that carries a basis, and a receipt
+// carries one: a run stands on the bytes it ran against and on the definitions its
+// check rested on, not on every word in the snapshot. Editing an unrelated record
+// must leave the run standing, or a project keeps rerunning a green gate because a
+// sentence somewhere else was rewritten.
+test('a receipt stands when a definition it never rested on is rewritten', async (t) => {
+  const directory = await fs.mkdtemp(new URL('.runtime/run-scope-', root));
+  t.after(() => fs.rm(directory, { recursive: true, force: true }));
+  const checker = await fs.readFile(
+    new URL('fixtures/evidence-check.mjs', import.meta.url),
+  );
+  await fs.writeFile(path.join(directory, 'fixture.mjs'), checker);
+  const model = ready();
+  bind(model, hashBytes(checker));
+  get(model, 'export-check').command = [process.execPath, 'fixture.mjs'];
+  seal(model);
+  // A reviewed check names the definitions it rested on; without that the check
+  // itself is withdrawn by any edit and the run only follows it.
+  scoped(model);
+  const record = await executeProjectCheck(model, 'export-check', {
+    directory,
+    resultKey: 'run',
+    evidencePath: 'run.json',
+  });
+  model.records.push(record);
+  assert.deepEqual(analyzeProject(model).freshness.run.reasons, []);
+  // A record the check does not rest on: its own words change, the run does not.
+  const unrelated = model.records.find(
+    (r) => r.type === 'task' && !r.covers?.includes('export-check'),
+  );
+  assert.ok(unrelated, 'the fixture has no unrelated task');
+  edit(model, unrelated.key, { change: unrelated.change + ' Rewritten.' });
+  assert.deepEqual(
+    analyzeProject(model).freshness.run.reasons,
+    [],
+    'an unrelated edit withdrew the run',
+  );
+});
+
+test('a receipt is withdrawn when a definition its check rested on moves', async (t) => {
+  const directory = await fs.mkdtemp(new URL('.runtime/run-moved-', root));
+  t.after(() => fs.rm(directory, { recursive: true, force: true }));
+  const checker = await fs.readFile(
+    new URL('fixtures/evidence-check.mjs', import.meta.url),
+  );
+  await fs.writeFile(path.join(directory, 'fixture.mjs'), checker);
+  const model = ready();
+  bind(model, hashBytes(checker));
+  get(model, 'export-check').command = [process.execPath, 'fixture.mjs'];
+  seal(model);
+  scoped(model);
+  const record = await executeProjectCheck(model, 'export-check', {
+    directory,
+    resultKey: 'run',
+    evidencePath: 'run.json',
+  });
+  model.records.push(record);
+  const check = get(model, 'export-check');
+  const criterion = get(model, check.covers[0]);
+  edit(model, criterion.key, {
+    assertion: criterion.assertion + ' And one more thing.',
+  });
+  // The check it reports on lost its own basis, so the run goes with it and the
+  // reason names the check rather than blaming the receipt.
+  const freshness = analyzeProject(model).freshness;
+  assert.equal(freshness['export-check'].current, false);
+  assert.equal(freshness.run.current, false);
+  assert.deepEqual(freshness.run.reasons, [
+    { code: 'DEPENDENCY_CHANGED', key: 'export-check' },
+  ]);
+});
+
+// Verification reads the same proportionate rule as the analysis, or a project is
+// told its receipt stands and, in the same breath, that its evidence does not.
+test('verification confirms a receipt an unrelated edit left standing', async (t) => {
+  const directory = await fs.mkdtemp(new URL('.runtime/run-verify-', root));
+  t.after(() => fs.rm(directory, { recursive: true, force: true }));
+  const checker = await fs.readFile(
+    new URL('fixtures/evidence-check.mjs', import.meta.url),
+  );
+  await fs.writeFile(path.join(directory, 'fixture.mjs'), checker);
+  const model = ready();
+  bind(model, hashBytes(checker));
+  get(model, 'export-check').command = [process.execPath, 'fixture.mjs'];
+  seal(model);
+  scoped(model);
+  const record = await executeProjectCheck(model, 'export-check', {
+    directory,
+    resultKey: 'run',
+    evidencePath: 'run.json',
+  });
+  model.records.push(record);
+  const read = async (name) =>
+    new Uint8Array(await fs.readFile(path.join(directory, name)));
+  assert.deepEqual((await verifyProjectEvidence(model, read)).verifiedResults, [
+    'run',
+  ]);
+  const unrelated = model.records.find(
+    (r) => r.type === 'task' && !r.covers?.includes('export-check'),
+  );
+  edit(model, unrelated.key, { change: unrelated.change + ' Rewritten.' });
+  const after = await verifyProjectEvidence(model, read);
+  assert.deepEqual(after.verifiedResults, ['run'], JSON.stringify(after));
 });

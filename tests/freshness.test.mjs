@@ -5,43 +5,15 @@
 // standing. These cases hold that difference on the shared fixture.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { digest } from '../src/model/digest.mjs';
 import {
   contractDigest,
   definitionBasis,
   movedDefinitions,
-  snapshotManifest,
 } from '../src/model/project-digest.mjs';
 import { reviewSelection } from '../src/model/project-selection.mjs';
 import { validateProject } from '../src/model/project-contract.mjs';
 import { analyzeProject } from '../src/model/project-analysis.mjs';
-import { get, ready } from './project-fixture.mjs';
-
-// The same two steps an authored review takes: write a receipt naming every
-// definition it rested on, then store the manifest that receipt points back at.
-const scoped = (model = ready()) => {
-  const contract = contractDigest(model);
-  for (const record of model.records)
-    if ('basis' in record && record.type !== 'result')
-      record.basis = {
-        contract,
-        definitions: definitionBasis(model, record.key),
-      };
-  model.snapshots.push(snapshotManifest(model));
-  return model;
-};
-
-// An edit keeps the revision it replaced, so the snapshot a receipt names can
-// still be rebuilt — exactly what applying a change does.
-const edit = (model, key, change) => {
-  const record = get(model, key);
-  model.history.push({
-    digest: digest(record),
-    record: structuredClone(record),
-  });
-  Object.assign(record, change);
-  return model;
-};
+import { edit, get, ready, scoped } from './project-fixture.mjs';
 
 const claims = (model) => {
   const report = analyzeProject(model);

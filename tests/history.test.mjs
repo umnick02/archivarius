@@ -171,9 +171,12 @@ test('the MIT licence ships with the package', async () => {
   assert.match(licence, /WITHOUT WARRANTY OF ANY KIND/);
   const pkg = JSON.parse(await fs.readFile(new URL('package.json', root)));
   assert.equal(pkg.license, 'MIT');
-  // npm packs the licence with every tarball, whatever `files` lists.
+  // npm packs the licence with every tarball, whatever `files` lists. Scripts are
+  // off: what the tarball carries is decided by `files` and npm's own defaults,
+  // and letting `prepare` rebuild dist/ here would pull it out from under the
+  // suites running beside this one.
   const packed = JSON.parse(
-    execFileSync('npm', ['pack', '--dry-run', '--json'], {
+    execFileSync('npm', ['pack', '--dry-run', '--json', '--ignore-scripts'], {
       cwd: root,
       encoding: 'utf8',
     }),

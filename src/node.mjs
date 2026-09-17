@@ -8,7 +8,11 @@ import { renderProjectReadme } from './model/project-readme.mjs';
 import { analyzeProject } from './model/project-analysis.mjs';
 import { applyProjectChanges } from './model/project-authoring.mjs';
 import { assertProject } from './model/project-contract.mjs';
-import { contractDigest, realizationDigest } from './model/project-digest.mjs';
+import {
+  contractDigest,
+  definitionBasis,
+  realizationDigest,
+} from './model/project-digest.mjs';
 import { diffProject } from './model/project-diff.mjs';
 import { initialProject } from './model/init.mjs';
 import { projectHistory, renderProjectHistory } from './model/history.mjs';
@@ -270,7 +274,13 @@ export async function executeProjectCheck(
     resolves,
     ...(resolution ? { resolution } : {}),
   };
-  assertProject({ ...model, records: [...model.records, record] });
+  // Withdrawal is proportionate for a run too: the receipt names the definitions
+  // it rested on - its check and everything that check rests on - so a later edit
+  // elsewhere in the snapshot leaves the run standing, and a change to what the
+  // check reads withdraws it.
+  const proposed = { ...model, records: [...model.records, record] };
+  record.basis.definitions = definitionBasis(proposed, resultKey);
+  assertProject(proposed);
   const target = path.resolve(directory, evidencePath);
   await fs.mkdir(path.dirname(target), { recursive: true });
   const parent = await fs.realpath(path.dirname(target)),

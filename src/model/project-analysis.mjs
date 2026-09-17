@@ -41,9 +41,10 @@ const prerequisiteFields = [
 function scopedBasisReason(model, record, contract) {
   if (!('basis' in record)) return null;
   if (!record.basis) return { code: 'BASIS_MISSING', key: record.key };
-  // A result reports on a whole realization, so its basis is not scoped.
-  const moved =
-    record.type === 'result' ? null : movedDefinitions(model, record);
+  // A result stands on the bytes it ran against and on the definitions it names,
+  // so it is withdrawn by the same proportionate rule as every other record. A
+  // receipt that names no definitions still falls back to the whole contract.
+  const moved = movedDefinitions(model, record);
   if (!moved) return basisReason(model, record, contract);
   return moved.length
     ? { code: 'BASIS_CHANGED', key: record.key, moved }

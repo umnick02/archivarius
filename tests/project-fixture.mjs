@@ -1,8 +1,11 @@
 import fs from 'node:fs/promises';
 import {
   contractDigest,
+  definitionBasis,
   realizationDigest,
+  snapshotManifest,
 } from '../src/model/project-digest.mjs';
+import { digest } from '../src/model/digest.mjs';
 
 // The compact project every project suite reads, plus the shaping steps that
 // turn it into a confirmable model. One copy of the shaping keeps the suites
@@ -49,3 +52,30 @@ export const receipt = (model) => ({
   evidence: [{ path: 'run.json', digest: 'b'.repeat(64) }],
   resolves: [],
 });
+
+// The same two steps an authored review takes: write a basis naming every
+// definition each record rested on, then store the manifest those bases point
+// back at. A whole-contract basis is what `seal` writes; this is the scoped one.
+export const scoped = (model = ready()) => {
+  const contract = contractDigest(model);
+  for (const record of model.records)
+    if ('basis' in record && record.type !== 'result')
+      record.basis = {
+        contract,
+        definitions: definitionBasis(model, record.key),
+      };
+  model.snapshots.push(snapshotManifest(model));
+  return model;
+};
+
+// An edit keeps the revision it replaced, so the snapshot a basis names can still
+// be rebuilt - exactly what applying a change does.
+export const edit = (model, key, change) => {
+  const record = get(model, key);
+  model.history.push({
+    digest: digest(record),
+    record: structuredClone(record),
+  });
+  Object.assign(record, change);
+  return model;
+};
