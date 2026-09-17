@@ -7,7 +7,9 @@ import {
   exportProjectDocuments,
   generateDocumentation,
   generateGraph,
+  generateHistory,
   generateReadme,
+  initProjectFile,
   verifyProjectFiles,
   updateProjectFile,
   executeProjectCheck,
@@ -38,6 +40,7 @@ async function main() {
         format: { type: 'string' },
         against: { type: 'string' },
         stale: { type: 'boolean' },
+        title: { type: 'string' },
       },
     }));
     if (values.help && positionals.length === 0) {
@@ -51,10 +54,12 @@ async function main() {
     }
     const [command] = positionals;
     const allowed = {
+      init: ['title', 'json'],
       validate: ['json'],
       reference: ['output', 'check'],
       readme: ['output', 'check'],
       graph: ['output', 'check', 'format'],
+      history: ['output', 'check'],
       documents: ['output', 'check', 'json'],
       context: ['focus', 'json', 'output'],
       read: ['focus', 'json'],
@@ -69,10 +74,12 @@ async function main() {
       Object.keys(values).some((key) => !allowed[command]?.includes(key)) ||
       positionals.length !== 2 ||
       ![
+        'init',
         'validate',
         'reference',
         'readme',
         'graph',
+        'history',
         'documents',
         'context',
         'read',
@@ -86,7 +93,7 @@ async function main() {
       (command === 'apply' && (!values.context || !values.change)) ||
       (command === 'run' &&
         (values.focus?.length !== 1 || !values.result || !values.evidence)) ||
-      (['reference', 'readme'].includes(command) &&
+      (['reference', 'readme', 'history'].includes(command) &&
         (!values.output || values.json)) ||
       (command === 'graph' &&
         (!values.output ||
@@ -107,6 +114,13 @@ async function main() {
   }
   const [command, input] = positionals;
   try {
+    // The one command that writes where nothing is readable yet, so it answers
+    // before the model is read rather than after failing to read it.
+    if (command === 'init') {
+      await initProjectFile(input, { title: values.title });
+      process.stdout.write(path.resolve(input) + '\n');
+      return;
+    }
     const model = await readArchitectureFile(input);
     const print = (value) =>
       process.stdout.write(JSON.stringify(value, null, 2) + '\n');
@@ -226,9 +240,11 @@ async function main() {
     const contents =
       command === 'graph'
         ? generateGraph(model, values.format)
-        : command === 'readme'
-          ? await generateReadme(model)
-          : await generateDocumentation(model);
+        : command === 'history'
+          ? generateHistory(model)
+          : command === 'readme'
+            ? await generateReadme(model)
+            : await generateDocumentation(model);
     if (values.check) {
       const existing = await fs.readFile(output, 'utf8').catch((error) => {
         if (error.code !== 'ENOENT') throw error;

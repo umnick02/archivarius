@@ -10,9 +10,12 @@ import { applyProjectChanges } from './model/project-authoring.mjs';
 import { assertProject } from './model/project-contract.mjs';
 import { contractDigest, realizationDigest } from './model/project-digest.mjs';
 import { diffProject } from './model/project-diff.mjs';
+import { initialProject } from './model/init.mjs';
+import { projectHistory, renderProjectHistory } from './model/history.mjs';
 import {
   verifyProjectEvidence,
   relativeArtifactPath,
+  runEvidence,
 } from './model/evidence.mjs';
 import {
   loadProjectStorage,
@@ -57,6 +60,37 @@ export async function generateReadme(model) {
 // DOT file, a mermaid flowchart and a record table carry the model's own words.
 export function generateGraph(model, format = 'dot') {
   return renderGraph(model, format);
+}
+
+// What changed between two stored snapshots, read without Git: the release
+// history is the snapshot's own manifests walked in pairs through the same diff
+// the `diff` command reports.
+export function generateHistory(model) {
+  return renderProjectHistory(projectHistory(assertProject(model)));
+}
+
+// A starting point is only a starting point if it cannot land on work already
+// done, so the write refuses an existing path instead of merging into it.
+export async function initProjectFile(file, options = {}) {
+  const model = initialProject(options);
+  const target = path.resolve(file);
+  if (
+    await fs.lstat(target).then(
+      () => true,
+      () => false,
+    )
+  )
+    throw new ArchitectureError('SNAPSHOT_EXISTS');
+  await fs.mkdir(path.dirname(target), { recursive: true });
+  try {
+    await fs.writeFile(target, JSON.stringify(model, null, 2) + '\n', {
+      flag: 'wx',
+    });
+  } catch (error) {
+    if (error.code === 'EEXIST') throw new ArchitectureError('SNAPSHOT_EXISTS');
+    throw error;
+  }
+  return model;
 }
 
 // Reads an artifact only from inside the project directory. Internal: evidence
@@ -183,17 +217,11 @@ export async function executeProjectCheck(
   );
   await verifyBindings();
   const outcome = run.exitCode === 0 ? 'pass' : 'fail';
-  const evidence = {
-    version: 1,
-    check: key,
-    contract,
-    realization,
-    command,
+  const evidence = runEvidence(model, check, {
+    ...run,
     startedAt,
     finishedAt: new Date().toISOString(),
-    outcome,
-    ...run,
-  };
+  });
   const bytes = new TextEncoder().encode(
     JSON.stringify(evidence, null, 2) + '\n',
   );

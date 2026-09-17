@@ -7,6 +7,7 @@ import { index, recordReferences } from './records.mjs';
 import { projectArchitecture } from './project-architecture.mjs';
 import {
   contractDigest,
+  definitionBasis,
   dependencyDigest,
   realizationDigest,
 } from './project-digest.mjs';
@@ -172,15 +173,27 @@ export function validateProject(model) {
   if (!diagnostics.length) {
     snapshots.set(contractDigest(model), model);
     for (const record of model.records) {
-      if (record.type === 'result' || !record.basis?.dependencies) continue;
+      if (record.type === 'result') continue;
+      const scoped = record.basis?.definitions;
+      if (!scoped && !record.basis?.dependencies) continue;
       const source = snapshots.get(record.basis.contract);
       if (!source || !source.records.some((r) => r.key === record.key)) {
         issue('BASIS_SNAPSHOT_MISSING', record.key);
         continue;
       }
       try {
-        if (dependencyDigest(source, record.key) !== record.basis.dependencies)
+        if (
+          record.basis.dependencies &&
+          dependencyDigest(source, record.key) !== record.basis.dependencies
+        )
           issue('BASIS_DEPENDENCIES_MISMATCH', record.key);
+        // A receipt naming its definitions one by one is held to each of them:
+        // the snapshot it points at has to read back the same set of digests.
+        if (
+          scoped &&
+          digest(definitionBasis(source, record.key)) !== digest(scoped)
+        )
+          issue('BASIS_DEFINITIONS_MISMATCH', record.key);
       } catch {
         issue('BASIS_SOURCE_INVALID', record.key);
       }

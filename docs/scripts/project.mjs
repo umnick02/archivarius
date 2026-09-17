@@ -11,6 +11,10 @@ try {
       'reference',
       'readme',
       'documents',
+      'graph',
+      'diff',
+      'history',
+      'init',
       'verify',
       'run',
       'archive',
@@ -40,7 +44,7 @@ try {
       });
   } else
     throw new Error(
-      'Expected validate, read, context, apply, reference, readme, documents, verify, run, archive or serve',
+      'Expected validate, read, context, apply, reference, readme, documents, graph, diff, history, init, verify, run, archive or serve',
     );
 } catch (error) {
   process.stdout.write(

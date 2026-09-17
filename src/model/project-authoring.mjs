@@ -17,10 +17,12 @@ import {
 import { reviewSelection } from './project-selection.mjs';
 import {
   contractDigest,
+  definitionBasis,
   dependencyDigest,
   snapshotManifest,
 } from './project-digest.mjs';
 import { assertProject } from './project-contract.mjs';
+import { unrunResults } from './evidence.mjs';
 import validateChange from '../generated/validate-change.mjs';
 
 export function projectRead(model, keys) {
@@ -148,7 +150,7 @@ export function applyProjectChanges(model, context, change) {
       [],
       explainDiagnostics(diagnostics, change),
     );
-  const { put = [], remove = [], review = [], reason } = change;
+  const { put = [], remove = [], review = [], reason, at, by } = change;
   // A stale receipt says which read moved, so the author reads that record again
   // instead of the whole closure. Taking the read may itself fail on a key the
   // model dropped, and that is still a receipt that moved.
@@ -242,6 +244,17 @@ export function applyProjectChanges(model, context, change) {
   for (const key of ['title', 'root', 'entry', 'bindings'])
     if (change[key] !== undefined) next[key] = structuredClone(change[key]);
   assertProject(next);
+  // An outcome is a report on a run. A result entering the model states the
+  // contract and the source bytes it was produced against, so one that names
+  // neither is refused here rather than surviving until someone reads it. A
+  // result already in the model is immutable, so only a new one is asked.
+  const claimed = put.filter(
+    (record) =>
+      record.type === 'result' &&
+      !model.records.some((old) => old.key === record.key),
+  );
+  for (const key of unrunResults(next, claimed))
+    throw new ArchitectureError('OUTCOME_NOT_RUN', [key]);
   for (const key of review) {
     const record = records.get(key);
     if (
@@ -275,9 +288,16 @@ export function applyProjectChanges(model, context, change) {
     )
       throw new ArchitectureError('REVIEW_REQUIRED', [key]);
     archive(record);
+    // The receipt names the definitions it rested on, so a later change withdraws
+    // only what depended on the definition that moved. When and by whom are the
+    // author's to state: absent when the change states neither, never a clock of
+    // this module's own.
     record.basis = {
       contract: contractDigest(next),
       dependencies: dependencyDigest(next, key),
+      definitions: definitionBasis(next, key),
+      ...(at ? { at } : {}),
+      ...(by ? { by } : {}),
     };
     record.reconsideredBecause = reason;
   }

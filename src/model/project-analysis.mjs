@@ -5,7 +5,12 @@ import {
   recordReferences,
 } from './records.mjs';
 import { assertProject } from './project-contract.mjs';
-import { contractDigest, realizationDigest } from './project-digest.mjs';
+import {
+  contractDigest,
+  movedDefinitions,
+  realizationDigest,
+} from './project-digest.mjs';
+import { claimStanding } from './project-view.mjs';
 import { basisReason } from './project-diff.mjs';
 
 // Fields that carry an actual prerequisite. Scope and containment links say where a
@@ -22,7 +27,35 @@ const prerequisiteFields = [
   'constraints',
 ];
 
-export function analyzeProject(model, { verifiedResults = [] } = {}) {
+/**
+ * Whether a record still holds its basis, asked as narrowly as the receipt lets
+ * it be asked. A receipt that names the definitions it rested on is answered per
+ * definition, and it says which ones moved; anything else falls back to the one
+ * question the whole snapshot shares.
+ *
+ * @param {any} model
+ * @param {any} record
+ * @param {string} contract
+ * @returns {{ code: string, key: string, moved?: string[] } | null}
+ */
+function scopedBasisReason(model, record, contract) {
+  if (!('basis' in record)) return null;
+  if (!record.basis) return { code: 'BASIS_MISSING', key: record.key };
+  // A result reports on a whole realization, so its basis is not scoped.
+  const moved =
+    record.type === 'result' ? null : movedDefinitions(model, record);
+  if (!moved) return basisReason(model, record, contract);
+  return moved.length
+    ? { code: 'BASIS_CHANGED', key: record.key, moved }
+    : null;
+}
+
+/**
+ * @param {any} model
+ * @param {{ verifiedResults?: string[], now?: string | number | Date }} [options]
+ *   `now` is the instant a claim's age is read against; with none, no claim ages.
+ */
+export function analyzeProject(model, { verifiedResults = [], now } = {}) {
   assertProject(model);
   const records = index(model),
     contract = contractDigest(model),
@@ -42,10 +75,14 @@ export function analyzeProject(model, { verifiedResults = [] } = {}) {
     );
   for (const record of model.records) {
     const reasons = [],
-      basis = basisReason(model, record, contract);
+      basis = scopedBasisReason(model, record, contract);
     if (basis) reasons.push(basis);
     if (record.type === 'result' && record.realization !== realization)
       reasons.push({ code: 'REALIZATION_CHANGED', key: record.key });
+    // A claim that outlived the life its own record or its scope stated is
+    // ageing, not current. It is only ever read against a given instant.
+    if (!reasons.length && claimStanding(model, record.key, now)?.ageing)
+      reasons.push({ code: 'CLAIM_AGEING', key: record.key });
     freshness[record.key] = { current: !reasons.length, reasons };
   }
   // Propagate actual prerequisite gaps.

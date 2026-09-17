@@ -688,6 +688,15 @@ try {
     }),
   );
   const children = nodesByKey.get(container).children.map((node) => node.key);
+  // Expanding moves the spot inside; the move lands on a frame of its own, so it
+  // is waited for rather than read the instant the announcement arrives.
+  await until(
+    (keys) =>
+      keys.includes(
+        document.activeElement?.closest('[data-node]')?.dataset.node,
+      ),
+    children,
+  ).catch(() => {});
   assert(children.includes((await spot()).slice(5)), await spot());
   const insideOrder = await readingOrder();
   for (const key of children) assert(insideOrder.includes(key), key);

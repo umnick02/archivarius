@@ -527,6 +527,11 @@ export const failureCodes = {
     remedy:
       'Read a context that covers the whole dependency closure of those keys.',
   },
+  CONTRACT_TOO_NEW: {
+    meaning:
+      'The model states a contract version newer than this library reads.',
+    remedy: 'Upgrade the library to one that reads that contract version.',
+  },
   DOCUMENTS_MISSING: {
     meaning: 'The model declares no document to write.',
     remedy: 'Add a document record before writing documents.',
@@ -646,6 +651,12 @@ export const failureCodes = {
     meaning: 'The requested output file is the model file being read.',
     remedy: 'Write the output to a different path.',
   },
+  SNAPSHOT_EXISTS: {
+    meaning:
+      'A snapshot already exists at the path the new one was to be written to.',
+    remedy:
+      'Write the new snapshot to a free path, or remove the existing file first.',
+  },
   SNAPSHOT_INCOMPLETE: {
     meaning:
       'A stored snapshot manifest names a record revision the history no longer holds.',
@@ -675,6 +686,11 @@ export const failureCodes = {
       'A basis was set or reconsidered without a reason and a receipt that covers everything it rests on.',
     remedy:
       'Read a context over the whole closure and pass the review keys with a reason.',
+  },
+  OUTCOME_NOT_RUN: {
+    meaning:
+      'A stated outcome has no run behind it: no receipt names the command that produced it.',
+    remedy: 'Run the check and record its receipt, or drop the outcome.',
   },
   UNKNOWN_LAYER: {
     meaning:

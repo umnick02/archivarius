@@ -54,6 +54,50 @@ export const architectureLimits: {
   readonly maxDepth: number;
 };
 export const failureCodes: Record<string, { meaning: string; remedy: string }>;
+
+export interface ContractShapeEntry {
+  ref?: string;
+  refs?: string[];
+  types?: string[];
+  values?: string[];
+  forbidden?: boolean;
+  closed?: boolean;
+  required?: string[];
+  properties?: string[];
+  bounds?: Record<string, number | boolean | string>;
+}
+export interface ContractShape {
+  title: string | null;
+  version: number | null;
+  locations: Record<string, ContractShapeEntry>;
+}
+export interface ContractChange {
+  grade: 'additive' | 'breaking';
+  kind: string;
+  location: string;
+  field?: string;
+  keyword?: string;
+  lost?: string[];
+  gained?: string[];
+  was?: string;
+  now?: string;
+}
+export function contractShape(schema: unknown): ContractShape;
+export function gradeContract(
+  previous: unknown,
+  next: unknown,
+): {
+  grade: 'unchanged' | 'additive' | 'breaking';
+  previous: number | null;
+  next: number | null;
+  changes: ContractChange[];
+  breaking: ContractChange[];
+  additive: ContractChange[];
+};
+export function assertContractSupported(
+  snapshot: unknown,
+  library?: unknown,
+): number | null;
 export interface ProjectReason {
   code: string;
   key: string;

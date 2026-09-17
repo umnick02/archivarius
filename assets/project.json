@@ -187,6 +187,8 @@
     "PREREQUISITE_UNCONFIRMED": "Required task outcome is unconfirmed",
     "BASIS_MISSING": "Basis has not been recorded",
     "BASIS_CHANGED": "Project definitions changed",
+    "BASIS_DEFINITIONS_MISMATCH": "Recorded definitions no longer read back",
+    "CLAIM_AGEING": "Claim is older than its stated life",
     "REALIZATION_CHANGED": "A different realization was verified",
     "DEPENDENCY_CHANGED": "A prerequisite needs reconsideration",
     "CHECK_FAILED": "An unresolved negative result exists",

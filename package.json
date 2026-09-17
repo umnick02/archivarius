@@ -41,6 +41,7 @@
   },
   "scripts": {
     "generate": "node tooling/generate-contract.mjs",
+    "surface:record": "node tooling/record-surface.mjs",
     "build": "node tooling/build.mjs",
     "dev": "vite --config examples/basic/vite.config.mjs",
     "build:example": "vite build --config examples/basic/vite.config.mjs",

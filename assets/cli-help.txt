@@ -1,10 +1,12 @@
 Archivarius
 
+  archivarius init <project.json> [--title <text>] [--json]
   archivarius validate <model.json> [--json]
   archivarius reference <model.json> --output <architecture.md> [--check]
   archivarius readme <project.json> --output <README.md> [--check]
   archivarius documents <project.json> --output <directory> [--check] [--json]
   archivarius graph <model.json> --output <graph.dot> [--format dot|mermaid|table] [--check]
+  archivarius history <project.json> --output <HISTORY.md> [--check]
   archivarius read <project.json> --focus <key> [--focus <key>]
   archivarius context <project.json> --focus <key> [--focus <key>] [--output <receipt.json>]
   archivarius archive <project.json>
@@ -14,11 +16,13 @@ Archivarius
   archivarius verify <project.json>
 
 validate checks both the file schema and all graph invariants.
+init writes the smallest valid snapshot — one scope, source, requirement and criterion — and refuses to write over an existing file.
 --json returns machine-readable diagnostics with JSON Pointer paths.
 reference generates one Markdown file from that same validated model. It never edits the model.
 readme generates the landing page: the scope, one table per record type, and only the parts the model binds to a file.
 documents renders document records to their declared Markdown/JSON paths under the output directory.
 graph writes the same projection the map draws as Graphviz DOT, a Mermaid flowchart or a record table.
+history writes the release history: every stored snapshot walked in pairs, with the records each version added, removed and changed.
 --check compares the output with fresh generation and exits unsuccessfully on drift.
 read returns focused contracts and owning sections without review metadata.
 context returns the exact edit receipt; --output saves it and prints the focused read view.

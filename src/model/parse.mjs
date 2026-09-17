@@ -1,4 +1,5 @@
 import { visit } from 'jsonc-parser';
+import { assertContractSupported } from './contract.mjs';
 import { ArchitectureError } from './errors.mjs';
 import { ArchitectureGraph } from './graph.mjs';
 import { validateProject } from './project-contract.mjs';
@@ -193,6 +194,10 @@ export function parseArchitecture(text, { signal } = {}) {
   const model = parseJSON(text, { signal });
   signal?.throwIfAborted();
   assertArchitectureLimits(model);
+  // A file written against a newer contract major is refused by its version
+  // rather than by the fields that version moved: the reader states what it can
+  // read instead of listing everything it could not.
+  assertContractSupported(model);
   const result = validateArchitecture(model);
   if (!result.valid)
     throw new ArchitectureError(

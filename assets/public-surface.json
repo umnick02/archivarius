@@ -1,0 +1,1497 @@
+{
+  "surface": 1,
+  "release": "0.4.0",
+  "note": "What this package promises: the named exports of every published subpath, the files and assets that ship, and the fields, values and bounds of every contract a consumer writes against. A minor release may only add to what is listed here; only a release that raises the major may remove, rename, require or tighten anything. The recorded contract shapes are also the previous contract - a release grades the shipped schemas against them with gradeContract. Re-record with npm run build && node tooling/record-surface.mjs.",
+  "entryPoints": [
+    {
+      "subpath": ".",
+      "module": "dist/src/index.js",
+      "types": "dist/src/index.d.ts",
+      "minor": "May gain a named export or an optional option on one.",
+      "major": "May remove or rename an export, or change what one requires or returns.",
+      "exports": [
+        "ArchitectureError",
+        "ArchitectureMap",
+        "mountArchitectureMap",
+        "parseArchitecture",
+        "validateArchitecture"
+      ]
+    },
+    {
+      "subpath": "./core",
+      "module": "dist/src/core.mjs",
+      "types": "dist/src/core.d.mts",
+      "minor": "May gain a named export, a failure code or an optional option.",
+      "major": "May remove or rename an export, or narrow what one accepts.",
+      "exports": [
+        "ArchitectureError",
+        "analyzeProject",
+        "applyProjectChanges",
+        "architectureLimits",
+        "assertContractSupported",
+        "contractDigest",
+        "contractShape",
+        "dependencyDigest",
+        "failureCodes",
+        "gradeContract",
+        "parseArchitecture",
+        "parseJSON",
+        "projectContext",
+        "projectRead",
+        "realizationDigest",
+        "renderDocument",
+        "validateArchitecture",
+        "validateProject"
+      ]
+    },
+    {
+      "subpath": "./node",
+      "module": "dist/src/node.mjs",
+      "types": "dist/src/node.d.mts",
+      "minor": "May gain a named export or an optional option on one.",
+      "major": "May remove or rename an export, or change the files one reads or writes.",
+      "exports": [
+        "archiveProjectFile",
+        "diffProjectFiles",
+        "executeProjectCheck",
+        "exportProjectDocuments",
+        "generateDocumentation",
+        "generateGraph",
+        "generateHistory",
+        "generateReadme",
+        "initProjectFile",
+        "readArchitectureFile",
+        "updateProjectFile",
+        "verifyProjectFiles",
+        "writeAtomic"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "subpath": "./example.json",
+      "path": "dist/example.json",
+      "minor": "May gain records, and its own contract may change additively.",
+      "major": "May be removed, renamed or written against a newer contract major."
+    },
+    {
+      "subpath": "./style.css",
+      "path": "dist/style.css",
+      "minor": "May gain rules under the .archivarius scope.",
+      "major": "May remove a class a host styled, or leave the .archivarius scope."
+    },
+    {
+      "subpath": "./model.schema.json",
+      "path": "dist/assets/model.schema.json",
+      "minor": "May change additively; the subpath stays.",
+      "major": "May be removed or point at a different contract."
+    },
+    {
+      "subpath": "./assets/*",
+      "path": "dist/assets",
+      "assets": [
+        "architecture.schema.json",
+        "authoring.md",
+        "change.schema.json",
+        "cli-help.txt",
+        "contract.md",
+        "contracts.json",
+        "model.schema.json",
+        "project.json",
+        "public-surface.json",
+        "strings.json"
+      ],
+      "minor": "May gain an asset file.",
+      "major": "May remove or rename an asset file."
+    }
+  ],
+  "binaries": [
+    {
+      "name": "archivarius",
+      "path": "dist/src/cli.mjs",
+      "minor": "May gain a command, an option or a line of output.",
+      "major": "May remove or rename a command or an option, or change the shape of its JSON output."
+    }
+  ],
+  "contracts": [
+    {
+      "subpath": "./assets/model.schema.json",
+      "path": "assets/model.schema.json",
+      "title": "ProjectModel",
+      "version": 4,
+      "minor": "May gain an optional field, a value in an enum or a looser bound.",
+      "major": "May remove a field, require one it did not, withdraw a value, tighten a bound or raise the contract version.",
+      "shape": {
+        "": {
+          "types": ["object"],
+          "closed": true,
+          "required": [
+            "bindings",
+            "entry",
+            "history",
+            "records",
+            "root",
+            "snapshots",
+            "title",
+            "version"
+          ],
+          "optional": ["$schema", "archive"]
+        },
+        "$defs/basis": {
+          "types": ["null", "object"],
+          "closed": true,
+          "required": ["contract"],
+          "optional": ["dependencies"]
+        },
+        "$defs/basis.contract": {
+          "ref": "#/$defs/digest"
+        },
+        "$defs/basis.dependencies": {
+          "ref": "#/$defs/digest"
+        },
+        "$defs/binding": {
+          "types": ["object"],
+          "closed": true,
+          "required": ["digest", "path"]
+        },
+        "$defs/binding.digest": {
+          "ref": "#/$defs/digest"
+        },
+        "$defs/binding.path": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/block[kind=anchor]": {
+          "types": ["object"],
+          "closed": true,
+          "required": ["id", "kind"]
+        },
+        "$defs/block[kind=anchor].id": {
+          "types": ["string"],
+          "bounds": {
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*$"
+          }
+        },
+        "$defs/block[kind=anchor].kind": {
+          "values": ["anchor"]
+        },
+        "$defs/block[kind=code]": {
+          "types": ["object"],
+          "closed": true,
+          "required": ["kind", "language", "lines"]
+        },
+        "$defs/block[kind=code].kind": {
+          "values": ["code"]
+        },
+        "$defs/block[kind=code].language": {
+          "types": ["string"],
+          "bounds": {
+            "pattern": "^[a-zA-Z0-9_-]*$"
+          }
+        },
+        "$defs/block[kind=code].lines": {
+          "types": ["array"]
+        },
+        "$defs/block[kind=code].lines[]": {
+          "types": ["string"]
+        },
+        "$defs/block[kind=comment|paragraph|quote]": {
+          "types": ["object"],
+          "closed": true,
+          "required": ["kind", "lines"]
+        },
+        "$defs/block[kind=comment|paragraph|quote].kind": {
+          "values": ["comment", "paragraph", "quote"]
+        },
+        "$defs/block[kind=comment|paragraph|quote].lines": {
+          "types": ["array"]
+        },
+        "$defs/block[kind=comment|paragraph|quote].lines[]": {
+          "ref": "#/$defs/line"
+        },
+        "$defs/block[kind=heading]": {
+          "types": ["object"],
+          "closed": true,
+          "required": ["content", "kind", "level"]
+        },
+        "$defs/block[kind=heading].content": {
+          "ref": "#/$defs/line"
+        },
+        "$defs/block[kind=heading].kind": {
+          "values": ["heading"]
+        },
+        "$defs/block[kind=heading].level": {
+          "types": ["integer"],
+          "bounds": {
+            "minimum": 1,
+            "maximum": 6
+          }
+        },
+        "$defs/block[kind=list]": {
+          "types": ["object"],
+          "closed": true,
+          "required": ["items", "kind", "ordered"],
+          "optional": ["start"]
+        },
+        "$defs/block[kind=list].items": {
+          "types": ["array"]
+        },
+        "$defs/block[kind=list].items[]": {
+          "types": ["array"]
+        },
+        "$defs/block[kind=list].items[][]": {
+          "ref": "#/$defs/line"
+        },
+        "$defs/block[kind=list].kind": {
+          "values": ["list"]
+        },
+        "$defs/block[kind=list].ordered": {
+          "types": ["boolean"]
+        },
+        "$defs/block[kind=list].start": {
+          "types": ["integer"],
+          "bounds": {
+            "minimum": 1
+          }
+        },
+        "$defs/block[kind=table]": {
+          "types": ["object"],
+          "closed": true,
+          "required": ["header", "kind", "rows"]
+        },
+        "$defs/block[kind=table].header": {
+          "types": ["array"]
+        },
+        "$defs/block[kind=table].header[]": {
+          "ref": "#/$defs/line"
+        },
+        "$defs/block[kind=table].kind": {
+          "values": ["table"]
+        },
+        "$defs/block[kind=table].rows": {
+          "types": ["array"]
+        },
+        "$defs/block[kind=table].rows[]": {
+          "types": ["array"]
+        },
+        "$defs/block[kind=table].rows[][]": {
+          "ref": "#/$defs/line"
+        },
+        "$defs/digest": {
+          "types": ["string"],
+          "bounds": {
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "$defs/inline": {
+          "types": ["object", "string"],
+          "optional": ["field", "index", "record"]
+        },
+        "$defs/inline.field": {
+          "types": ["string"],
+          "bounds": {
+            "pattern": "^[a-z][a-zA-Z0-9]*$"
+          }
+        },
+        "$defs/inline.index": {
+          "types": ["integer"],
+          "bounds": {
+            "minimum": 0
+          }
+        },
+        "$defs/inline.record": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/key": {
+          "types": ["string"],
+          "bounds": {
+            "pattern": "^[a-z][a-z0-9-]*$"
+          }
+        },
+        "$defs/keys": {
+          "types": ["array"],
+          "bounds": {
+            "uniqueItems": true
+          }
+        },
+        "$defs/keys[]": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/line": {
+          "types": ["array"]
+        },
+        "$defs/line[]": {
+          "ref": "#/$defs/inline"
+        },
+        "$defs/record[type=check]": {
+          "types": ["object"],
+          "closed": true,
+          "required": [
+            "basis",
+            "covers",
+            "key",
+            "level",
+            "method",
+            "scenarios",
+            "scope",
+            "targets",
+            "title",
+            "type"
+          ],
+          "optional": ["command", "governedBy", "label", "reconsideredBecause"]
+        },
+        "$defs/record[type=check].basis": {
+          "ref": "#/$defs/basis"
+        },
+        "$defs/record[type=check].command": {
+          "ref": "#/$defs/texts",
+          "bounds": {
+            "minItems": 1
+          }
+        },
+        "$defs/record[type=check].covers": {
+          "ref": "#/$defs/keys",
+          "bounds": {
+            "minItems": 1
+          }
+        },
+        "$defs/record[type=check].governedBy": {
+          "ref": "#/$defs/keys"
+        },
+        "$defs/record[type=check].key": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=check].label": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=check].level": {
+          "values": ["integration", "unit"]
+        },
+        "$defs/record[type=check].method": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=check].reconsideredBecause": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=check].scenarios": {
+          "ref": "#/$defs/keys"
+        },
+        "$defs/record[type=check].scope": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=check].targets": {
+          "ref": "#/$defs/keys",
+          "bounds": {
+            "minItems": 1
+          }
+        },
+        "$defs/record[type=check].title": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=check].type": {
+          "types": ["string"],
+          "values": ["check"]
+        },
+        "$defs/record[type=component]": {
+          "types": ["object"],
+          "closed": true,
+          "required": [
+            "key",
+            "kind",
+            "scope",
+            "summary",
+            "title",
+            "type",
+            "zone"
+          ],
+          "optional": ["boundary", "label", "parent"]
+        },
+        "$defs/record[type=component].boundary": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=component].key": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=component].kind": {
+          "values": ["component", "external", "store", "subsystem"]
+        },
+        "$defs/record[type=component].label": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=component].parent": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=component].scope": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=component].summary": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=component].title": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=component].type": {
+          "types": ["string"],
+          "values": ["component"]
+        },
+        "$defs/record[type=component].zone": {
+          "values": [
+            "application",
+            "external",
+            "infrastructure",
+            "presentation",
+            "pure"
+          ]
+        },
+        "$defs/record[type=criterion]": {
+          "types": ["object"],
+          "closed": true,
+          "required": [
+            "assertion",
+            "key",
+            "requirement",
+            "scope",
+            "title",
+            "type"
+          ],
+          "optional": ["label"]
+        },
+        "$defs/record[type=criterion].assertion": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=criterion].key": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=criterion].label": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=criterion].requirement": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=criterion].scope": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=criterion].title": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=criterion].type": {
+          "types": ["string"],
+          "values": ["criterion"]
+        },
+        "$defs/record[type=decision]": {
+          "types": ["object"],
+          "closed": true,
+          "required": [
+            "affects",
+            "alternatives",
+            "basis",
+            "because",
+            "choice",
+            "consequences",
+            "key",
+            "scope",
+            "title",
+            "topic",
+            "type",
+            "uses"
+          ],
+          "optional": [
+            "governedBy",
+            "label",
+            "reconsideredBecause",
+            "supersedes"
+          ]
+        },
+        "$defs/record[type=decision].affects": {
+          "ref": "#/$defs/keys",
+          "bounds": {
+            "minItems": 1
+          }
+        },
+        "$defs/record[type=decision].alternatives": {
+          "ref": "#/$defs/texts"
+        },
+        "$defs/record[type=decision].basis": {
+          "ref": "#/$defs/basis"
+        },
+        "$defs/record[type=decision].because": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=decision].choice": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=decision].consequences": {
+          "ref": "#/$defs/texts"
+        },
+        "$defs/record[type=decision].governedBy": {
+          "ref": "#/$defs/keys"
+        },
+        "$defs/record[type=decision].key": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=decision].label": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=decision].reconsideredBecause": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=decision].scope": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=decision].supersedes": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=decision].title": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=decision].topic": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=decision].type": {
+          "types": ["string"],
+          "values": ["decision"]
+        },
+        "$defs/record[type=decision].uses": {
+          "ref": "#/$defs/keys",
+          "bounds": {
+            "minItems": 1
+          }
+        },
+        "$defs/record[type=document][format=json]": {
+          "types": ["object"],
+          "closed": true,
+          "required": [
+            "data",
+            "format",
+            "key",
+            "path",
+            "scope",
+            "stage",
+            "title",
+            "type"
+          ],
+          "optional": ["blocks", "label", "subjects"]
+        },
+        "$defs/record[type=document][format=json].blocks": {
+          "types": ["array"]
+        },
+        "$defs/record[type=document][format=json].blocks[]": {
+          "ref": "#/$defs/block"
+        },
+        "$defs/record[type=document][format=json].data": {
+          "types": ["object"]
+        },
+        "$defs/record[type=document][format=json].format": {
+          "values": ["json"]
+        },
+        "$defs/record[type=document][format=json].key": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=document][format=json].label": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=document][format=json].path": {
+          "types": ["string"],
+          "bounds": {
+            "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?(?:/|$))[a-zA-Z0-9_./-]+\\.(?:md|json)$"
+          }
+        },
+        "$defs/record[type=document][format=json].scope": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=document][format=json].stage": {
+          "values": [
+            "architecture",
+            "discovery",
+            "implementation",
+            "requirements"
+          ]
+        },
+        "$defs/record[type=document][format=json].subjects": {
+          "ref": "#/$defs/keys"
+        },
+        "$defs/record[type=document][format=json].title": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=document][format=json].type": {
+          "types": ["string"],
+          "values": ["document"]
+        },
+        "$defs/record[type=document][format=markdown]": {
+          "types": ["object"],
+          "closed": true,
+          "required": [
+            "blocks",
+            "format",
+            "key",
+            "path",
+            "scope",
+            "stage",
+            "title",
+            "type"
+          ],
+          "optional": ["data", "label", "subjects"]
+        },
+        "$defs/record[type=document][format=markdown].blocks": {
+          "types": ["array"]
+        },
+        "$defs/record[type=document][format=markdown].blocks[]": {
+          "ref": "#/$defs/block"
+        },
+        "$defs/record[type=document][format=markdown].data": {
+          "types": ["object"]
+        },
+        "$defs/record[type=document][format=markdown].format": {
+          "values": ["markdown"]
+        },
+        "$defs/record[type=document][format=markdown].key": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=document][format=markdown].label": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=document][format=markdown].path": {
+          "types": ["string"],
+          "bounds": {
+            "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?(?:/|$))[a-zA-Z0-9_./-]+\\.(?:md|json)$"
+          }
+        },
+        "$defs/record[type=document][format=markdown].scope": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=document][format=markdown].stage": {
+          "values": [
+            "architecture",
+            "discovery",
+            "implementation",
+            "requirements"
+          ]
+        },
+        "$defs/record[type=document][format=markdown].subjects": {
+          "ref": "#/$defs/keys"
+        },
+        "$defs/record[type=document][format=markdown].title": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=document][format=markdown].type": {
+          "types": ["string"],
+          "values": ["document"]
+        },
+        "$defs/record[type=interaction]": {
+          "types": ["object"],
+          "closed": true,
+          "required": [
+            "channel",
+            "contract",
+            "from",
+            "key",
+            "kind",
+            "scope",
+            "title",
+            "to",
+            "type"
+          ],
+          "optional": ["label"]
+        },
+        "$defs/record[type=interaction].channel": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=interaction].contract": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=interaction].from": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=interaction].key": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=interaction].kind": {
+          "values": ["command", "data", "state"]
+        },
+        "$defs/record[type=interaction].label": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=interaction].scope": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=interaction].title": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=interaction].to": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=interaction].type": {
+          "types": ["string"],
+          "values": ["interaction"]
+        },
+        "$defs/record[type=interface]": {
+          "types": ["object"],
+          "closed": true,
+          "required": [
+            "constraints",
+            "key",
+            "meaning",
+            "payload",
+            "scope",
+            "title",
+            "type"
+          ],
+          "optional": ["label"]
+        },
+        "$defs/record[type=interface].constraints": {
+          "ref": "#/$defs/keys"
+        },
+        "$defs/record[type=interface].key": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=interface].label": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=interface].meaning": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=interface].payload": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=interface].scope": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=interface].title": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=interface].type": {
+          "types": ["string"],
+          "values": ["interface"]
+        },
+        "$defs/record[type=requirement]": {
+          "types": ["object"],
+          "closed": true,
+          "required": [
+            "appliesTo",
+            "exceptions",
+            "key",
+            "rule",
+            "scope",
+            "sources",
+            "title",
+            "type",
+            "when"
+          ],
+          "optional": [
+            "category",
+            "companions",
+            "guards",
+            "label",
+            "parameters"
+          ]
+        },
+        "$defs/record[type=requirement].appliesTo": {
+          "ref": "#/$defs/keys",
+          "bounds": {
+            "minItems": 1
+          }
+        },
+        "$defs/record[type=requirement].category": {
+          "values": ["architecture", "exclusion", "experience", "product"]
+        },
+        "$defs/record[type=requirement].companions": {
+          "ref": "#/$defs/keys"
+        },
+        "$defs/record[type=requirement].exceptions": {
+          "ref": "#/$defs/texts"
+        },
+        "$defs/record[type=requirement].guards": {
+          "ref": "#/$defs/keys"
+        },
+        "$defs/record[type=requirement].key": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=requirement].label": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=requirement].parameters": {
+          "types": ["object"]
+        },
+        "$defs/record[type=requirement].parameters{}": {
+          "types": ["boolean", "number", "string"]
+        },
+        "$defs/record[type=requirement].rule": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=requirement].scope": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=requirement].sources": {
+          "ref": "#/$defs/keys",
+          "bounds": {
+            "minItems": 1
+          }
+        },
+        "$defs/record[type=requirement].title": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=requirement].type": {
+          "types": ["string"],
+          "values": ["requirement"]
+        },
+        "$defs/record[type=requirement].when": {
+          "ref": "#/$defs/texts"
+        },
+        "$defs/record[type=result]": {
+          "types": ["object"],
+          "closed": true,
+          "required": [
+            "basis",
+            "check",
+            "evidence",
+            "key",
+            "outcome",
+            "realization",
+            "resolves",
+            "scope",
+            "title",
+            "type"
+          ],
+          "optional": ["label", "resolution"]
+        },
+        "$defs/record[type=result].basis": {
+          "ref": "#/$defs/basis"
+        },
+        "$defs/record[type=result].check": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=result].evidence": {
+          "types": ["array"],
+          "bounds": {
+            "minItems": 1
+          }
+        },
+        "$defs/record[type=result].evidence[]": {
+          "ref": "#/$defs/binding"
+        },
+        "$defs/record[type=result].key": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=result].label": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=result].outcome": {
+          "values": ["fail", "pass"]
+        },
+        "$defs/record[type=result].realization": {
+          "ref": "#/$defs/digest"
+        },
+        "$defs/record[type=result].resolution": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=result].resolves": {
+          "ref": "#/$defs/keys"
+        },
+        "$defs/record[type=result].scope": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=result].title": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=result].type": {
+          "types": ["string"],
+          "values": ["result"]
+        },
+        "$defs/record[type=scenario]": {
+          "types": ["object"],
+          "closed": true,
+          "required": [
+            "actor",
+            "failures",
+            "given",
+            "key",
+            "scope",
+            "steps",
+            "then",
+            "title",
+            "type",
+            "uses"
+          ],
+          "optional": ["label"]
+        },
+        "$defs/record[type=scenario].actor": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=scenario].failures": {
+          "ref": "#/$defs/texts"
+        },
+        "$defs/record[type=scenario].given": {
+          "ref": "#/$defs/texts"
+        },
+        "$defs/record[type=scenario].key": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=scenario].label": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=scenario].scope": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=scenario].steps": {
+          "ref": "#/$defs/texts",
+          "bounds": {
+            "minItems": 1
+          }
+        },
+        "$defs/record[type=scenario].then": {
+          "ref": "#/$defs/keys",
+          "bounds": {
+            "minItems": 1
+          }
+        },
+        "$defs/record[type=scenario].title": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=scenario].type": {
+          "types": ["string"],
+          "values": ["scenario"]
+        },
+        "$defs/record[type=scenario].uses": {
+          "ref": "#/$defs/keys",
+          "bounds": {
+            "minItems": 1
+          }
+        },
+        "$defs/record[type=scope]": {
+          "types": ["object"],
+          "closed": true,
+          "required": ["key", "purpose", "title", "type"],
+          "optional": ["label", "parent"]
+        },
+        "$defs/record[type=scope].key": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=scope].label": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=scope].parent": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=scope].purpose": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=scope].title": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=scope].type": {
+          "types": ["string"],
+          "values": ["scope"]
+        },
+        "$defs/record[type=source]": {
+          "types": ["object"],
+          "closed": true,
+          "required": ["key", "origin", "scope", "statement", "title", "type"],
+          "optional": ["label"]
+        },
+        "$defs/record[type=source].key": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=source].label": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=source].origin": {
+          "values": ["assumption", "observation", "owner", "question"]
+        },
+        "$defs/record[type=source].scope": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=source].statement": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=source].title": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=source].type": {
+          "types": ["string"],
+          "values": ["source"]
+        },
+        "$defs/record[type=task]": {
+          "types": ["object"],
+          "closed": true,
+          "required": [
+            "affects",
+            "basis",
+            "change",
+            "covers",
+            "key",
+            "needs",
+            "scope",
+            "title",
+            "type",
+            "uses"
+          ],
+          "optional": ["governedBy", "label", "reconsideredBecause"]
+        },
+        "$defs/record[type=task].affects": {
+          "ref": "#/$defs/keys",
+          "bounds": {
+            "minItems": 1
+          }
+        },
+        "$defs/record[type=task].basis": {
+          "ref": "#/$defs/basis"
+        },
+        "$defs/record[type=task].change": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=task].covers": {
+          "ref": "#/$defs/keys",
+          "bounds": {
+            "minItems": 1
+          }
+        },
+        "$defs/record[type=task].governedBy": {
+          "ref": "#/$defs/keys"
+        },
+        "$defs/record[type=task].key": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=task].label": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=task].needs": {
+          "ref": "#/$defs/keys"
+        },
+        "$defs/record[type=task].reconsideredBecause": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=task].scope": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/record[type=task].title": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/record[type=task].type": {
+          "types": ["string"],
+          "values": ["task"]
+        },
+        "$defs/record[type=task].uses": {
+          "ref": "#/$defs/keys"
+        },
+        "$defs/text": {
+          "types": ["string"],
+          "bounds": {
+            "minLength": 1,
+            "pattern": "\\S"
+          }
+        },
+        "$defs/texts": {
+          "types": ["array"]
+        },
+        "$defs/texts[]": {
+          "ref": "#/$defs/text"
+        },
+        ".$schema": {
+          "types": ["string"]
+        },
+        ".archive": {
+          "types": ["object"],
+          "closed": true,
+          "required": ["head", "version"]
+        },
+        ".archive.head": {
+          "ref": "#/$defs/digest"
+        },
+        ".archive.version": {
+          "values": ["1"]
+        },
+        ".bindings": {
+          "types": ["object"]
+        },
+        ".bindings{key}": {
+          "ref": "#/$defs/key"
+        },
+        ".bindings{}": {
+          "ref": "#/$defs/binding"
+        },
+        ".entry": {
+          "ref": "#/$defs/key"
+        },
+        ".history": {
+          "types": ["array"]
+        },
+        ".history[]": {
+          "types": ["object"],
+          "closed": true,
+          "required": ["digest", "record"]
+        },
+        ".history[].digest": {
+          "ref": "#/$defs/digest"
+        },
+        ".history[].record": {
+          "ref": "#/$defs/record"
+        },
+        ".records": {
+          "types": ["array"],
+          "bounds": {
+            "minItems": 1
+          }
+        },
+        ".records[]": {
+          "ref": "#/$defs/record"
+        },
+        ".root": {
+          "ref": "#/$defs/key"
+        },
+        ".snapshots": {
+          "types": ["array"]
+        },
+        ".snapshots[]": {
+          "types": ["object"],
+          "closed": true,
+          "required": [
+            "bindings",
+            "contract",
+            "entry",
+            "realization",
+            "records",
+            "root",
+            "title"
+          ]
+        },
+        ".snapshots[].bindings": {
+          "types": ["object"]
+        },
+        ".snapshots[].bindings{key}": {
+          "ref": "#/$defs/key"
+        },
+        ".snapshots[].bindings{}": {
+          "ref": "#/$defs/binding"
+        },
+        ".snapshots[].contract": {
+          "ref": "#/$defs/digest"
+        },
+        ".snapshots[].entry": {
+          "ref": "#/$defs/key"
+        },
+        ".snapshots[].realization": {
+          "ref": "#/$defs/digest"
+        },
+        ".snapshots[].records": {
+          "types": ["object"]
+        },
+        ".snapshots[].records{key}": {
+          "ref": "#/$defs/key"
+        },
+        ".snapshots[].records{}": {
+          "ref": "#/$defs/digest"
+        },
+        ".snapshots[].root": {
+          "ref": "#/$defs/key"
+        },
+        ".snapshots[].title": {
+          "ref": "#/$defs/text"
+        },
+        ".title": {
+          "ref": "#/$defs/text"
+        },
+        ".version": {
+          "values": ["4"]
+        }
+      }
+    },
+    {
+      "subpath": "./assets/architecture.schema.json",
+      "path": "assets/architecture.schema.json",
+      "title": "ArchitectureModel",
+      "version": 3,
+      "minor": "May gain an optional field, a value in an enum or a looser bound.",
+      "major": "May remove a field, require one it did not, withdraw a value, tighten a bound or raise the contract version.",
+      "shape": {
+        "": {
+          "types": ["object"],
+          "closed": true,
+          "required": ["entry", "nodes", "relations", "scope", "version"],
+          "optional": ["$schema", "title"]
+        },
+        "$defs/confirmation[implemented=false]": {
+          "types": ["object"],
+          "required": ["implemented"],
+          "optional": ["implementationEvidence"]
+        },
+        "$defs/confirmation[implemented=false].implementationEvidence": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/confirmation[implemented=false].implemented": {
+          "values": ["false"]
+        },
+        "$defs/confirmation[implemented=true]": {
+          "types": ["object"],
+          "required": ["implementationEvidence", "implemented"]
+        },
+        "$defs/confirmation[implemented=true].implementationEvidence": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/confirmation[implemented=true].implemented": {
+          "values": ["true"]
+        },
+        "$defs/key": {
+          "types": ["string"],
+          "bounds": {
+            "pattern": "^[a-z][a-z0-9-]*$"
+          }
+        },
+        "$defs/nodeFields": {
+          "types": ["object"],
+          "closed": true,
+          "required": [
+            "detail",
+            "implemented",
+            "key",
+            "kind",
+            "rules",
+            "summary",
+            "title",
+            "zone"
+          ],
+          "optional": [
+            "children",
+            "detailNote",
+            "example",
+            "implementationEvidence"
+          ]
+        },
+        "$defs/nodeFields.children": {
+          "types": ["array"],
+          "bounds": {
+            "minItems": 1
+          }
+        },
+        "$defs/nodeFields.children[]": {
+          "ref": "#/$defs/node"
+        },
+        "$defs/nodeFields.detail": {
+          "values": ["boundary", "mapped"]
+        },
+        "$defs/nodeFields.detailNote": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/nodeFields.example": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/nodeFields.implementationEvidence": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/nodeFields.implemented": {
+          "types": ["boolean"]
+        },
+        "$defs/nodeFields.key": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/nodeFields.kind": {
+          "values": ["component", "external", "store", "subsystem"]
+        },
+        "$defs/nodeFields.rules": {
+          "types": ["array"]
+        },
+        "$defs/nodeFields.rules[]": {
+          "ref": "#/$defs/rule"
+        },
+        "$defs/nodeFields.summary": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/nodeFields.title": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/nodeFields.zone": {
+          "values": [
+            "application",
+            "external",
+            "infrastructure",
+            "presentation",
+            "pure"
+          ]
+        },
+        "$defs/node[detail=boundary]": {
+          "refs": ["#/$defs/confirmation", "#/$defs/nodeFields"],
+          "types": ["object"],
+          "required": ["detail", "detailNote"],
+          "optional": ["children"]
+        },
+        "$defs/node[detail=boundary].children": {
+          "forbidden": true
+        },
+        "$defs/node[detail=boundary].detail": {
+          "values": ["boundary"]
+        },
+        "$defs/node[detail=boundary].detailNote": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/node[detail=mapped]": {
+          "refs": ["#/$defs/confirmation", "#/$defs/nodeFields"],
+          "types": ["object"],
+          "required": ["children", "detail", "kind"]
+        },
+        "$defs/node[detail=mapped].children": {
+          "types": ["array"],
+          "bounds": {
+            "minItems": 1
+          }
+        },
+        "$defs/node[detail=mapped].children[]": {
+          "ref": "#/$defs/node"
+        },
+        "$defs/node[detail=mapped].detail": {
+          "values": ["mapped"]
+        },
+        "$defs/node[detail=mapped].kind": {
+          "values": ["subsystem"]
+        },
+        "$defs/relation": {
+          "refs": ["#/$defs/confirmation", "#/$defs/relationFields"]
+        },
+        "$defs/relationFields": {
+          "types": ["object"],
+          "closed": true,
+          "required": [
+            "channel",
+            "from",
+            "implemented",
+            "key",
+            "kind",
+            "label",
+            "meaning",
+            "payload",
+            "to"
+          ],
+          "optional": ["implementationEvidence"]
+        },
+        "$defs/relationFields.channel": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/relationFields.from": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/relationFields.implementationEvidence": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/relationFields.implemented": {
+          "types": ["boolean"]
+        },
+        "$defs/relationFields.key": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/relationFields.kind": {
+          "values": ["command", "data", "state"]
+        },
+        "$defs/relationFields.label": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/relationFields.meaning": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/relationFields.payload": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/relationFields.to": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/rule": {
+          "types": ["object"],
+          "closed": true,
+          "required": ["text", "title"]
+        },
+        "$defs/rule.text": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/rule.title": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/text": {
+          "types": ["string"],
+          "bounds": {
+            "pattern": "\\S"
+          }
+        },
+        ".$schema": {
+          "ref": "#/$defs/text"
+        },
+        ".entry": {
+          "ref": "#/$defs/key"
+        },
+        ".nodes": {
+          "types": ["array"],
+          "bounds": {
+            "minItems": 1
+          }
+        },
+        ".nodes[]": {
+          "ref": "#/$defs/node"
+        },
+        ".relations": {
+          "types": ["array"]
+        },
+        ".relations[]": {
+          "ref": "#/$defs/relation"
+        },
+        ".scope": {
+          "values": ["target"]
+        },
+        ".title": {
+          "ref": "#/$defs/text"
+        },
+        ".version": {
+          "values": ["3"]
+        }
+      }
+    },
+    {
+      "subpath": "./assets/change.schema.json",
+      "path": "assets/change.schema.json",
+      "title": "ProjectChange",
+      "version": null,
+      "minor": "May gain an optional field or a value in an enum.",
+      "major": "May remove a field, require one it did not, or withdraw a value.",
+      "shape": {
+        "": {
+          "types": ["object"],
+          "closed": true,
+          "optional": [
+            "bindings",
+            "entry",
+            "put",
+            "reason",
+            "remove",
+            "review",
+            "root",
+            "title"
+          ],
+          "bounds": {
+            "minProperties": 1
+          }
+        },
+        ".bindings": {
+          "ref": "model.schema.json#/properties/bindings"
+        },
+        ".entry": {
+          "ref": "model.schema.json#/properties/entry"
+        },
+        ".put": {
+          "types": ["array"]
+        },
+        ".put[]": {
+          "ref": "model.schema.json#/$defs/record"
+        },
+        ".reason": {
+          "ref": "model.schema.json#/$defs/text"
+        },
+        ".remove": {
+          "ref": "model.schema.json#/$defs/keys"
+        },
+        ".review": {
+          "ref": "model.schema.json#/$defs/keys"
+        },
+        ".root": {
+          "ref": "model.schema.json#/properties/root"
+        },
+        ".title": {
+          "ref": "model.schema.json#/properties/title"
+        }
+      }
+    }
+  ]
+}

@@ -23,6 +23,7 @@ import {
   writeAtomic,
 } from '../src/node.mjs';
 import { storeProjectStorage } from '../src/io/project-storage.mjs';
+import { definitionBasis } from '../src/model/project-digest.mjs';
 import { example, get } from './project-fixture.mjs';
 const apply = (m, change) =>
   applyProjectChanges(m, projectContext(m, [m.root]), change);
@@ -380,4 +381,39 @@ test('scoped bases must match the preserved source snapshot, including after unr
       (d) => d.code === 'BASIS_DEPENDENCIES_MISMATCH',
     ),
   );
+});
+
+// A receipt written by the authoring route is the only receipt a reader ever
+// sees, so what the contract now allows a claim to carry - the definitions it
+// rested on, when it was written and by whom - has to be what authoring writes.
+test('a review records the definitions it rested on, when and by whom', () => {
+  const model = structuredClone(example);
+  const key = model.records.find(
+    (r) => 'basis' in r && r.type !== 'result',
+  ).key;
+  const at = '2026-09-17T10:00:00Z';
+  const written = applyProjectChanges(
+    model,
+    projectContext(model, [model.root]),
+    {
+      review: [key],
+      reason: 'Read the record against its definitions.',
+      at,
+      by: 'an agent',
+    },
+  );
+  const basis = get(written, key).basis;
+  assert.deepEqual(
+    basis.definitions,
+    definitionBasis(written, key),
+    'the receipt does not name the definitions it rested on',
+  );
+  assert.equal(basis.at, at);
+  assert.equal(basis.by, 'an agent');
+  // Nothing is invented: a change that states neither leaves both absent rather
+  // than stamping a clock the author never gave.
+  const plain = review(structuredClone(example));
+  const receipt = get(plain, key).basis;
+  assert(!('at' in receipt) && !('by' in receipt), JSON.stringify(receipt));
+  assert.deepEqual(receipt.definitions, definitionBasis(plain, key));
 });

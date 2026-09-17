@@ -32,6 +32,75 @@ export const currentRecord = (project, key) =>
   project.records.find((r) => r.key === key) ||
   project.history.findLast((h) => h.record.key === key)?.record;
 
+/**
+ * How long a claim stays current, read where it is stated: the record's own
+ * receipt first, then the nearest scope above it that states one. Nothing is
+ * assumed — a claim under no stated life never ages.
+ *
+ * @typedef {{ life: number | null, lifeStatedBy: string | null }} StatedLife
+ * @param {any} project
+ * @param {any} record
+ * @returns {StatedLife}
+ */
+export function statedLife(project, record) {
+  if (Number.isFinite(record?.basis?.life))
+    return { life: record.basis.life, lifeStatedBy: record.key };
+  const records = new Map(project.records.map((r) => [r.key, r]));
+  const seen = new Set();
+  let scope = record?.type === 'scope' ? record.key : record?.scope;
+  while (scope && !seen.has(scope)) {
+    seen.add(scope);
+    const held = records.get(scope);
+    if (Number.isFinite(held?.claimLife))
+      return { life: held.claimLife, lifeStatedBy: held.key };
+    scope = held?.parent;
+  }
+  return { life: null, lifeStatedBy: null };
+}
+
+/**
+ * What a panel shows about one claim: who wrote it, when they wrote it, the life
+ * it was given and where that life was stated, how old it is at the instant it
+ * is read against, and whether it has outlived that life.
+ *
+ * `at` is that instant, and it is always an argument: a pure reading of a model
+ * has no clock, so a caller with none gets an age of `null` instead of today's.
+ * `null` for a key the project does not define.
+ *
+ * @typedef {{ key: string, claimed: boolean, author: string | null,
+ *   writtenAt: string | null, life: number | null,
+ *   lifeStatedBy: string | null, age: number | null, ageing: boolean,
+ *   past: number | null }} ClaimStanding
+ * @param {any} project
+ * @param {string} key
+ * @param {string | number | Date} [at] the instant the claim is read against
+ * @returns {ClaimStanding | null}
+ */
+export function claimStanding(project, key, at) {
+  const record = currentRecord(project, key);
+  if (!record) return null;
+  const basis = record.basis || null;
+  const { life, lifeStatedBy } = statedLife(project, record);
+  const written = typeof basis?.at === 'string' ? Date.parse(basis.at) : NaN;
+  const read = at === undefined ? NaN : new Date(at).getTime();
+  const age =
+    Number.isFinite(written) && Number.isFinite(read)
+      ? Math.floor((read - written) / 86400000)
+      : null;
+  const past = age === null || life === null ? null : Math.max(0, age - life);
+  return {
+    key: record.key,
+    claimed: 'basis' in record && !!basis,
+    author: typeof basis?.by === 'string' ? basis.by : null,
+    writtenAt: typeof basis?.at === 'string' ? basis.at : null,
+    life,
+    lifeStatedBy,
+    age,
+    ageing: past !== null && past > 0,
+    past,
+  };
+}
+
 export function recordSummary(record) {
   return (
     (primaryFields[record.type] || [])

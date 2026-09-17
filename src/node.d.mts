@@ -22,6 +22,11 @@ export function generateGraph(
   model: ArchitectureInput,
   format?: 'dot' | 'mermaid' | 'table',
 ): string;
+export function generateHistory(model: ProjectModel): string;
+export function initProjectFile(
+  file: string,
+  options?: { title?: string },
+): Promise<ProjectModel>;
 export function verifyProjectFiles(
   model: ProjectModel,
   directory: string,

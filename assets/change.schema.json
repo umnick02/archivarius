@@ -20,6 +20,12 @@
     "reason": {
       "$ref": "model.schema.json#/$defs/text"
     },
+    "at": {
+      "$ref": "model.schema.json#/$defs/instant"
+    },
+    "by": {
+      "$ref": "model.schema.json#/$defs/text"
+    },
     "bindings": {
       "$ref": "model.schema.json#/properties/bindings"
     },

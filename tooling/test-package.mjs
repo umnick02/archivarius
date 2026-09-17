@@ -113,11 +113,39 @@ run(
   ],
   consumer,
 );
-for (const shipped of ['dist/assets/authoring.md', 'dist/assets/contract.md'])
+for (const shipped of [
+  'dist/assets/authoring.md',
+  'dist/assets/contract.md',
+  'dist/assets/public-surface.json',
+])
   assert(
     pack.files.some((file) => file.path === shipped),
     shipped,
   );
+// The promise ships with the package, so the tarball is held to it: every module,
+// declaration, file and asset the surface names has to be in the bytes a consumer
+// installs, and the binary it names has to be the one package.json points at.
+const surface = JSON.parse(
+  await fs.readFile(path.join(root, 'assets/public-surface.json'), 'utf8'),
+);
+const packed = new Set(pack.files.map((file) => file.path));
+const promised = [
+  ...surface.entryPoints.flatMap((entry) => [entry.module, entry.types]),
+  ...surface.files
+    .map((file) => file.path)
+    .filter((file) => !file.endsWith('assets')),
+  ...surface.files.flatMap((file) =>
+    (file.assets ?? []).map((name) => 'dist/assets/' + name),
+  ),
+  ...surface.binaries.map((binary) => binary.path),
+];
+for (const file of promised)
+  assert(
+    packed.has(file),
+    file + ' is promised by the public surface and is not packed',
+  );
+for (const binary of surface.binaries)
+  assert.equal(installed.bin[binary.name], './' + binary.path, binary.name);
 assert(
   !pack.files.some((file) => file.path.endsWith('AGENTS.md')),
   'agent instructions must not ship',

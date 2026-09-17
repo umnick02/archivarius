@@ -1,6 +1,11 @@
 export { ArchitectureError, failureCodes } from './model/errors.mjs';
 export { analyzeProject } from './model/project-analysis.mjs';
 export {
+  assertContractSupported,
+  contractShape,
+  gradeContract,
+} from './model/contract.mjs';
+export {
   applyProjectChanges,
   projectContext,
   projectRead,
