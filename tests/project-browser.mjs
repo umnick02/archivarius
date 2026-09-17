@@ -690,9 +690,189 @@ try {
     'within-limit',
   );
   await b.capture('consumer-structured-documents');
+
+  // A question is a record, not a footnote. Every source stated as a question is
+  // listed as open on the project surface, in the order the model states them,
+  // and a project that asks nothing says so rather than hiding the list.
+  const asking = (key, statement) => ({
+    key,
+    type: 'source',
+    title: statement,
+    scope: project.root,
+    origin: 'question',
+    statement,
+  });
+  const asked = structuredClone(project);
+  asked.records.push(
+    asking('retention-window', 'Who owns the retention window?'),
+    asking('cache-shape', 'Is the cache per reader or shared?'),
+  );
+  await b.evaluate(
+    async (model) => await window.consumer.first.load(model),
+    asked,
+  );
+  await click('#first [data-control=project]');
+  await until(() =>
+    Boolean(document.querySelector('#first [data-open-questions]')),
+  );
+  assert.deepEqual(
+    await b.evaluate(() =>
+      [...document.querySelectorAll('#first [data-open-question]')].map(
+        (element) => element.dataset.openQuestion,
+      ),
+    ),
+    ['retention-window', 'cache-shape'],
+  );
+  const questionList = await b.evaluate(
+    () => document.querySelector('#first [data-open-questions]').textContent,
+  );
+  for (const text of [
+    copy.openQuestions,
+    copy.openQuestionsNote,
+    'Who owns the retention window?',
+    'Is the cache per reader or shared?',
+  ])
+    assert(questionList.includes(text), 'the open list omits ' + text);
+  // The list is a way into the record, and the record names its origin with the
+  // shipped word for an open question rather than the schema's enum.
+  await click('#first [data-open-question=cache-shape]');
+  assert.equal(
+    await b.evaluate(
+      () =>
+        document.querySelector('#first [data-record-title]').dataset
+          .recordTitle,
+    ),
+    'cache-shape',
+  );
+  assert(
+    (
+      await b.evaluate(
+        () =>
+          document.querySelector('#first [data-control=inspector]').textContent,
+      )
+    ).includes(copy.values.question),
+    'the record does not read its origin as an open question',
+  );
+  await b.capture('project-open-questions');
+  await b.evaluate(
+    async (model) => await window.consumer.first.load(model),
+    project,
+  );
+  await click('#first [data-control=project]');
+  await until(() =>
+    Boolean(document.querySelector('#first [data-open-questions]')),
+  );
+  assert.equal(
+    await b.evaluate(
+      () => document.querySelectorAll('#first [data-open-question]').length,
+    ),
+    0,
+  );
+  assert(
+    (
+      await b.evaluate(
+        () =>
+          document.querySelector('#first [data-open-questions]').textContent,
+      )
+    ).includes(copy.noOpenQuestions),
+    'an empty open list says nothing',
+  );
+
+  // A claim says when it was written, by whom, and how long it stays current. A
+  // claim that outlived that life reads as ageing, not as current.
+  const dated = (age, life) => {
+    const model = structuredClone(project);
+    model.records.find((r) => r.key === model.root).claimLife = life;
+    const contract = contractDigest(model);
+    model.records.find((r) => r.key === 'streaming').basis = {
+      contract,
+      at: new Date(Date.now() - age * 86400000).toISOString(),
+      by: 'A. Reviewer',
+    };
+    return model;
+  };
+  const stale = dated(40, 30);
+  const writtenAt = stale.records.find((r) => r.key === 'streaming').basis.at;
+  await b.evaluate(async (model) => {
+    await window.consumer.first.load(model);
+    window.consumer.first.inspect('streaming');
+  }, stale);
+  await until(
+    () =>
+      document.querySelector('#first [data-record-title]')?.dataset
+        .recordTitle === 'streaming',
+  );
+  const standing = await b.evaluate(() => {
+    const element = document.querySelector('#first .claim-standing');
+    return (
+      element && { ageing: element.dataset.ageing, text: element.textContent }
+    );
+  });
+  assert(standing, 'the inspector shows no attribution for a written claim');
+  assert.equal(standing.ageing, 'true');
+  for (const text of [
+    copy.claimAuthor,
+    'A. Reviewer',
+    copy.claimWritten,
+    writtenAt,
+    copy.claimLife,
+  ])
+    assert(standing.text.includes(text), 'the attribution omits ' + text);
+  const verdict = await b.evaluate(
+    () => document.querySelector('#first .implementation > p').textContent,
+  );
+  assert(
+    verdict.includes(copy.ageing),
+    'an ageing claim still reads as current: ' + verdict,
+  );
+  assert(!verdict.includes(copy.yes), verdict);
+  if (
+    !(await b.evaluate(
+      () => document.querySelector('#first .project-reasons').open,
+    ))
+  )
+    await click('#first .project-reasons > summary');
+  assert(
+    (
+      await b.evaluate(
+        () =>
+          document.querySelector('#first [data-reason=CLAIM_AGEING]')
+            ?.textContent,
+      )
+    )?.includes(copy.reasonsByCode.CLAIM_AGEING),
+    'an ageing claim reports no reason',
+  );
+  await b.capture('project-claim-ageing');
+  // The same claim inside its stated life is current, and still says who wrote it.
+  await b.evaluate(
+    async (model) => {
+      await window.consumer.first.load(model);
+      window.consumer.first.inspect('streaming');
+    },
+    dated(40, 3650),
+  );
+  await until(
+    () =>
+      document.querySelector('#first .claim-standing')?.dataset.ageing ===
+      'false',
+  );
+  const fresh = await b.evaluate(() => ({
+    text: document.querySelector('#first .claim-standing').textContent,
+    verdict: document.querySelector('#first .implementation > p').textContent,
+    reason: document.querySelector('#first [data-reason=CLAIM_AGEING]'),
+  }));
+  assert(fresh.text.includes('A. Reviewer'));
+  assert(fresh.verdict.includes(copy.yes), fresh.verdict);
+  assert(!fresh.verdict.includes(copy.ageing), fresh.verdict);
+  assert.equal(
+    fresh.reason,
+    null,
+    'a claim inside its life is reported ageing',
+  );
+
   assert.deepEqual(b.errors, []);
   console.log(
-    'PASS: project views, uncovered requirements, trace links, fixed map geometry, mobile controls and plain-text rendering.',
+    'PASS: project views, uncovered requirements, trace links, fixed map geometry, mobile controls, plain-text rendering, the open-questions list and claim attribution.',
   );
 } finally {
   await harness.stop();

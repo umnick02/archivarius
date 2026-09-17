@@ -180,12 +180,22 @@ export function architectureDot(model) {
 /**
  * The snapshot as a mermaid flowchart. This is the diagram the generated
  * reference embeds, spelled once: the emitter stays where the reference owns it.
+ * The fence is the page's, not the diagram's - an exported file is handed to a
+ * renderer, which refuses a Markdown fence - so it is peeled off here.
  *
  * @param {any} model
  * @returns {string}
  */
 export function architectureMermaid(model) {
-  return architectureDiagram(asProjectModel(model)).join('\n');
+  const drawn = architectureDiagram(asProjectModel(model));
+  const fences = drawn.flatMap((line, index) =>
+    line.startsWith('```') ? [index] : [],
+  );
+  const body =
+    fences.length > 1
+      ? drawn.slice(fences[0] + 1, fences[fences.length - 1])
+      : drawn;
+  return body.join('\n').trimEnd();
 }
 
 const columns = ['key', 'type', 'title', 'references'];

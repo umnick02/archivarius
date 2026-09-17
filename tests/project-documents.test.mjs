@@ -456,3 +456,47 @@ test('a project that binds neither the package nor the mount entry gets no quick
     'a foreign project was given a quickstart',
   );
 });
+
+// A question filed as a fact is the failure this section prevents: the reference
+// lists every question-origin source, and says so plainly when there are none.
+test('the reference lists the open questions instead of filing them as facts', async () => {
+  const copy = JSON.parse(
+    await fs.readFile(
+      new URL('../assets/project.json', import.meta.url),
+      'utf8',
+    ),
+  );
+  const bare = clone();
+  const empty = await generateDocumentation(bare);
+  assert(
+    empty.includes('## ' + copy.openQuestions),
+    'no open-questions heading',
+  );
+  assert(empty.includes(copy.noOpenQuestions), 'no empty note');
+  const model = clone();
+  const context = projectContext(model, ['project', 'owner-intent']);
+  const asked = applyProjectChanges(model, context, {
+    put: [
+      {
+        key: 'open-question',
+        type: 'source',
+        title: 'Does a reader want the map or the list first?',
+        statement: 'Unanswered until a reader is watched using it.',
+        origin: 'question',
+        scope: 'project',
+      },
+    ],
+  });
+  const markdown = await generateDocumentation(asked);
+  assert(markdown.includes(copy.openQuestionsNote), 'no open note');
+  assert(
+    markdown.includes(
+      '- [Does a reader want the map or the list first?](#record-open-question)',
+    ),
+    'the question is not listed',
+  );
+  assert(
+    !markdown.includes(copy.noOpenQuestions),
+    'still claims none are open',
+  );
+});

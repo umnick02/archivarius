@@ -189,3 +189,77 @@
     color: CanvasText;
   }
 }
+
+/* Two receipts the project surface grew: the list of what is still being asked,
+   and what a claim says about its own age. Both are measured in text so doubling
+   the text size grows the words instead of clipping the box (WCAG 1.4.4, 1.4.10),
+   both take their tones from the one palette in `styles.css`, and both restate
+   their edge under a forced palette below, where every tone is thrown away. */
+
+.archivarius .open-questions {
+  background: var(--warn-soft);
+  border-left: 2px solid var(--warn);
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.75rem 0.625rem;
+  margin: 0.75rem 0;
+  overflow-wrap: anywhere;
+}
+.archivarius .open-questions[data-open-questions='0'] {
+  background: var(--soft);
+  border-left-color: var(--line-strong);
+}
+.archivarius .open-questions h3 {
+  margin: 0.75rem 0 0.25rem;
+  font-size: 0.8125rem;
+}
+.archivarius .open-questions > p {
+  margin: 0.25rem 0 0.5rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.archivarius .open-questions .record-links li {
+  margin: 0.375rem 0;
+}
+.archivarius .open-question-statement {
+  display: block;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.archivarius .claim-standing {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.125rem 0.625rem;
+  margin: 0.5rem 0 0.75rem;
+  font-size: 0.75rem;
+}
+.archivarius .claim-standing > div {
+  display: contents;
+}
+.archivarius .claim-standing dt {
+  color: var(--muted);
+}
+.archivarius .claim-standing dd {
+  margin: 0;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.archivarius .claim-standing[data-ageing='true'] dd {
+  color: var(--warn);
+}
+
+@media (forced-colors: active) {
+  .archivarius .open-questions {
+    background: Canvas;
+    color: CanvasText;
+    border: 1px solid CanvasText;
+  }
+  .archivarius :is(.open-question-statement, .claim-standing dt) {
+    color: CanvasText;
+  }
+  .archivarius .claim-standing[data-ageing='true'] dd {
+    color: CanvasText;
+    text-decoration: underline;
+  }
+}

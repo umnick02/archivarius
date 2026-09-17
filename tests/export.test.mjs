@@ -187,21 +187,23 @@ test('DOT spends the one appearance vocabulary and no second one', () => {
   assert.match(dot, /-> "publisher" \[[^\n]*style=dotted/);
 });
 
+// One emitter, two destinations: the exported file and the block the reference
+// embeds carry the same diagram, and only the fence around it differs.
+const embedded = (model) =>
+  architectureDiagram(model)
+    .join('\n')
+    .replace(/^```\w*\n/, '')
+    .replace(/\n```\n?$/, '');
+
 test('mermaid is byte-identical to the diagram the reference embeds', () => {
-  assert.equal(
-    architectureMermaid(example),
-    architectureDiagram(example).join('\n'),
-  );
+  assert.equal(architectureMermaid(example), embedded(example));
   const hostile = hostileModel();
-  assert.equal(
-    architectureMermaid(hostile),
-    architectureDiagram(hostile).join('\n'),
-  );
+  assert.equal(architectureMermaid(hostile), embedded(hostile));
 });
 
 test('mermaid covers the v3 architecture the map renders', () => {
   const mermaid = architectureMermaid(rendering);
-  assert.match(mermaid, /^```mermaid\nflowchart LR\n/);
+  assert.match(mermaid, /^flowchart LR\n/);
   for (const relation of rendering.relations)
     assert.ok(
       mermaid.includes('c-' + relation.from + ' ') &&
@@ -391,4 +393,13 @@ test('the CLI writes a graph to --output', async () => {
   } finally {
     await fs.rm(directory, { recursive: true, force: true });
   }
+});
+
+// A graph file is fed to a renderer, not pasted into Markdown: the fence belongs
+// to the page that embeds the diagram, so the export carries none.
+test('the mermaid export is a diagram, not a fenced block', () => {
+  const drawn = architectureMermaid(clone());
+  assert(drawn.startsWith('flowchart '), drawn.split('\n')[0]);
+  assert(!drawn.includes('```'), 'the export carries a fence');
+  assert(drawn.trimEnd() === drawn, 'the export ends with blank lines');
 });

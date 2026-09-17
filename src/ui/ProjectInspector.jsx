@@ -4,12 +4,68 @@ import { digest } from '../model/digest.mjs';
 import { recordReferences } from '../model/records.mjs';
 import { ImplementationMark } from './ImplementationMark.jsx';
 import {
+  claimStanding,
   confirmationGroups,
   currentRecord,
   primaryFields,
   relatedGroups,
   technicalFields,
 } from '../model/project-view.mjs';
+
+// The one clock read outside a render: the instant this surface was loaded, which
+// is the instant every claim's age is read against.
+const loaded = Date.now();
+
+// What a claim's receipt says about itself: the author, the day it was written,
+// the life it was given and where that life was stated. The model computes all of
+// it; the only thing this surface adds is the instant to read it against, because
+// a pure reading of a model has no clock and a panel does.
+function ClaimStanding({ standing }) {
+  const { project, projectCopy: copy } = useArchitecture();
+  if (!standing?.claimed) return null;
+  const rows = [
+    [copy.claimAuthor, standing.author],
+    [copy.claimWritten, standing.writtenAt],
+    [
+      copy.claimLife,
+      standing.life === null
+        ? copy.claimUnbounded
+        : format(copy.claimLifeDays, { life: standing.life }),
+    ],
+    [
+      copy.claimLifeStatedBy,
+      standing.lifeStatedBy === null
+        ? null
+        : currentRecord(project, standing.lifeStatedBy)?.title ||
+          standing.lifeStatedBy,
+    ],
+    [
+      copy.claimAge,
+      standing.age === null
+        ? null
+        : format(copy.claimAgeDays, { age: standing.age }),
+    ],
+    [
+      copy.ageing,
+      standing.ageing ? format(copy.claimPast, { past: standing.past }) : null,
+    ],
+  ].filter(([, value]) => typeof value === 'string' && value.length > 0);
+  if (!rows.length) return null;
+  return (
+    <dl
+      className="claim-standing"
+      data-claim={standing.key}
+      data-ageing={String(standing.ageing)}
+    >
+      {rows.map(([label, value]) => (
+        <div key={label}>
+          <dt>{label}</dt>
+          <dd>{value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
 
 export function ProjectConfirmation({
   recordKey,
@@ -27,13 +83,28 @@ export function ProjectConfirmation({
   const item = applicable
     ? analysis.completion[recordKey]
     : analysis.freshness[recordKey];
-  const yes = applicable ? item.implemented : item.current;
-  const groups = confirmationGroups(project, item.reasons);
+  // The analysis is computed without a clock, so the age of a claim is read here,
+  // against the instant this surface was loaded. A render must stay pure, so it
+  // never reads a clock itself and never ticks one: an age is stated in days, and
+  // the reading instant is the visit. An ageing claim is then reported as ageing
+  // and is not offered as current, whatever the clockless verdict said.
+  const standing = claimStanding(project, recordKey, loaded);
+  const ageing = !!standing?.ageing;
+  const reasons =
+    ageing &&
+    !item.reasons.some(
+      (reason) => reason.code === 'CLAIM_AGEING' && reason.key === recordKey,
+    )
+      ? [...item.reasons, { code: 'CLAIM_AGEING', key: recordKey }]
+      : item.reasons;
+  const yes = applicable ? item.implemented : item.current && !ageing;
+  const groups = confirmationGroups(project, reasons);
   return (
     <div
       className="implementation"
       data-implemented={String(yes)}
       data-implementation-state={applicable ? item.state : undefined}
+      data-ageing={String(ageing)}
     >
       <p>
         <b>
@@ -45,11 +116,12 @@ export function ProjectConfirmation({
             </>
           ) : (
             <>
-              {copy.current}: {yes ? copy.yes : copy.no}
+              {copy.current}: {ageing ? copy.ageing : yes ? copy.yes : copy.no}
             </>
           )}
         </b>
       </p>
+      <ClaimStanding standing={standing} />
       {applicable && item.progress.criteria.length > 0 && (
         <div className="implementation-progress">
           <p>

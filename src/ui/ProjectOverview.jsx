@@ -2,7 +2,44 @@ import { useMemo } from 'react';
 import { useArchitecture, format } from './context.jsx';
 import { ProjectConfirmation } from './ProjectInspector.jsx';
 import { digest } from '../model/digest.mjs';
+import { openQuestions } from '../model/project-questions.mjs';
 import { searchRecord, viewTypes } from '../model/project-view.mjs';
+
+// An unanswered question must not read as a fact, so the overview states the open
+// list where the project states its outcome — including when it is empty, because
+// "nothing is being asked" is an answer and a missing list is not.
+function OpenQuestions({ showRecord }) {
+  const { project, projectCopy: copy } = useArchitecture();
+  const questions = openQuestions(project);
+  return (
+    <section className="open-questions" data-open-questions={questions.length}>
+      <h3>
+        {copy.openQuestions} · {questions.length}
+      </h3>
+      <p>{questions.length ? copy.openQuestionsNote : copy.noOpenQuestions}</p>
+      {!!questions.length && (
+        <ul className="record-links">
+          {questions.map((question) => (
+            <li key={question.key}>
+              <button
+                className="record-link"
+                data-open-question={question.key}
+                onClick={() => showRecord(question.key)}
+              >
+                {question.title}
+              </button>
+              {!!question.statement && (
+                <span className="open-question-statement">
+                  {question.statement}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
 
 export function ProjectOverview({
   panel,
@@ -86,6 +123,7 @@ export function ProjectOverview({
             recordKey={project.root}
             showRecord={showRecord}
           />
+          <OpenQuestions showRecord={showRecord} />
           <button
             className="record-link"
             data-project-view="all"

@@ -1,4 +1,5 @@
 import { digest } from './digest.mjs';
+import { openQuestions } from './project-questions.mjs';
 import {
   nodeAppearance,
   relationAppearance,
@@ -134,6 +135,30 @@ function architectureLegend(copy, diagram) {
   });
 }
 
+// A question is not a fact. A source stated as a question is listed on its own,
+// above the records, so the reference never reads as if the project had settled
+// something it only asked - and says plainly when nothing is open.
+function openQuestionSection(model, copy) {
+  if (!copy.openQuestions) return [];
+  const questions = openQuestions(model);
+  return [
+    '## ' + inline(copy.openQuestions),
+    '',
+    questions.length ? copy.openQuestionsNote : copy.noOpenQuestions,
+    '',
+    ...questions.map(
+      (question) =>
+        '- [' +
+        inline(question.title) +
+        '](#record-' +
+        question.key +
+        ')' +
+        (question.statement ? ' - ' + inline(question.statement) : ''),
+    ),
+    ...(questions.length ? [''] : []),
+  ];
+}
+
 // A caught failure names a code and nothing else, so the reference prints the
 // table the raising module owns instead of a second copy of it.
 function failureTable() {
@@ -174,6 +199,7 @@ export function renderProjectDocumentation(model, copy) {
     '',
     ...diagram,
     ...architectureLegend(copy, diagram),
+    ...openQuestionSection(model, copy),
   ];
   for (const record of model.records) {
     lines.push(
