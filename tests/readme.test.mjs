@@ -5,7 +5,17 @@ import { generatedNotice } from '../src/model/documents.mjs';
 import { projectArchitecture } from '../src/model/project-architecture.mjs';
 import prose from '../src/generated/prose.mjs';
 import { recordSummary } from '../src/model/project-view.mjs';
-import { renderReadme, readCopy } from '../docs/scripts/readme.mjs';
+import { renderProjectReadme } from '../src/model/project-readme.mjs';
+import { generateReadme } from '../src/node.mjs';
+
+const readCopy = async () =>
+  JSON.parse(
+    await fs.readFile(
+      new URL('../assets/project.json', import.meta.url),
+      'utf8',
+    ),
+  );
+const renderReadme = renderProjectReadme;
 
 const model = JSON.parse(
   await fs.readFile(new URL('../project.json', import.meta.url), 'utf8'),
@@ -195,7 +205,7 @@ test('the readme states only the parts whose realization the model binds', () =>
 // would need regenerating after every commit and would drift in CI instead.
 test('the readme reads the model, not the state of its evidence', async () => {
   const source = await fs.readFile(
-    new URL('../docs/scripts/readme.mjs', import.meta.url),
+    new URL('../src/model/project-readme.mjs', import.meta.url),
     'utf8',
   );
   assert(
@@ -206,7 +216,7 @@ test('the readme reads the model, not the state of its evidence', async () => {
 
 test('the generator never names a field of the schema', async () => {
   const source = await fs.readFile(
-    new URL('../docs/scripts/readme.mjs', import.meta.url),
+    new URL('../src/model/project-readme.mjs', import.meta.url),
     'utf8',
   );
   const names = new Set(
@@ -242,6 +252,10 @@ test('every prose field the schema declares has a label in the copy', () => {
   }
 });
 
+test('the public entry renders the readme with the shipped copy', async () => {
+  assert.equal(await generateReadme(model), renderReadme(model, copy));
+});
+
 test('rendering the same model twice gives the same readme', () => {
   assert.equal(
     renderReadme(model, copy),
@@ -249,14 +263,15 @@ test('rendering the same model twice gives the same readme', () => {
   );
 });
 
-test('a quoted record is a record of the model, verbatim', () => {
+// A record is data, not prose: dumping one on the landing page shows a reader a
+// field set instead of the system, and the reference view already prints them.
+test('the readme quotes no raw record', () => {
   const readme = renderReadme(model, copy);
-  const blocks = [...readme.matchAll(/```json\n([\s\S]*?)\n```/g)];
-  assert(blocks.length, 'no record is shown');
-  for (const [, block] of blocks) {
-    const shown = JSON.parse(block);
-    const record = model.records.find((r) => r.key === shown.key);
-    assert(record, 'no such record: ' + shown.key);
-    assert.deepEqual(shown, record, 'the shown record was edited on the way');
-  }
+  const fences = readme.split('\n').filter((line) => line.startsWith('```'));
+  for (let index = 0; index < fences.length; index += 2)
+    assert.equal(
+      fences[index],
+      '```mermaid',
+      'a fenced block other than the diagram is on the landing page',
+    );
 });

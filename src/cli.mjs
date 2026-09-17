@@ -6,6 +6,7 @@ import {
   readArchitectureFile,
   exportProjectDocuments,
   generateDocumentation,
+  generateReadme,
   verifyProjectFiles,
   updateProjectFile,
   executeProjectCheck,
@@ -46,6 +47,7 @@ async function main() {
     const allowed = {
       validate: ['json'],
       reference: ['output', 'check'],
+      readme: ['output', 'check'],
       documents: ['output', 'check', 'json'],
       context: ['focus', 'json', 'output'],
       read: ['focus', 'json'],
@@ -61,6 +63,7 @@ async function main() {
       ![
         'validate',
         'reference',
+        'readme',
         'documents',
         'context',
         'read',
@@ -73,7 +76,8 @@ async function main() {
       (command === 'apply' && (!values.context || !values.change)) ||
       (command === 'run' &&
         (values.focus?.length !== 1 || !values.result || !values.evidence)) ||
-      (command === 'reference' && (!values.output || values.json)) ||
+      (['reference', 'readme'].includes(command) &&
+        (!values.output || values.json)) ||
       (command === 'documents' && !values.output) ||
       (command === 'validate' && (values.output !== undefined || values.check))
     )
@@ -179,7 +183,10 @@ async function main() {
         inputStat.dev === outputStat.dev)
     )
       throw new Error('OUTPUT_IS_MODEL');
-    const markdown = await generateDocumentation(model);
+    const markdown =
+      command === 'readme'
+        ? await generateReadme(model)
+        : await generateDocumentation(model);
     if (values.check) {
       const existing = await fs.readFile(output, 'utf8').catch((error) => {
         if (error.code !== 'ENOENT') throw error;

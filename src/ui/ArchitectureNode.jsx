@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { Handle, useViewport, useUpdateNodeInternals } from '@xyflow/react';
+import { nodeAppearance } from '../model/appearance.mjs';
 import { format, useArchitecture } from './context.jsx';
+import { shapeRadii } from './view.mjs';
 import { ImplementationMark } from './ImplementationMark.jsx';
 
 export function ArchitectureNode({ data }) {
@@ -25,6 +27,9 @@ export function ArchitectureNode({ data }) {
   const w = box.width * zoom,
     h = box.height * zoom;
   const state = completion.nodes[item.key].state;
+  // What a zone or a kind looks like is decided once, in the model's appearance
+  // table the generated diagram reads too; this surface adds only the pixels.
+  const look = nodeAppearance(item);
   const confirmation =
     copy.mapImplementation.label + ': ' + copy.mapImplementation[state];
   const pad = Math.min(22, w * 0.065),
@@ -33,6 +38,7 @@ export function ArchitectureNode({ data }) {
       : Math.min(box.depth === 1 ? 21 : 18, Math.max(9, w / 12));
   const style = {
     '--accent': rootColors[box.root],
+    '--zone': look.tone,
     '--pad': pad + 'px',
     '--title': title + 'px',
     '--small': '10px',
@@ -43,8 +49,9 @@ export function ArchitectureNode({ data }) {
     height: h,
     transform: `scale(${1 / zoom})`,
     transformOrigin: '0 0',
+    borderStyle: look.outline,
     borderWidth: highlighted ? 2 : 1,
-    borderRadius: Math.min(14, w * 0.035),
+    borderRadius: (shapeRadii[look.shape] || shapeRadii.box)(w, h),
   };
   return (
     <>
@@ -52,7 +59,6 @@ export function ArchitectureNode({ data }) {
         className={
           'node-card ' +
           (expanded ? 'expanded ' : '') +
-          (item.kind === 'external' ? 'external ' : '') +
           (highlighted ? 'highlighted' : '')
         }
         style={style}
@@ -61,6 +67,7 @@ export function ArchitectureNode({ data }) {
         data-expanded={String(expanded)}
         data-detail={item.detail}
         data-kind={item.kind}
+        data-zone={item.zone}
         data-implemented={String(item.implemented)}
         data-implementation-state={state}
         data-incoming={interfaces.incoming.length}

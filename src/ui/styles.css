@@ -200,9 +200,12 @@
   position: relative;
   width: 100%;
   height: 100%;
-  border-style: solid;
   border-color: color-mix(in srgb, var(--accent) 55%, #fff);
   background: color-mix(in srgb, var(--accent) 6%, #fffefb);
+  /* The zone reads as a tone along the top edge: the root colour says which
+     container a card belongs to, the zone says what kind of work it does. The
+     tone and the outline come from the shared appearance table. */
+  box-shadow: inset 0 3px 0 0 var(--zone);
   overflow: hidden;
   color: #2c392f;
   cursor: pointer;
@@ -210,9 +213,6 @@
 .archivarius .node-card:hover,
 .archivarius .node-card.highlighted {
   border-color: var(--accent);
-}
-.archivarius .node-card.external {
-  border-style: dashed;
 }
 .archivarius .implementation-mark {
   display: inline-block;

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { clicker, pause, settler, waiter } from './cdp.mjs';
 import { startHarness } from './harness.mjs';
 import { generateDocumentation } from '../src/node.mjs';
+import { nodeAppearance } from '../src/model/appearance.mjs';
 
 const model = JSON.parse(
   await fs.readFile(
@@ -10,6 +11,13 @@ const model = JSON.parse(
     'utf8',
   ),
 );
+const nodesByKey = new Map();
+(function collect(nodes) {
+  for (const node of nodes) {
+    nodesByKey.set(node.key, node);
+    if (node.children) collect(node.children);
+  }
+})(model.nodes);
 const copy = JSON.parse(
   await fs.readFile(new URL('../assets/strings.json', import.meta.url), 'utf8'),
 );
@@ -99,6 +107,54 @@ try {
     ),
     model.nodes.length,
   );
+  // A card is drawn from the shared appearance table, not from a palette this
+  // surface keeps to itself: the zone it states carries that zone's tone and
+  // the kind decides the outline.
+  const cards = await b.evaluate(() =>
+    [...document.querySelectorAll('#first [data-node]')].map((card) => ({
+      key: card.dataset.node,
+      zone: card.dataset.zone,
+      tone: getComputedStyle(card).getPropertyValue('--zone').trim(),
+      outline: getComputedStyle(card).borderTopStyle,
+    })),
+  );
+  assert(cards.length, 'expected rendered cards');
+  for (const card of cards) {
+    const item = nodesByKey.get(card.key);
+    const look = nodeAppearance(item);
+    assert.equal(card.zone, item.zone, 'card ' + card.key + ' hides its zone');
+    assert.equal(card.tone, look.tone, 'card ' + card.key + ' invents a tone');
+    assert.equal(
+      card.outline,
+      look.outline,
+      'card ' + card.key + ' invents an outline',
+    );
+  }
+  // A kind is a silhouette, not only a label: a store and an external
+  // participant are told apart from a plain component at a glance, and the pill
+  // is a pill however wide the card is.
+  await focus('engine');
+  const silhouettes = await b.evaluate(() =>
+    [...document.querySelectorAll('#first [data-node]')].map((card) => ({
+      kind: card.dataset.kind,
+      radius: getComputedStyle(card).borderRadius,
+      height: card.getBoundingClientRect().height,
+      corner: parseFloat(getComputedStyle(card).borderTopLeftRadius),
+    })),
+  );
+  const drawn = (kind) => silhouettes.filter((card) => card.kind === kind);
+  for (const kind of ['component', 'store', 'external'])
+    assert(drawn(kind).length, 'the fixture must render a ' + kind);
+  const shapes = new Set(
+    ['component', 'store', 'external'].map((kind) => drawn(kind)[0].radius),
+  );
+  assert.equal(shapes.size, 3, 'kinds share one silhouette');
+  for (const pill of drawn('external'))
+    assert(
+      pill.corner >= pill.height / 2 - 1,
+      'an external participant is not drawn as a pill',
+    );
+  await focus(model.entry);
   assert(
     (
       await b.evaluate(

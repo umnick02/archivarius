@@ -1,6 +1,6 @@
 import { useArchitecture } from './context.jsx';
 import { ImplementationMark } from './ImplementationMark.jsx';
-import { kindColors } from './view.mjs';
+import { relationTones } from '../model/appearance.mjs';
 
 // Drawn inside the pane: the legend that reads the implementation marks, and the
 // arrow heads the edges point with, sized against the current zoom so they hold
@@ -27,7 +27,7 @@ export function MapOverlays({ zoom }) {
       )}
       <svg width="0" height="0" className="marker-definitions">
         <defs>
-          {Object.entries(kindColors).map(([kind, color]) => (
+          {Object.entries(relationTones).map(([kind, color]) => (
             <marker
               key={kind}
               id={instanceId + '-head-' + kind}

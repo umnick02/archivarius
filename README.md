@@ -2,20 +2,6 @@
 
 One validated JSON file - a snapshot - holds a project's whole description as small linked records: its parts, the rules they must satisfy, the decisions behind them, the work left and the checks that confirm it. A React library draws that file as an architecture map that reveals more detail as it is zoomed.
 
-```json
-{
-  "key": "apply-change",
-  "type": "interaction",
-  "title": "Apply a change",
-  "scope": "archivarius",
-  "from": "cli",
-  "to": "core",
-  "kind": "command",
-  "channel": "apply",
-  "contract": "change-input"
-}
-```
-
 An owner understands a system's structure, the grounds for decisions, the remaining work and the effect of changes from one snapshot; an LLM reads and edits the same records.
 
 The snapshot in this repository describes Archivarius itself, so the map below, the tables under it and this page are the project's own records drawn by the library it documents.
@@ -25,24 +11,30 @@ A record keeps the definitions it was written against apart from the records it 
 ```mermaid
 flowchart LR
     subgraph c-model["Model and contract"]
-        c-core["Core"]
-        c-graph["Graph references"]
-        c-digest["Canonical digest"]
+        c-core["Core"]:::pure
+        c-graph["Graph references"]:::pure
+        c-digest["Canonical digest"]:::pure
     end
     subgraph c-node-api["Node API"]
-        c-cli["CLI"]
-        c-evidence["Evidence verification"]
+        c-cli["CLI"]:::infrastructure
+        c-evidence["Evidence verification"]:::infrastructure
     end
     subgraph c-render["Map rendering"]
-        c-map["Architecture map"]
-        c-inspector["Inspector and overview"]
+        c-map["Architecture map"]:::presentation
+        c-inspector["Inspector and overview"]:::presentation
     end
     c-map -->|"Load a snapshot"| c-core
-    c-core -->|"Validate references"| c-graph
-    c-core -->|"Compute the basis"| c-digest
-    c-map -->|"Open a record"| c-inspector
-    c-cli -->|"Apply a change"| c-core
+    c-core ==>|"Validate references"| c-graph
+    c-core ==>|"Compute the basis"| c-digest
+    c-map -.->|"Open a record"| c-inspector
+    c-cli ==>|"Apply a change"| c-core
     c-cli -->|"Verify evidence"| c-evidence
+    style c-model fill:#e7eeec,stroke:#558574,color:#2c392f
+    style c-node-api fill:#f4ece7,stroke:#b07852,color:#2c392f
+    style c-render fill:#e7ecf3,stroke:#5779a6,color:#2c392f
+    classDef pure fill:#e7eeec,stroke:#558574,color:#2c392f
+    classDef infrastructure fill:#f4ece7,stroke:#b07852,color:#2c392f
+    classDef presentation fill:#e7ecf3,stroke:#5779a6,color:#2c392f
 ```
 
 | Scenario | Actor | Preconditions | Actions | Failure and recovery |
@@ -56,7 +48,7 @@ flowchart LR
 | Graph references | Validates typed relations between records and reports reverse links and coverage. |
 | Canonical digest | Computes the SHA-256 basis over a canonical representation of the definitions. |
 | Node API | Reads a model file, verifies evidence artifacts by bytes, applies validated changes, and generates documentation. |
-| CLI | Exposes validate, read, context, apply, reference, documents, verify, run and archive over the model file. |
+| CLI | Exposes validate, read, context, apply, reference, readme, documents, verify, run and archive over the model file. |
 | Evidence verification | Matches declared binding bytes against files and records actual check outcomes. |
 | Map rendering | Mounts an interactive architecture map with semantic zoom and an inspector for records. |
 | Architecture map | Lays out components and interactions and reveals detail as the map is zoomed. |
@@ -82,5 +74,6 @@ flowchart LR
 | --- | --- | --- | --- |
 | Canonical digest for the basis | Compute basis.contract as a SHA-256 over a canonical representation of the definitions, excluding results, history and review text. | A content digest detects real definition changes without trusting order or edit metadata. | Any definition change, including additions, drops the current basis. |
 | Project data and copy stay external | Load model data and UI copy as external resources rather than bundling them into the library. | The format stays independent of any project, repository or build, and shipped scripts do not carry project data. | A consumer supplies the model source and container. |
+| One appearance table for every picture | Derive how a node and a relation are drawn - tone, shape, outline and line - from one table keyed on the rendering contract's closed enums, and read that table from both the map and the generated diagram; a renderer adds only its own pixels. | A second palette drifts, so the same zone or interaction kind would read differently in the map than in the generated documentation, and a value the contract allows could reach a renderer with no display token at all. | A value added to a contract enum fails the appearance suite until it is given a token.<br>Tones belong to the shared vocabulary while dash lengths, stroke widths and radii stay with the surface that draws them. |
 
 <!-- Generated by Archivarius; edit the project JSON, not this file. -->

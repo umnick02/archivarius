@@ -1,4 +1,10 @@
 import { digest } from './digest.mjs';
+import {
+  nodeAppearance,
+  relationAppearance,
+  tint,
+  zoneTones,
+} from './appearance.mjs';
 import { analyzeProject } from './project-analysis.mjs';
 import { projectArchitecture } from './project-architecture.mjs';
 import { assertProject } from './project-contract.mjs';
@@ -12,7 +18,9 @@ import {
 } from './documents.mjs';
 
 // The diagram is generated from the same projection the map renders, so the
-// picture cannot disagree with the UI or with the model behind it.
+// picture cannot disagree with the UI or with the model behind it, and it is
+// styled from the same appearance table, so it cannot disagree with how the map
+// draws a zone, a kind or a relation.
 export function architectureDiagram(model) {
   const architecture = projectArchitecture(model);
   if (!architecture.nodes.length) return [];
@@ -20,25 +28,77 @@ export function architectureDiagram(model) {
   // Record keys are free text, so a key like "graph" or "end" would be read as
   // Mermaid syntax. Identifiers are namespaced to keep every key usable.
   const id = (key) => 'c-' + key;
+  // Both themes read a light fill, so the text tone is stated, never inherited.
+  const ink = '#2c392f';
+  const zones = new Set();
+  const styles = [];
+  // Mermaid spells a shape in brackets; the table names it, this maps the name.
+  const shaped = {
+    box: (text) => '[' + text + ']',
+    cylinder: (text) => '[(' + text + ')]',
+    stadium: (text) => '([' + text + '])',
+  };
   const node = (entry, depth) => {
     const pad = '    '.repeat(depth + 1);
+    const look = nodeAppearance(entry);
     const children = entry.children || [];
-    if (!children.length)
-      return [pad + id(entry.key) + '[' + label(entry.title) + ']'];
+    if (!children.length) {
+      zones.add(entry.zone);
+      const shape = shaped[look.shape] || shaped.box;
+      return [
+        pad + id(entry.key) + shape(label(entry.title)) + ':::' + entry.zone,
+      ];
+    }
+    // A subgraph takes no class, so its zone is stated as a style line; a
+    // grouping node keeps the container shape Mermaid gives it.
+    styles.push(
+      '    style ' +
+        id(entry.key) +
+        ' fill:' +
+        tint(look.tone) +
+        ',stroke:' +
+        look.tone +
+        ',color:' +
+        ink,
+    );
     return [
       pad + 'subgraph ' + id(entry.key) + '[' + label(entry.title) + ']',
       ...children.flatMap((child) => node(child, depth + 1)),
       pad + 'end',
     ];
   };
+  const nodes = architecture.nodes.flatMap((root) => node(root, 0));
+  // The label rides in the pipe form, which every line style accepts.
+  const lines = { solid: '-->', thick: '==>', dotted: '-.->' };
   return [
     '```mermaid',
     // GitHub scales one wide SVG down until its labels are unreadable, and a
     // left-to-right chain keeps the containers stacked instead of side by side.
     'flowchart LR',
-    ...architecture.nodes.flatMap((root) => node(root, 0)),
+    ...nodes,
     ...architecture.relations.map(
-      (r) => '    ' + id(r.from) + ' -->|' + label(r.label) + '| ' + id(r.to),
+      (r) =>
+        '    ' +
+        id(r.from) +
+        ' ' +
+        lines[relationAppearance(r).line] +
+        '|' +
+        label(r.label) +
+        '|' +
+        ' ' +
+        id(r.to),
+    ),
+    ...styles,
+    ...[...zones].map(
+      (zone) =>
+        '    classDef ' +
+        zone +
+        ' fill:' +
+        tint(zoneTones[zone]) +
+        ',stroke:' +
+        zoneTones[zone] +
+        ',color:' +
+        ink,
     ),
     '```',
     '',

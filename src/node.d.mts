@@ -17,6 +17,7 @@ export function writeAtomic(
 export function generateDocumentation(
   model: ArchitectureInput,
 ): Promise<string>;
+export function generateReadme(model: ProjectModel): Promise<string>;
 export function verifyProjectFiles(
   model: ProjectModel,
   directory: string,

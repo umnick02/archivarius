@@ -21,8 +21,9 @@ by LLM agents. Read the directory instructions before editing.
   `npm run generate`.
 - English is the only language. `assets/strings.json` keeps `"locale":"en"`; there
   is no locale parameter on any exported function.
-- `README.md` is generated from the documentation model by the library's own `docs`
-  command (`npm run docs:readme`), including its Mermaid architecture diagram.
+- `README.md` is generated from the documentation model by the library's own
+  `readme` command (`npm run docs:readme`), including its Mermaid architecture
+  diagram; `reference` is the other view — the full record-by-record report.
   Never hand-edit it; change `project.json` and regenerate. `npm run check`
   fails on drift, and Prettier ignores it.
 

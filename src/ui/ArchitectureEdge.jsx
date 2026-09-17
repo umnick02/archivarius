@@ -1,6 +1,7 @@
 import { BaseEdge, EdgeLabelRenderer, useViewport } from '@xyflow/react';
 import { relationCount, useArchitecture } from './context.jsx';
-import { edgeImplementationPoint, kindColors } from './view.mjs';
+import { relationAppearance } from '../model/appearance.mjs';
+import { edgeImplementationPoint, lineDashes } from './view.mjs';
 import { ImplementationMark } from './ImplementationMark.jsx';
 
 export function ArchitectureEdge({ id, data }) {
@@ -11,11 +12,11 @@ export function ArchitectureEdge({ id, data }) {
     copy.mapImplementation.label +
     ': ' +
     copy.mapImplementation[data.bundle.state];
-  const color = data.active
-    ? '#1f7758'
-    : data.muted
-      ? '#b7bdb1'
-      : kindColors[data.bundle.kind];
+  // The kind's tone and how its line reads come from the shared appearance
+  // table; only the active and muted states are this surface's own.
+  const look = relationAppearance(data.bundle);
+  const dash = lineDashes[look.line];
+  const color = data.active ? '#1f7758' : data.muted ? '#b7bdb1' : look.tone;
   return (
     <g
       data-relation={id}
@@ -63,12 +64,9 @@ export function ArchitectureEdge({ id, data }) {
           style={{
             stroke: color,
             strokeWidth: (data.active ? 2.5 : 1.4) / zoom,
-            strokeDasharray:
-              data.bundle.kind === 'command'
-                ? `${7 / zoom} ${5 / zoom}`
-                : data.bundle.kind === 'state'
-                  ? `${2 / zoom} ${4 / zoom}`
-                  : undefined,
+            strokeDasharray: dash
+              ? dash.map((part) => part / zoom).join(' ')
+              : undefined,
           }}
         />
       ))}

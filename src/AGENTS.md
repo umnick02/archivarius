@@ -39,6 +39,14 @@ Invariants:
 - `model/project-architecture.mjs` projects the `component` and `interaction`
   records into the graph the map draws and the readme embeds; there is no
   hand-drawn second copy.
+- `model/project-readme.mjs` renders the landing page and `model/project-document.mjs`
+  the full reference; both read the same architecture projection, and neither
+  names a schema field — the field order comes from `generated/prose.mjs` and
+  `model/project-view.mjs`.
+- `model/appearance.mjs` owns the one display vocabulary keyed on the rendering
+  contract's enums — tone, shape, outline, line — read by the map and the
+  generated diagram alike; a surface adds only its own pixels (dash lengths in
+  `ui/view.mjs`), never a second palette.
 - `model/documents.mjs` owns the single Markdown escaper every renderer uses; it
   neutralizes structure, not punctuation.
 - `ui/context.jsx` pluralizes with `one`/`other` against `assets/strings.json`.

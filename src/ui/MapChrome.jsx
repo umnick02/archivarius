@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import { useArchitecture } from './context.jsx';
-import { kindColors } from './view.mjs';
+import { relationTones } from '../model/appearance.mjs';
 
 // The chrome around the map: where the reader is, what the current focus reaches,
 // how to read the edges, and the camera controls. It owns no state.
@@ -63,13 +63,17 @@ export function MapChrome({
         <br />
         {copy.hints.enter} · {copy.hints.edge}
         <br />
-        <span style={{ color: kindColors.data }}>
+        <span style={{ color: relationTones.data }}>
           ━ {copy.layers.data}
-        </span> ·{' '}
-        <span style={{ color: kindColors.command }}>
+        </span>{' '}
+        ·{' '}
+        <span style={{ color: relationTones.command }}>
           ┄ {copy.layers.command}
         </span>{' '}
-        · <span style={{ color: kindColors.state }}>┈ {copy.layers.state}</span>
+        ·{' '}
+        <span style={{ color: relationTones.state }}>
+          ┈ {copy.layers.state}
+        </span>
       </div>
       <div className="map-controls">
         <button

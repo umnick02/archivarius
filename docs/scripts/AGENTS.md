@@ -1,7 +1,8 @@
 # Documentation validators
 
 `project.mjs` passes the built CLI's authoring commands through to
-[../project.json](../project.json); `readme.mjs` regenerates the readme,
+[../project.json](../project.json) — the readme is one of them, rendered by the
+library itself (`src/model/project-readme.mjs`), not by a script here.
 `bind.mjs` recomputes the bindings of the described parts and `site.mjs` serves
 the local viewer in `viewer/`. Read
 [../AGENTS.md](../AGENTS.md) for the editing routes.

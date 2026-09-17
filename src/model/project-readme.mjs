@@ -1,13 +1,9 @@
-import { writeFile, readFile } from 'node:fs/promises';
-import path from 'node:path';
-import { architectureDiagram } from '../../src/model/project-document.mjs';
-import { generatedNotice } from '../../src/model/documents.mjs';
-import { projectArchitecture } from '../../src/model/project-architecture.mjs';
-import { assertProject } from '../../src/model/project-contract.mjs';
-import { primaryFields } from '../../src/model/project-view.mjs';
-import { recordReferences } from '../../src/model/records.mjs';
-import prose from '../../src/generated/prose.mjs';
-import { root, input } from './framework.mjs';
+import { architectureDiagram } from './project-document.mjs';
+import { generatedNotice } from './documents.mjs';
+import { projectArchitecture } from './project-architecture.mjs';
+import { assertProject } from './project-contract.mjs';
+import { primaryFields } from './project-view.mjs';
+import prose from '../generated/prose.mjs';
 
 // The schema decides which fields are prose, the UI copy decides how they are
 // named, and this view decides which records are worth a landing page. Field
@@ -28,7 +24,7 @@ const row = (cells) => '| ' + cells.join(' | ') + ' |';
 const varies = (entries, cell) =>
   entries.length < 2 || new Set(entries.map(cell)).size > 1;
 
-const table = (copy, type, entries, extra = []) => {
+const table = (copy, type, entries) => {
   if (!entries.length) return [];
   // The map already ranks a record's fields to summarize it, and this page is
   // the same summary in a row: the fields it leads with, minus those nobody
@@ -42,15 +38,10 @@ const table = (copy, type, entries, extra = []) => {
         entries.some(([, record]) => value(record, field)) &&
         varies(entries, ([, record]) => value(record, field)),
     );
-  const columns = [
-    ...fields.map((field) => ({
-      heading: copy.fields[field.name],
-      of: (record) => value(record, field),
-    })),
-    ...extra.filter((column) =>
-      varies(entries, ([, record]) => column.of(record)),
-    ),
-  ];
+  const columns = fields.map((field) => ({
+    heading: copy.fields[field.name],
+    of: (record) => value(record, field),
+  }));
   return [
     row([copy.types[type], ...columns.map((column) => column.heading)]),
     row(['---', ...columns.map(() => '---')]),
@@ -64,8 +55,16 @@ const table = (copy, type, entries, extra = []) => {
 // A part this repository does not bind to a file is a part it does not carry
 // yet, and a landing page that shows it promises code a reader cannot open. The
 // map and the full documentation still hold it, with the reasons it is missing.
+// A part outside the boundary - by kind or by zone - is the exception: no file
+// here can carry it, so demanding one would drop it and every edge that crosses
+// the system boundary with it.
 const carried = (model) => {
-  const bound = (key) => Boolean(model.bindings[key]);
+  const external = new Set(
+    model.records
+      .filter((r) => r.kind === 'external' || r.zone === 'external')
+      .map((r) => r.key),
+  );
+  const bound = (key) => Boolean(model.bindings[key]) || external.has(key);
   const gone = new Set();
   for (let settled = false; !settled; ) {
     settled = true;
@@ -85,7 +84,7 @@ const carried = (model) => {
   return { ...model, records: model.records.filter((r) => !gone.has(r.key)) };
 };
 
-export function renderReadme(whole, copy) {
+export function renderProjectReadme(whole, copy) {
   assertProject(whole);
   const model = carried(whole);
   const records = (type) => model.records.filter((r) => r.type === type);
@@ -106,26 +105,8 @@ export function renderReadme(whole, copy) {
     '# ' + scope.title,
     '',
     ...statements(scope),
-    // The sentence above claims small linked records, so the clearest specimen
-    // is the one that is mostly links: the densest record, not the largest.
-    '```json',
-    JSON.stringify(
-      [...model.records]
-        .map((record) => {
-          const text = JSON.stringify(record, null, 2);
-          return [
-            recordReferences(record).length / text.split('\n').length,
-            record,
-          ];
-        })
-        .sort((a, b) => b[0] - a[0] || a[1].key.localeCompare(b[1].key))[0][1],
-      null,
-      2,
-    ),
-    '```',
-    '',
-    // What the statements settle - whose system this is, and what the links in
-    // the record above are for - has to be read before the picture, not after.
+    // What the statements settle - whose system this is and what it is for - has
+    // to be read before the picture, not after.
     ...records('source').flatMap(statements),
     ...architectureDiagram(model),
     // A reader who does not know the vocabulary yet needs one concrete run
@@ -158,24 +139,4 @@ export function renderReadme(whole, copy) {
     generatedNotice,
     '',
   ].join('\n');
-}
-
-export async function readCopy() {
-  return JSON.parse(
-    await readFile(
-      new URL('../../assets/project.json', import.meta.url),
-      'utf8',
-    ),
-  );
-}
-
-if (import.meta.url === new URL(process.argv[1], 'file:').href) {
-  const model = JSON.parse(await readFile(input, 'utf8'));
-  const readme = renderReadme(model, await readCopy());
-  const output = path.join(root, 'README.md');
-  if (process.argv.includes('--check')) {
-    const current = await readFile(output, 'utf8').catch(() => '');
-    if (current !== readme)
-      throw new Error('README.md is stale: run npm run docs:readme');
-  } else await writeFile(output, readme);
 }

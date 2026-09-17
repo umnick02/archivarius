@@ -1,19 +1,17 @@
 import { Position } from '@xyflow/react';
 import { ArchitectureGraph } from '../model/graph.mjs';
+import { rootTones } from '../model/appearance.mjs';
 
-export const colors = [
-  '#5779a6',
-  '#77679c',
-  '#b07852',
-  '#558574',
-  '#b58b37',
-  '#617b82',
-  '#74747e',
-];
-export const kindColors = {
-  data: '#537e68',
-  command: '#8b6ead',
-  state: '#5d8796',
+// The palette is the model's display vocabulary; this surface only decides the
+// pixels it is drawn with. Dash lengths belong here, tones never do.
+export const colors = rootTones;
+export const lineDashes = { solid: null, thick: [7, 5], dotted: [2, 4] };
+// The silhouette of a shape in this surface's pixels: a barrel for a store, a
+// pill for an outside participant, a softly rounded card for everything else.
+export const shapeRadii = {
+  box: (w) => Math.min(14, w * 0.035) + 'px',
+  cylinder: (w, h) => w / 2 + 'px / ' + Math.min(22, h * 0.16) + 'px',
+  stadium: (w, h) => h / 2 + 'px',
 };
 
 export function groupInteractions(edges, incoming = false) {

@@ -8,7 +8,8 @@ try {
       'read',
       'context',
       'apply',
-      'docs',
+      'reference',
+      'readme',
       'documents',
       'verify',
       'run',
@@ -39,7 +40,7 @@ try {
       });
   } else
     throw new Error(
-      'Expected validate, read, context, apply, docs, documents, verify, run, archive or serve',
+      'Expected validate, read, context, apply, reference, readme, documents, verify, run, archive or serve',
     );
 } catch (error) {
   process.stdout.write(

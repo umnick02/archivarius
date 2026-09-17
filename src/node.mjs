@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { ArchitectureError, parseArchitecture, parseJSON } from './core.mjs';
 import { renderDocumentation } from './model/document.mjs';
+import { renderProjectReadme } from './model/project-readme.mjs';
 import { analyzeProject } from './model/project-analysis.mjs';
 import { applyProjectChanges } from './model/project-authoring.mjs';
 import { assertProject } from './model/project-contract.mjs';
@@ -34,6 +35,20 @@ export async function generateDocumentation(model) {
     await readFile(new URL('../assets/project.json', import.meta.url), 'utf8'),
   );
   return renderDocumentation(model, copy);
+}
+
+// The landing page states only what the model binds to a file, so it stays a
+// summary; `generateDocumentation` remains the full reference over every record.
+export async function generateReadme(model) {
+  return renderProjectReadme(
+    model,
+    JSON.parse(
+      await readFile(
+        new URL('../assets/project.json', import.meta.url),
+        'utf8',
+      ),
+    ),
+  );
 }
 
 // Reads an artifact only from inside the project directory. Internal: evidence
