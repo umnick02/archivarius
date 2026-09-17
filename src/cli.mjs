@@ -6,6 +6,7 @@ import {
   readArchitectureFile,
   exportProjectDocuments,
   generateDocumentation,
+  generateGraph,
   generateReadme,
   verifyProjectFiles,
   updateProjectFile,
@@ -14,6 +15,7 @@ import {
   archiveProjectFile,
 } from './node.mjs';
 import { analyzeProject } from './model/project-analysis.mjs';
+import { graphFormats } from './model/export.mjs';
 import { projectContext, projectRead } from './model/project-authoring.mjs';
 import { parseJSON } from './core.mjs';
 
@@ -32,6 +34,7 @@ async function main() {
         change: { type: 'string' },
         result: { type: 'string' },
         evidence: { type: 'string' },
+        format: { type: 'string' },
       },
     }));
     if (values.help && positionals.length === 0) {
@@ -48,6 +51,7 @@ async function main() {
       validate: ['json'],
       reference: ['output', 'check'],
       readme: ['output', 'check'],
+      graph: ['output', 'check', 'format'],
       documents: ['output', 'check', 'json'],
       context: ['focus', 'json', 'output'],
       read: ['focus', 'json'],
@@ -64,6 +68,7 @@ async function main() {
         'validate',
         'reference',
         'readme',
+        'graph',
         'documents',
         'context',
         'read',
@@ -78,6 +83,9 @@ async function main() {
         (values.focus?.length !== 1 || !values.result || !values.evidence)) ||
       (['reference', 'readme'].includes(command) &&
         (!values.output || values.json)) ||
+      (command === 'graph' &&
+        (!values.output ||
+          !Object.hasOwn(graphFormats, values.format ?? 'dot'))) ||
       (command === 'documents' && !values.output) ||
       (command === 'validate' && (values.output !== undefined || values.check))
     )
@@ -183,17 +191,19 @@ async function main() {
         inputStat.dev === outputStat.dev)
     )
       throw new Error('OUTPUT_IS_MODEL');
-    const markdown =
-      command === 'readme'
-        ? await generateReadme(model)
-        : await generateDocumentation(model);
+    const contents =
+      command === 'graph'
+        ? generateGraph(model, values.format)
+        : command === 'readme'
+          ? await generateReadme(model)
+          : await generateDocumentation(model);
     if (values.check) {
       const existing = await fs.readFile(output, 'utf8').catch((error) => {
         if (error.code !== 'ENOENT') throw error;
       });
-      if (existing !== markdown) throw new Error('DOCUMENT_OUT_OF_DATE');
+      if (existing !== contents) throw new Error('DOCUMENT_OUT_OF_DATE');
     } else {
-      await writeAtomic(output, markdown);
+      await writeAtomic(output, contents);
     }
     process.stdout.write(output + '\n');
   } catch (error) {

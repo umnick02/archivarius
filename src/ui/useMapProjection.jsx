@@ -13,9 +13,8 @@ export function useMapProjection({
   layer,
   selected,
   activeKey,
+  cursor,
   panel,
-  fitNode,
-  showNode,
   showRelation,
 }) {
   const { model, graph, layout, completion } = useArchitecture();
@@ -57,6 +56,46 @@ export function useMapProjection({
       }
     return result;
   }, [activeKey, bundles, inside]);
+  // The level a reader stands in is the deepest container the zoom has opened;
+  // its blocks, in reading order, and then the arrows that touch them, are the
+  // ring the keyboard walks. One item of that ring carries the map's tab stop.
+  const level = useMemo(() => {
+    let deepest = null;
+    for (const key of expanded)
+      if (
+        isVisible(key, graph, expanded) &&
+        (!deepest || layout.nodes[key].depth > layout.nodes[deepest].depth)
+      )
+        deepest = key;
+    return deepest;
+  }, [expanded, graph, layout]);
+  const ring = useMemo(() => {
+    const cards = Object.values(layout.nodes)
+      .filter(
+        (box) =>
+          (box.parent || null) === level && isVisible(box.key, graph, expanded),
+      )
+      .sort((a, b) => a.y - b.y || a.x - b.x)
+      .map((box) => ({ type: 'node', id: box.key }));
+    const here = new Set(cards.map((card) => card.id));
+    return [
+      ...cards,
+      ...bundles
+        .filter(
+          (edge) => here.has(edge.bundle.from) || here.has(edge.bundle.to),
+        )
+        .map((edge) => ({
+          type: 'relation',
+          id: edge.id,
+          bundle: edge.bundle,
+        })),
+    ];
+  }, [layout, graph, expanded, bundles, level]);
+  const anchor =
+    ring.find((item) => item.id === cursor) ||
+    ring.find((item) => item.type === 'node' && item.id === selected) ||
+    ring[0] ||
+    null;
   const nodes = useMemo(
     () =>
       Object.values(layout.nodes).map((box) => {
@@ -96,8 +135,6 @@ export function useMapProjection({
             box,
             handles,
             expanded: expanded.has(box.key),
-            onEnter: fitNode,
-            onDetails: showNode,
             highlighted: selected === box.key,
             muted:
               !!connected &&
@@ -115,8 +152,6 @@ export function useMapProjection({
       interfaces,
       bundles,
       expanded,
-      fitNode,
-      showNode,
       selected,
       connected,
       activeKey,
@@ -172,5 +207,5 @@ export function useMapProjection({
         ]),
       ].filter((key) => !inside(key, activeKey))
     : [];
-  return { interfaces, bundles, nodes, edges, outside };
+  return { interfaces, bundles, nodes, edges, outside, level, ring, anchor };
 }

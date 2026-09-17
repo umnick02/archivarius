@@ -35,8 +35,21 @@ export function validateArchitecture(model: unknown): {
   errors: string[];
   diagnostics: ArchitectureDiagnostic[];
 };
-export function parseJSON(text: string): unknown;
-export function parseArchitecture(text: string): ArchitectureInput;
+export function parseJSON(
+  text: string,
+  options?: { signal?: AbortSignal },
+): unknown;
+export function parseArchitecture(
+  text: string,
+  options?: { signal?: AbortSignal },
+): ArchitectureInput;
+export const architectureLimits: {
+  readonly maxBytes: number;
+  readonly maxRecords: number;
+  readonly maxRelations: number;
+  readonly maxDepth: number;
+};
+export const failureCodes: Record<string, { meaning: string; remedy: string }>;
 export interface ProjectReason {
   code: string;
   key: string;

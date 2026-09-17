@@ -17,9 +17,12 @@ export async function buildLayout(model, { signal, cached = true } = {}) {
   const previous = computed.get(key);
   if (previous) return previous;
   const layout = await layoutModel(model, signal);
+  // A withdrawn caller does not get a layout back, but the work is already done,
+  // so it is kept for whoever asks for this model next.
   computed.set(key, layout);
   for (const stale of [...computed.keys()].slice(0, -retained))
     computed.delete(stale);
+  signal?.throwIfAborted();
   return layout;
 }
 
@@ -132,6 +135,9 @@ async function layoutModel(model, signal) {
   const outer = local.get(null).result;
   const bounds = { x: 0, y: 0, width: outer.width, height: outer.height };
   place(null, bounds);
+  // Placing and connecting are the last stages after the ELK passes, so they are
+  // the last point a withdrawn caller can be refused before the geometry is built.
+  signal?.throwIfAborted();
   const connectors = createConnectors(model, graph, nodes, routes);
   return {
     engine: 'elkjs',

@@ -21,6 +21,9 @@ const nodesByKey = new Map();
 const copy = JSON.parse(
   await fs.readFile(new URL('../assets/strings.json', import.meta.url), 'utf8'),
 );
+const format = (template, values) =>
+  template.replace(/\{(\w+)\}/g, (_, key) => String(values[key]));
+const plural = (count) => new Intl.PluralRules(copy.locale).select(count);
 const harness = await startHarness();
 const b = harness.browser;
 const state = (name = 'first') =>
@@ -33,6 +36,119 @@ const focus = async (key) => {
   await settled(camera);
 };
 const click = clicker(b);
+// A real key, both halves of it, then two frames — the same signal `clicker`
+// waits for, so no assertion below has to sleep for a render.
+const keys = {
+  Tab: { code: 'Tab', vk: 9 },
+  Enter: { code: 'Enter', vk: 13 },
+  Escape: { code: 'Escape', vk: 27 },
+  ' ': { code: 'Space', vk: 32, text: ' ' },
+  End: { code: 'End', vk: 35 },
+  Home: { code: 'Home', vk: 36 },
+  ArrowLeft: { code: 'ArrowLeft', vk: 37 },
+  ArrowUp: { code: 'ArrowUp', vk: 38 },
+  ArrowRight: { code: 'ArrowRight', vk: 39 },
+  ArrowDown: { code: 'ArrowDown', vk: 40 },
+};
+const press = async (key, modifiers = 0) => {
+  const spec = keys[key];
+  for (const type of ['keyDown', 'keyUp'])
+    await b.call('Input.dispatchKeyEvent', {
+      type,
+      key,
+      code: spec.code,
+      text: spec.text || '',
+      windowsVirtualKeyCode: spec.vk,
+      nativeVirtualKeyCode: spec.vk,
+      modifiers,
+    });
+  await b.evaluate(
+    () =>
+      new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
+      ),
+  );
+};
+const tab = (shift = false) => press('Tab', shift ? 8 : 0);
+// Where the keyboard stands, named the way the ring audit names things.
+const spot = () =>
+  b.evaluate(() => {
+    const element = document.activeElement;
+    const holder = element?.closest(
+      '[data-node],[data-relation],[data-control],[data-edge-label]',
+    );
+    const data = holder?.dataset || {};
+    return data.node
+      ? 'node:' + data.node
+      : data.relation
+        ? 'relation:' + data.relation
+        : data.edgeLabel
+          ? 'label:' + data.edgeLabel
+          : data.control ||
+            element?.getAttribute('class') ||
+            element?.tagName.toLowerCase() ||
+            null;
+  });
+// WCAG 2.4.3 / APG composite widget: whatever the map draws, Tab must reach it
+// once. React Flow's own attribution link is the host page's, not the map's.
+const tabStops = () =>
+  b.evaluate(() =>
+    [
+      ...document.querySelectorAll(
+        '#first .map-pane :is([data-node],[data-relation],[data-edge-label])',
+      ),
+    ]
+      .filter((element) =>
+        element.checkVisibility({ visibilityProperty: true }),
+      )
+      .filter((element) => element.tabIndex === 0)
+      .map(
+        (element) =>
+          element.dataset.node ||
+          element.dataset.relation ||
+          element.dataset.edgeLabel,
+      ),
+  );
+// Reading order, taken off the screen rather than out of the DOM.
+const readingOrder = () =>
+  b.evaluate(() =>
+    [...document.querySelectorAll('#first [data-node]')]
+      .filter((element) =>
+        element.checkVisibility({ visibilityProperty: true }),
+      )
+      .map((element) => ({
+        key: element.dataset.node,
+        rect: element.getBoundingClientRect(),
+      }))
+      .sort((a, b) => a.rect.y - b.rect.y || a.rect.x - b.rect.x)
+      .map((entry) => entry.key),
+  );
+// WCAG 4.1.3: one polite region for the whole surface, and what it currently says.
+const announced = () =>
+  b.evaluate(() => {
+    const regions = [...document.querySelectorAll('#first [aria-live]')];
+    return {
+      count: regions.length,
+      politeness: regions.map((region) => region.getAttribute('aria-live')),
+      atomic: regions.map((region) => region.getAttribute('aria-atomic')),
+      role: regions.map((region) => region.getAttribute('role')),
+      text: regions.map((region) => region.textContent).join(''),
+      clipped: regions.map((region) => {
+        const rect = region.getBoundingClientRect();
+        return rect.width <= 1 && rect.height <= 1;
+      }),
+    };
+  });
+const untilAnnounced = async (expected) => {
+  await until(
+    (expected) =>
+      [...document.querySelectorAll('#first [aria-live]')]
+        .map((region) => region.textContent)
+        .join('') === expected,
+    expected,
+  ).catch(() => {});
+  assert.equal((await announced()).text, expected);
+};
 const load = (data) =>
   b.evaluate(async (data) => {
     await window.consumer.first.load(
@@ -423,6 +539,165 @@ try {
   assert.equal((await state()).expanded.length, 0);
   assert.deepEqual((await state('second')).viewport, other.viewport);
 
+  // WCAG 4.1.3: a change the reader did not type is spoken once, by the one
+  // polite region the surface owns. Loading a model is such a change.
+  await load(model);
+  await untilAnnounced(
+    format(copy.announcements.loaded[plural(nodesByKey.size)], {
+      title: model.title,
+      count: nodesByKey.size,
+    }),
+  );
+  assert.deepEqual(await announced(), {
+    count: 1,
+    politeness: ['polite'],
+    atomic: ['true'],
+    role: ['status'],
+    text: format(copy.announcements.loaded[plural(nodesByKey.size)], {
+      title: model.title,
+      count: nodesByKey.size,
+    }),
+    // Spoken, never drawn: the map already says this on screen.
+    clipped: [true],
+  });
+  // APG composite widget: the whole map is one tab stop, and the arrows walk the
+  // level the reader stands in. Nothing here is reachable by pointer only.
+  const overview = await readingOrder();
+  assert.deepEqual(
+    [...overview].sort(),
+    model.nodes.map((node) => node.key).sort(),
+  );
+  assert.deepEqual(await tabStops(), [overview[0]]);
+  await b.evaluate(() =>
+    document.querySelector('#first [data-control=about]').focus(),
+  );
+  await tab();
+  assert.equal(await spot(), 'node:' + overview[0]);
+  await tab();
+  assert.doesNotMatch(await spot(), /^(?:node|relation|label):/);
+  await tab(true);
+  assert.equal(await spot(), 'node:' + overview[0]);
+  await press('ArrowRight');
+  assert.equal(await spot(), 'node:' + overview[1]);
+  assert.deepEqual(await tabStops(), [overview[1]]);
+  await press('ArrowDown');
+  assert.equal(await spot(), 'node:' + overview[2]);
+  await press('ArrowUp');
+  await press('ArrowLeft');
+  assert.equal(await spot(), 'node:' + overview[0]);
+  await press('ArrowLeft');
+  assert.equal(await spot(), 'node:' + overview[0]);
+  // The arrows reach the relations of the level too, and End is its far end.
+  await press('End');
+  assert.match(await spot(), /^relation:/);
+  await press('Home');
+  assert.equal(await spot(), 'node:' + overview[0]);
+
+  // Enter on a container is the keyboard's double-click: it enters the block and
+  // leaves the reader standing inside it, on the level that is now current.
+  const container = overview.find((key) => nodesByKey.get(key).children);
+  for (let i = 0; i < overview.length; i++) {
+    if ((await spot()) === 'node:' + container) break;
+    await press('ArrowRight');
+  }
+  assert.equal(await spot(), 'node:' + container);
+  assert.equal(
+    await b.evaluate(
+      (key) =>
+        document
+          .querySelector('#first [data-node="' + key + '"]')
+          .getAttribute('aria-expanded'),
+      container,
+    ),
+    'false',
+  );
+  await press('Enter');
+  await until(
+    (key) => window.consumer.first.snapshot().expanded.includes(key),
+    container,
+  );
+  await untilAnnounced(
+    format(copy.announcements.level, {
+      level: nodesByKey.get(container).title,
+    }),
+  );
+  const children = nodesByKey.get(container).children.map((node) => node.key);
+  assert(children.includes((await spot()).slice(5)), await spot());
+  const insideOrder = await readingOrder();
+  for (const key of children) assert(insideOrder.includes(key), key);
+  await press('End');
+  await press('Home');
+  const inner = (await spot()).slice(5);
+  assert(children.includes(inner), inner);
+  assert((await state()).expanded.includes(container));
+
+  // Enter on a block that has no inside opens its details, exactly as one click
+  // does, and the region says what the panel now shows.
+  const leaf = children.find((key) => !nodesByKey.get(key).children);
+  for (let i = 0; i < children.length; i++) {
+    if ((await spot()) === 'node:' + leaf) break;
+    await press('ArrowRight');
+  }
+  assert.equal(await spot(), 'node:' + leaf);
+  await press('Enter');
+  await until(() => window.consumer.first.snapshot().panel === 'node');
+  await untilAnnounced(
+    format(copy.announcements.selected, { name: nodesByKey.get(leaf).title }),
+  );
+  assert.equal(await spot(), 'inspector');
+  // Escape closes the details and gives the block back the focus it took.
+  await press('Escape');
+  await until(() => window.consumer.first.snapshot().panel === null);
+  assert.equal(await spot(), 'node:' + leaf);
+  // Escape again leaves the container, and the reader lands on the block left.
+  await press('Escape');
+  await until(
+    (key) => !window.consumer.first.snapshot().expanded.includes(key),
+    container,
+  );
+  assert.equal(await spot(), 'node:' + container);
+  await untilAnnounced(
+    format(copy.announcements.level, { level: copy.wholeSystem }),
+  );
+
+  // An arrow answers to the keyboard the way it answers to a click.
+  await press('End');
+  const edge = (await spot()).slice('relation:'.length);
+  const ends = edge.split('--').slice(-2);
+  await press('Enter');
+  await until(() => window.consumer.first.snapshot().panel === 'relation');
+  await untilAnnounced(
+    format(copy.announcements.selected, {
+      name: ends.map((key) => nodesByKey.get(key).title).join(' → '),
+    }),
+  );
+  assert.equal(
+    await b.evaluate(
+      () =>
+        document.querySelector('#first [data-control=inspector] h2')
+          .textContent,
+    ),
+    ends.map((key) => nodesByKey.get(key).title).join(' → '),
+  );
+  await press('Escape');
+  await until(() => window.consumer.first.snapshot().panel === null);
+  assert.equal(await spot(), 'relation:' + edge);
+  // Space is the other half of a single click: details without entering.
+  await press('Home');
+  assert.equal(await spot(), 'node:' + overview[0]);
+  await press(' ');
+  await until(() => window.consumer.first.snapshot().panel === 'node');
+  await untilAnnounced(
+    format(copy.announcements.selected, {
+      name: nodesByKey.get(overview[0]).title,
+    }),
+  );
+  await press('Escape');
+  await until(() => window.consumer.first.snapshot().panel === null);
+  await b.evaluate(() => window.consumer.first.home());
+  await settled(camera);
+  await checkIds();
+
   for (let i = 0; i < 12 && !(await state()).visible.includes('gateway'); i++) {
     const point = await b.evaluate(() => {
       const r = document
@@ -572,6 +847,11 @@ try {
         () => document.querySelector('#first [role=alert]').textContent,
       )
     ).includes(copy.errors.INTERACTION_REQUIRED.replace('{key}', 'publisher')),
+  );
+  // A failure is a change too, and it reaches the same polite region: the alert
+  // that replaces the map is not the only way to hear that the load failed.
+  await untilAnnounced(
+    format(copy.announcements.failure, { code: copy.errors.INVALID_MODEL }),
   );
   await load(model);
 

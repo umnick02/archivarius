@@ -6,6 +6,8 @@ import { ArchitectureGraph as Graph } from '../src/model/graph.mjs';
 import { validateArchitecture, parseArchitecture } from '../src/core.mjs';
 import { readArchitecture } from '../src/ui/load.mjs';
 import { legacyCompletion } from '../src/model/implementation.mjs';
+import { searchArchitecture } from '../src/model/search.mjs';
+import { example as project } from './project-fixture.mjs';
 
 const read = (name) =>
   JSON.parse(fs.readFileSync(new URL('../' + name, import.meta.url), 'utf8'));
@@ -356,4 +358,102 @@ test('strict JSON rejects duplicate properties including escaped names and repor
     'undefined',
   ])
     assert.throws(() => parseArchitecture(input), { code: 'INVALID_JSON' });
+});
+
+// Search reads the projection both accepted contracts reduce to, so one query
+// is answered in the same terms by a v3 rendering model and a v4 documentation
+// model.
+test('search finds a part by key, name, kind and zone in both accepted contract versions', () => {
+  assert.deepEqual(searchArchitecture(model, 'archive'), [
+    {
+      key: 'archive',
+      title: 'Catalog index',
+      type: 'store',
+      zone: 'infrastructure',
+      rank: 'key',
+    },
+  ]);
+  assert.deepEqual(searchArchitecture(project, 'writer'), [
+    {
+      key: 'writer',
+      title: 'File writing',
+      type: 'component',
+      zone: 'infrastructure',
+      rank: 'key',
+    },
+  ]);
+  // One query, both contracts: a zone and a kind name parts in each of them.
+  for (const [query, rendering, documentation] of [
+    ['presentation', ['portal'], ['screen']],
+    ['subsystem', ['search', 'engine'], ['export']],
+    ['infrastructure', ['archive'], ['writer']],
+  ]) {
+    assert.deepEqual(
+      searchArchitecture(model, query).map((m) => m.key),
+      rendering,
+      query,
+    );
+    assert.deepEqual(
+      searchArchitecture(project, query).map((m) => m.key),
+      documentation,
+      query,
+    );
+  }
+  // Nested parts are searched, not only the roots of the projection.
+  assert.deepEqual(
+    searchArchitecture(model, 'Ranking').map((m) => m.key),
+    ['ranking'],
+  );
+  assert.deepEqual(
+    searchArchitecture(project, 'admission').map((m) => m.key),
+    ['admission'],
+  );
+  // Case and surrounding space are not part of the query.
+  const spellings = ['INFRASTRUCTURE', 'Infrastructure', ' infrastructure '];
+  for (const m of [model, project])
+    for (const query of spellings)
+      assert.deepEqual(
+        searchArchitecture(m, query),
+        searchArchitecture(m, 'infrastructure'),
+        query,
+      );
+});
+
+test('search ranks an exact key, then a title prefix, then a title substring, then a kind or zone', () => {
+  assert.deepEqual(
+    searchArchitecture(model, 'search').map((m) => [m.key, m.rank]),
+    [
+      ['search', 'key'],
+      ['portal', 'title-prefix'],
+      ['engine', 'title-prefix'],
+    ],
+  );
+  assert.deepEqual(
+    searchArchitecture(model, 'r').map((m) => [m.key, m.rank]),
+    [
+      ['gateway', 'title-prefix'],
+      ['ranking', 'title-prefix'],
+      ['portal', 'title'],
+      ['search', 'title'],
+      ['engine', 'title'],
+      ['query', 'title'],
+      ['publisher', 'title'],
+      ['archive', 'facet'],
+    ],
+  );
+  assert.deepEqual(
+    searchArchitecture(project, 'r').map((m) => [m.key, m.rank]),
+    [
+      ['screen', 'title-prefix'],
+      ['admission', 'title-prefix'],
+      ['export', 'title'],
+      ['writer', 'title'],
+    ],
+  );
+});
+
+test('a query that matches nothing returns an empty list instead of throwing', () => {
+  for (const m of [model, project])
+    for (const query of ['no-such-part', '', '   ', 'zzz'])
+      assert.deepEqual(searchArchitecture(m, query), [], JSON.stringify(query));
 });

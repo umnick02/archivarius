@@ -208,6 +208,28 @@ export const failureCodes = {
     meaning: 'The model source could not be fetched or returned a bad status.',
     remedy: 'Check the model URL and that it is served to the page.',
   },
+  MODEL_TOO_DEEP: {
+    meaning:
+      'The model nests components deeper than the stated maximum depth, which the diagnostics name with the depth read.',
+    remedy: 'Flatten the containment so it stays inside the stated depth.',
+  },
+  MODEL_TOO_LARGE: {
+    meaning:
+      'The model text is larger than the stated maximum in bytes, which the diagnostics name with the size read.',
+    remedy:
+      'Split the model, or serve a smaller one that stays inside the byte bound.',
+  },
+  MODEL_TOO_MANY_RECORDS: {
+    meaning:
+      'The model declares more records than the stated maximum, which the diagnostics name with the count read.',
+    remedy: 'Split the model into maps that each stay inside the record bound.',
+  },
+  MODEL_TOO_MANY_RELATIONS: {
+    meaning:
+      'The model declares more relations than the stated maximum, which the diagnostics name with the count read.',
+    remedy:
+      'Bundle or split the relations so a map stays inside the relation bound.',
+  },
   OUTPUT_IS_MODEL: {
     meaning: 'The requested output file is the model file being read.',
     remedy: 'Write the output to a different path.',

@@ -841,7 +841,8 @@
 .archivarius [data-control='inspector']:focus:not(:focus-visible) {
   outline: none;
 }
-.archivarius .region-heading {
+/* Read by assistive technology only: the map states both of these on screen. */
+.archivarius :is(.region-heading, .map-announcement) {
   position: absolute;
   width: 1px;
   height: 1px;

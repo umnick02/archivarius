@@ -1,4 +1,4 @@
-export { ArchitectureError } from './model/errors.mjs';
+export { ArchitectureError, failureCodes } from './model/errors.mjs';
 export { analyzeProject } from './model/project-analysis.mjs';
 export {
   applyProjectChanges,
@@ -6,6 +6,7 @@ export {
   projectRead,
 } from './model/project-authoring.mjs';
 export {
+  architectureLimits,
   parseArchitecture,
   parseJSON,
   validateArchitecture,

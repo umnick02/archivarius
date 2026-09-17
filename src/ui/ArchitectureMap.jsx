@@ -8,7 +8,7 @@ import {
 } from 'react';
 import { ReactFlowProvider } from '@xyflow/react';
 import { App } from './App.jsx';
-import { ArchitectureContext, format } from './context.jsx';
+import { ArchitectureContext, format, plural } from './context.jsx';
 import { prepareArchitecture, readResources } from './load.mjs';
 import { colors } from './view.mjs';
 
@@ -36,6 +36,10 @@ export const ArchitectureMap = forwardRef(function ArchitectureMap(
   ref,
 ) {
   const [state, setState] = useState({ source, assetsBaseUrl });
+  // WCAG 4.1.3: one polite region for the whole surface. It is mounted empty and
+  // only ever updated, because a region that arrives with its text already in it
+  // is not a change any assistive technology has to report.
+  const [announcement, setAnnouncement] = useState('');
   const callbacks = useRef({ onReady, onError });
   callbacks.current = { onReady, onError };
   const instanceId = 'archivarius-' + useId().replace(/[^a-zA-Z0-9-]/g, '');
@@ -52,11 +56,25 @@ export const ArchitectureMap = forwardRef(function ArchitectureMap(
         });
         if (controller.signal.aborted) return;
         setState({ ...identity, value: { ...resources, ...prepared } });
+        setAnnouncement(
+          plural(
+            resources.copy,
+            resources.copy.announcements.loaded,
+            prepared.graph.nodes.size,
+            { title: prepared.model.title || resources.copy.title },
+          ),
+        );
       })
       .catch((error) => {
         if (controller.signal.aborted) return;
         controller.abort();
         setState({ ...identity, error, copy: resources?.copy });
+        if (resources?.copy)
+          setAnnouncement(
+            format(resources.copy.announcements.failure, {
+              code: resources.copy.errors[error.code] || error.message,
+            }),
+          );
         callbacks.current.onError?.(error);
       });
     return () => controller.abort();
@@ -89,6 +107,14 @@ export const ArchitectureMap = forwardRef(function ArchitectureMap(
       data-instance={instanceId}
       aria-busy={!value && !error}
     >
+      <p
+        className="map-announcement"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {announcement}
+      </p>
       {error ? (
         <div className="model-error" role="alert">
           {errorText}
@@ -101,6 +127,7 @@ export const ArchitectureMap = forwardRef(function ArchitectureMap(
             <ReactFlowProvider>
               <App
                 ref={ref}
+                announce={setAnnouncement}
                 onReady={(api) => callbacks.current.onReady?.(api)}
               />
             </ReactFlowProvider>

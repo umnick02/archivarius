@@ -4,6 +4,7 @@ Archivarius
   archivarius reference <model.json> --output <architecture.md> [--check]
   archivarius readme <project.json> --output <README.md> [--check]
   archivarius documents <project.json> --output <directory> [--check] [--json]
+  archivarius graph <model.json> --output <graph.dot> [--format dot|mermaid|table] [--check]
   archivarius read <project.json> --focus <key> [--focus <key>]
   archivarius context <project.json> --focus <key> [--focus <key>] [--output <receipt.json>]
   archivarius archive <project.json>
@@ -16,6 +17,7 @@ validate checks both the file schema and all graph invariants.
 reference generates one Markdown file from that same validated model. It never edits the model.
 readme generates the landing page: the scope, one table per record type, and only the parts the model binds to a file.
 documents renders document records to their declared Markdown/JSON paths under the output directory.
+graph writes the same projection the map draws as Graphviz DOT, a Mermaid flowchart or a record table.
 --check compares the output with fresh generation and exits unsuccessfully on drift.
 read returns focused contracts and owning sections without review metadata.
 context returns the exact edit receipt; --output saves it and prints the focused read view.

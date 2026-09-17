@@ -508,6 +508,20 @@
           "contract-basis"
         ]
       }
+    },
+    {
+      "digest": "6e4f645d014d2cbfee83748a219af17ebe05d873289df17d5b20214dc5535d01",
+      "record": {
+        "key": "cli",
+        "type": "component",
+        "title": "CLI",
+        "scope": "archivarius",
+        "parent": "node-api",
+        "kind": "component",
+        "zone": "infrastructure",
+        "summary": "Exposes validate, read, context, apply, reference, readme, documents, verify, run and archive over the model file.",
+        "boundary": "Argument parsing and file paths stay inside the CLI."
+      }
     }
   ],
   "records": [
@@ -600,7 +614,7 @@
       "parent": "node-api",
       "kind": "component",
       "zone": "infrastructure",
-      "summary": "Exposes validate, read, context, apply, reference, readme, documents, verify, run and archive over the model file.",
+      "summary": "Exposes validate, read, context, apply, reference, readme, documents, graph, verify, run and archive over the model file.",
       "boundary": "Argument parsing and file paths stay inside the CLI."
     },
     {
@@ -4687,6 +4701,276 @@
         "redundant-encoding": "ae67491c2cbf002150efb00555a2cb0cab8622959c9acbe5b269b8c8c077d2b0",
         "redundant-encoding-c": "80b403855b49096948ffb9ffc96c3b6a926074b708d22bfbe72639cb9437266f",
         "layered-layout": "50fd423ba0be2f5cd4e981690d7e1786170e620592f30b5df19869679513bc2e"
+      },
+      "bindings": {
+        "apply-change": {
+          "path": "src/node.mjs",
+          "digest": "9de5b535d525c93527ef050f7931d0a9a4e0497fd9429182d924e5f4210ba7a4"
+        },
+        "archivarius": {
+          "path": "package.json",
+          "digest": "84b3fb9e8f9771883ae968a3f0e4b6ed14d12ff69d88d1723ac506d7f83aa0bc"
+        },
+        "basis-value": {
+          "path": "src/model/project-digest.mjs",
+          "digest": "a2cbc41d786a167b5f20a2267f154615a9a7ce71b1c601a2a3f85b29b7c6aa67"
+        },
+        "change-input": {
+          "path": "src/model/project-authoring.mjs",
+          "digest": "a556b8939de34f0f299003915580e312e6a3af63c37f287394c4668768fd41f6"
+        },
+        "check-references": {
+          "path": "src/model/project-contract.mjs",
+          "digest": "47355797eed9677984ce5d18760a74de4c4b043dcdd91e836cb66a61e9b296ad"
+        },
+        "cli": {
+          "path": "src/cli.mjs",
+          "digest": "5172e64358ba7ae7703f572ebb636825e076d121521fccabdd5923366570e356"
+        },
+        "compute-basis": {
+          "path": "src/model/project-digest.mjs",
+          "digest": "a2cbc41d786a167b5f20a2267f154615a9a7ce71b1c601a2a3f85b29b7c6aa67"
+        },
+        "core": {
+          "path": "src/core.mjs",
+          "digest": "db9480e5f1fb88ebe2fd78ed685abc457026f1a373f1e21fd88c7d8742f3d788"
+        },
+        "digest": {
+          "path": "src/model/digest.mjs",
+          "digest": "cff43d0d16a94ad4490162347bca9672998b938f594eb0a19413c8afe37fc5f6"
+        },
+        "evidence": {
+          "path": "src/model/evidence.mjs",
+          "digest": "06294eb2436d78668873721fb965300eed403eafe18f53e3a2c0ee3ae7fb5270"
+        },
+        "evidence-artifact": {
+          "path": "src/model/evidence.mjs",
+          "digest": "06294eb2436d78668873721fb965300eed403eafe18f53e3a2c0ee3ae7fb5270"
+        },
+        "graph": {
+          "path": "src/model/graph.mjs",
+          "digest": "cc7b2e6d0a55869d32467bbd0d51a95f2095301f4ea18cdccb0c4ae3a9c818f9"
+        },
+        "inspect-record": {
+          "path": "src/index.jsx",
+          "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+        },
+        "inspector": {
+          "path": "src/ui/ProjectInspector.jsx",
+          "digest": "9f7f60897302cafd1ee4df6264bdaec9a998053efdc4cf5c30deabb897d4a786"
+        },
+        "load-model": {
+          "path": "src/ui/load.mjs",
+          "digest": "b220519fd079c0766420e52dcaef4df49ad44732dd108fb69ad05ab554dfb2e2"
+        },
+        "map": {
+          "path": "src/ui/ArchitectureMap.jsx",
+          "digest": "7699a8ef4e0a4830e8ef7182b24b4943ec0b7feb5acbb28704c2a4c81fbce48f"
+        },
+        "model": {
+          "path": "assets/model.schema.json",
+          "digest": "b7c715bcb5a600399d38bcd16b52cb1827040851eda4beedab7c4eed3a7eb9ef"
+        },
+        "model-source": {
+          "path": "src/ui/load.mjs",
+          "digest": "b220519fd079c0766420e52dcaef4df49ad44732dd108fb69ad05ab554dfb2e2"
+        },
+        "node-api": {
+          "path": "src/node.mjs",
+          "digest": "9de5b535d525c93527ef050f7931d0a9a4e0497fd9429182d924e5f4210ba7a4"
+        },
+        "record-detail": {
+          "path": "src/model/project-view.mjs",
+          "digest": "449418563de75327133380bb195407cec539f9da91d04fcc69fb8b5e7094dc97"
+        },
+        "reference-set": {
+          "path": "src/model/records.mjs",
+          "digest": "169993d9b21260390e6b08cf327c8319c0678a0c5331d632f6d2c7db3ea74eea"
+        },
+        "render": {
+          "path": "src/index.jsx",
+          "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+        },
+        "verify-evidence": {
+          "path": "src/node.mjs",
+          "digest": "9de5b535d525c93527ef050f7931d0a9a4e0497fd9429182d924e5f4210ba7a4"
+        }
+      }
+    },
+    {
+      "title": "Archivarius",
+      "root": "archivarius",
+      "entry": "map",
+      "contract": "d6078b27f093d4deb8ed868db4c7c5399a614fa3b0ed6cc4710ac792c5607cd4",
+      "realization": "02571770b2280cbc9197cb85523d03167912b7b6edbfbab3ae463d9f18e8a8b8",
+      "records": {
+        "archivarius": "d478102e4b79a22fcda80276465402bb1d7544dc23cff67792ef9ef22f44aab2",
+        "owner-intent": "d8eda33949d0ff75d1a23473ff150f735b9e6c988987f70ab16ee6cb3970ccc7",
+        "self-description": "0b910912710b40eeb3efca3d4f89ed12374635a41f782cc3cac31fe6e054e5fc",
+        "contract-basis": "077ed405be0f865c4b5cff7fcbc05a60bccde0403b10938f84e09b7151167767",
+        "model": "b017733d7db923a3fdfae3b73fb1a2f18b571dd194f1fc83764a36b47d5fdd55",
+        "core": "706e79d65ff0a6886e7e563982ec2c7e9f30d212d12003dc7c37ddb8d2a35c81",
+        "graph": "343788a25f41a140f4651943f2d8a262fbdc17a677880c174048b726a6709cfb",
+        "digest": "c118ed08dcaf8a03dabd4a5173ec5a7f16082f1b84964886b99e7afbe8d9338e",
+        "node-api": "b77b214cbecc25d262320c5dbad05c76ffe90506b31b55657c3d3addb43e4598",
+        "cli": "6e4f645d014d2cbfee83748a219af17ebe05d873289df17d5b20214dc5535d01",
+        "evidence": "c5e1d00a4ce17cf82caaddc1a622a197c99fd4d8601a08af404e6b6b551fcf4d",
+        "render": "a5b58be17f90c733433e8d7fc6bb49a1f1c0ec820b98694d2246271cfa0d6601",
+        "map": "f81d74d50cd4617f6e22ec2b2424f66c6ddd4f060e2e47c753a7b75151ef3cde",
+        "inspector": "f404bf808afe9fa07c0cb45ebb036cf55a5729d31cff16157ff0c86511b86880",
+        "model-source": "fd1edf25b79988cfa492c1643e3d6817ed81f16394e52d118ec2c228a9e1d9f8",
+        "change-input": "36700ab06f06beb646c3175473500db224d2afb798fdc1e538e476230a1a0b4e",
+        "evidence-artifact": "20f1f777c06d7160ee61d10eb56772d3d1e7d470a810e477cffea52672e72d97",
+        "reference-set": "8e3d45c40edac217ae1b424b8632ff0d0291599e74ee72f32d0350ca06001899",
+        "basis-value": "af443b0015619c65451a274414a8d286a7660af0ca3392185d78398b7fc4aebe",
+        "record-detail": "4141fbf755ed83f2ea570d144fc42b8c97bfccbedb8c801a37784463c3c7aeeb",
+        "load-model": "97709ccf95fc14621f75d832f5b61e1f54b1696e1d5c46236bc7c325284191cf",
+        "check-references": "ad6a21ddbcaf833fdb3f4554feae9e982ebf2c6bffbcaeefe63b46bd604a58d0",
+        "compute-basis": "f44be21695787d9b66c0e2698afb4209b7fe668d9424d1e0ab1c0d99887f78e3",
+        "inspect-record": "28da7823e8b8787b03d18025a4a053d11a442b0b6de39f1f410833c2480ed862",
+        "apply-change": "6460f9a6987c4b8a23ae5a4a96613b94249f2ba6f200d930fd64c84be74599ea",
+        "verify-evidence": "ab170aa235bf5eabce1983ddd52c3479de88581675785b5b2fda77bca8f5e363",
+        "single-snapshot": "899d40eeac3d670274767f4162a55c594205e7fbc2ce6e47c6df06283673e442",
+        "single-snapshot-c": "54682dc7a4da547b76349e3d286498f5934fa227620cfc84fb32930771d1d62f",
+        "validated-change": "dbf7d05ac04c11ccedc9d534f72c029ef2b98990bcb753a5a11e885ec3574bd7",
+        "validated-change-c": "f5b946e1ae5095a3ab95788a373ae5784abc62c4f08b91c3f1707ece890a0b68",
+        "byte-exact-evidence": "ee1948a7d615eed5fe92db4f0b64881e03a3b6da1a9876a376d9f150e3392f18",
+        "byte-exact-evidence-c": "ab1734ed6adf6ac9ee830b8bc9204e5d059db46142964b1956d14aa0f70d8dbf",
+        "conservative-freshness": "7911d529bb8fa23ea7b8916dd75a34e5e8f40741ac90373e38083e4e27a187ce",
+        "conservative-freshness-c": "7a4ff864fc435b6f679882c901981d824c4f8de4ab788a40e4e038d7517d6fde",
+        "basis-digest": "997583c2c7a5ed8e34e04678056bce0ec7660a2e3ef655502a747b81b515eee9",
+        "external-resources": "1d19447cd0ccc89e69fa2049684d80ca5e13c37331b3e8e6d696694279e81971",
+        "edit-and-render": "9130958b427c5349ff3febd5517f8051975a1aeca3e9c5897ca8cd87616bab22",
+        "task-model": "527869fabb9bb735c35cac86210ef917cff993ff13123a8157db3231938873e9",
+        "task-render": "1cbf90caf829f95167740d3cd0108b3f04da4da5d75e9277d3e184b57c596b9b",
+        "task-evidence": "91d971f2399f9d36855bc460069f81c85c2143b51bfaae13aed787ca489da2de",
+        "check-model": "d32ce95d409105ae84c57a90edf88e71049108f2c3264c2c242fc5a91a49a3af",
+        "check-render": "4ff9b21857262da1aab7301ac8b5b1e3afe69beb0b0b20bcee5ca1e7a9915c49",
+        "check-evidence": "f245a6059dbe9e05f1ac12c93fcb15f9d54b81e4ac20237edfb191924ff20da5",
+        "shared-appearance": "f805f5e24d9be1a4b1854aedef64ae0391ca0add8fe9e44ce862ccc362fd14cc",
+        "consumer-intent": "201faa8e06b1461114ff14c79d7808fbc426152635ebefc53547015452bf8cbe",
+        "reader-observation": "2b01cc0f641adfdacdbaafa8c65b8cd6722e09d57c498ef76c71487049dd4536",
+        "scale-observation": "1e6698846d993cea73bf6d57bb95d903e75a93f6642365da0ae69ee5e9ab9f5d",
+        "code-truth-assumption": "aba6b3ca64f6758329c4fd46ef11c1c502a01f888dae85c84d50afc0f9f61340",
+        "semantic-zoom": "e482eddccbd0d7d7f2ac4b065a273a2e1b52594263a5a82a639d634246130693",
+        "addressable-view": "5a4bc53748ebde4e14cce6f2639d611d5b163e3d04732766fe72881e316813fc",
+        "keyboard-complete": "b404dac13c497e0bc5721889aba0669dba105d2d6c23d4cdb4d913c50183fda9",
+        "announced-changes": "4aac27402750e6bb65772c4a4d4ec7855658b4dec4ec9f2ccf049c472cf933ea",
+        "reader-settings": "26cdbed474755881f9945cf678f22f596f045e0c63687b243f893f3d4e9cf067",
+        "documented-failures": "452a14fe8274d184ed59efc20511a625c5686a3904421b8478e4200a72322728",
+        "usable-from-the-readme": "40402a80fbdf5368fec622da1983d32394ae0aef55255c5686f57cbb1fd2d766",
+        "versioning-promise": "0e23235c325b24a5ed0903d0f53af941b42b01ad4fbe493acaa63a3e8aed906d",
+        "responsive-at-scale": "ed213c5a05d9f1a7e47d85363aff5924f3bb29e22291e3391313f2765506f191",
+        "bounded-input": "5e64a8f554cef4d4d55530229b99a2fac49040c57284542e8f650804e51ba42e",
+        "authoring-onboarding": "0e2b38b082d382defb0b5d02edc970b6e5a79270653aa00cebf9e3711f5673e7",
+        "precise-bindings": "54b959da8ea672077840b968b75401e0f894cd897eb992cb2a5d02c265b506bd",
+        "scoped-freshness": "014a74b4fc8a9b7548af5801d3bc7ca69b066fb56eb4e8c7defb2bd7a0b0b455",
+        "snapshot-diff": "b9b2ee31a9951fa326a22d7c7eee22f3549a8460b35a8c514e99c4e2d28c9a43",
+        "code-truth": "2b4557b6493db31561e76c47b0b423d2b4242c01b5bdbd985b889772fd5ba603",
+        "attributable-records": "e48c6097c85c4a7e261d71ca5c448e1342b61587882dc83aa382e74905f25328",
+        "executable-checks": "4cc922eba8a38c0c2a56881a083eb3af02f9cd105dc72a033a1aaabdd677c852",
+        "literal-content": "a9d4b45e4c0467d7095e270a96e968e55f7a4c38b80b3f714cc87764371f29cb",
+        "layer-boundaries": "fa466f177125c24046c44c54dab602537d43578a9d2b0b64474407fbae7c85d8",
+        "generated-documents-agree": "5fb820b0047e70c15749d931a926d7eb23ed4b56686768dfcc4f1e966e9579b0",
+        "english-only": "79f43e30023653c026ecd9fb714b26f29a968dce91889bfa06117587178c2ccb",
+        "exportable-elsewhere": "5657a218569fe1fc2d46126e62f518aa3866a76ba7bfd0349e3e546486683158",
+        "searchable-model": "e0371f972de94e6dc2c8d9836f7ef3d8ae95dff2d659a7a3f5b113d0ae989098",
+        "answers-about-change": "e48bdacc8ddf1237253258cea3f4a7be9fb3fdcc40cad68d2cbd178eee4f312d",
+        "semantic-zoom-c": "527c248fb67cb2f46b12dec4d5a580dae41be5b20105743f57b70bb819b7b846",
+        "addressable-view-c": "0e4ccbe2aa9a4cfb24d49a82123223416afc96229f1d3fc1a87876c6aaa5819c",
+        "keyboard-complete-c": "02ef4bec3374cf30287c22adddec8d5c0c16dac65e3bdd834d86e15701a56af3",
+        "announced-changes-c": "3c0f2dab61cfb4fea63f20833152d0cb91926fb21d6bfd78dbb304283bfb6d62",
+        "reader-settings-c": "5fedafab027314402851d9730ad74b6012c099c28e055098de3657a3741750af",
+        "documented-failures-c": "a4cb6aa92636601cee782f603eebb7adea0b0a32a6c18d73c61aa96a966aef17",
+        "usable-from-the-readme-c": "2e434997c6d3d3fed0f7018314eb061141c72da19b9beb6a0e8700aa2a86ca39",
+        "versioning-promise-c": "2d57da1dece78c94dd6aa91c4b9bca83321590c65d74344b711cf24772d83bc4",
+        "responsive-at-scale-c": "ad55072e0c30afb54c345ff1679683ab293e013ddc0abb5c6478a3bcdd0d55d9",
+        "bounded-input-c": "6425a7b00fe08ec29f33816ffe595f7f324180689276c175cd329f9087479d2b",
+        "authoring-onboarding-c": "d7ee183cdb3e12b2e151ae4e16a676d2773bebda2953f809061d3b682de0ade6",
+        "precise-bindings-c": "c1408a734e130a84a5bb02402bdda03f1226320cef1158cbcb24b43b6927f89f",
+        "scoped-freshness-c": "a794409b091081c07d2cca9dcbdba0e8219cc8c5c1d84e3e03179f59f4f91d95",
+        "snapshot-diff-c": "af4701a3c3c2726290b67b7ae38462cea9e09e9b2b58327b6e41c04c94d4add3",
+        "code-truth-c": "dfffcc9a31caab8268e87d335bfe03f67e4979364d017879df62936a53be4c90",
+        "attributable-records-c": "d21de8870e6a820227c7baf3425200ea9d4eca98ff50dfeb6aa9f6297646ed63",
+        "executable-checks-c": "e67edc1df96a9ebf928ee8e60280f7879ff0de8bc66b177b894f131f2103e8f9",
+        "literal-content-c": "ccd0e438d465d15ec3cf38f4b571a73bca14aaac402281df76c164c6d1060d6e",
+        "layer-boundaries-c": "fef1c92dbb4c7bfb6e5e14c76c7986315b3805e95313deb77f6770538bb6611e",
+        "generated-documents-agree-c": "aedb6383d3e0b5d75e5661becb84f3fd4cc8fbbcee0685d27e4d3eea2ea90d72",
+        "english-only-c": "548f3c6df239eb4f41704c6a27fcd1a7bbc9174ba0e37a58587fbec40730485c",
+        "exportable-elsewhere-c": "659b21ea65feb8e7cba547ed2de48f48d8adddf89057ec3444903e5aad35b8bb",
+        "searchable-model-c": "37a0d9143983a272ec5e2d28cb705ed7811d514f90705975048a3134a67daa51",
+        "answers-about-change-c": "64b40c046ce6e4b693ed2a8aa07709786c2c35857094cc05d1d23afcb43d74a7",
+        "research-fisheye": "7a223446223587b50f7e517b783bcdb14d4f5125ffc0bc0555d07a821bf104bb",
+        "research-zoomable-surface": "16ed1ba8d831f386ccc57dd264efa77bf284fc0e82e3eb4c97116a58f6ed82f1",
+        "research-zoom-review": "1186ba2f7ad0a5ce325972c6f006efddeaeb0acb03029aa64349175555d5a509",
+        "research-visual-taxonomy": "e8fb265ecc0ba826aa4ce7b1d60cf34c8f463265c9779436832e85d5a4526f89",
+        "research-notation-physics": "78ee8cfd6d5540636c6d3ea3e4b5ac8f8bd7bf9397a2c6361d75d882504e78a6",
+        "research-graphical-perception": "c64a79739f05b7303cfba0d88f026b398a9dd7dfdc8c807df991a25da6053ea7",
+        "research-secondary-notation": "aca00a04c93058f41c9982886d99673b7e3af3258803ca8d82234e06adfa1555",
+        "research-layered-layout": "8b7d9160ca6c2b02fc605f7150fd2cb259af0f40eeb178933ad7fe94f67d5040",
+        "research-response-time": "74118bcd4b4a23d04e4476e1bb3fe29356d99e90a1b8fe0fb1b516911188d9ab",
+        "research-view-model": "5219ba83bf0741f9360401e7e91711f10e00b663ca9fe910fa57756534f6bf22",
+        "research-module-criteria": "f24c21d4460f5ff3b10e06f3683545368a15c919f312b7f629b4af2e5fe6fc1c",
+        "research-design-by-contract": "c4808d41d5451f12f79144a6d6a72b1de8f36c5ae47e889034c32478eed364a0",
+        "standard-accessibility": "f937ec24355a9370ad48bb7956bf1700313032b249cdf13144762a7e09faf9ba",
+        "standard-usability-heuristics": "6593233a57273a625fa6543e36efaf2b16144f752b747f841e591f75feaea5de",
+        "standard-contract-versioning": "4313b1129ddc73b116b5443e3559fab7f37ff39c59863926366dee5a53c3c601",
+        "standard-architecture-model": "9e3c202ddcb849a5e8b899d1b2dbae90a7f5e7af18b4fcb5084086c2e6781ddd",
+        "redundant-encoding": "ae67491c2cbf002150efb00555a2cb0cab8622959c9acbe5b269b8c8c077d2b0",
+        "redundant-encoding-c": "80b403855b49096948ffb9ffc96c3b6a926074b708d22bfbe72639cb9437266f",
+        "layered-layout": "50fd423ba0be2f5cd4e981690d7e1786170e620592f30b5df19869679513bc2e",
+        "read-a-structure": "86674bdb62173c8772faf1974fa94e0131578b91e3aa7f0f580eaac0ee08aff5",
+        "read-without-a-mouse": "d35e83cda4ea4ba4e5170dd5e033f11c394a5b3f9b92e8f538ab3df33b1be556",
+        "adopt-the-library": "becbf28980693f43cf650d1bb2b6975e84d624f4916660f628ce46fc269bad9d",
+        "confirm-a-claim": "c8c8ff22b6bac2c42883831a1f4f1d7090de41f3e36584a9a2176fdd340b3f83",
+        "generate-the-documents": "b0fbf5e2bd40486cd2eee6ee205bb7875e1cc27969293efeb3b444f0b838def6",
+        "task-zoom-levels": "23ca2f3a8ba2013db129e32bdcda1a5143118162ada71466ac1ee0cad6547cae",
+        "task-overview-and-return": "c26b4500f72c66a7472480d6952bc346ac15238a1c0e5930a58e5e597cbb9164",
+        "task-addressable-state": "3f07c5ed6dfa8c856d39444d1c58917d1f8fffc4bbfbf1d71467711b44dbddad",
+        "task-search-every-version": "20d8830afb639725e6063203f9ac79fcaa5d28bfbcd88ee7d21346ea38b11f32",
+        "task-filter-and-relate": "9515c47c45c9bd6cc1f83ce55691539a7a8dcc1ebed6a8fb40eb97e0c92c8126",
+        "task-impact-closure": "70407e0bfb1034968f0bd85adf347cb954ad9d4674680503950819be07d416f4",
+        "task-layer-separation": "0afec54bd052b0f3cab6e963c1e2e0f64891268726c6c63a8fb85d3e623844b3",
+        "task-second-channel": "fb125d67b52cb0c1abe9b33a610d7673176f97731ebf8145f7a57c43d10685a5",
+        "task-generated-legend": "dacd1371fd2e447047fee0c4e67a2650efbb69e8404e7e4647dce2557f399fe2",
+        "task-layout-off-thread": "ad541908696b7dae04c4c0a7f790aa0cdcd5126ff79dfffeea7c8bff842e042b",
+        "task-virtualized-map": "e3650c5662502387d63ceb4bf2575dfb2e4d19c83740b0a88be4e506ffca1bf2",
+        "task-response-budget": "05aa2a0879e7c262b156e6c1c6a2233f6ddcb617962c6622307727574f75e628",
+        "task-cancellable-reads": "6bf21e58504914b8bccdd8b077137f65fb5c57474370d0e35ee36c5044c1b357",
+        "task-stated-limits": "7b14346f77448320dc5b4d81cde12c1aa6979bcbf64e5a39b0184fb2d120972b",
+        "task-keyboard-map": "6ab72b0d0a286c0f787e85be74d72b3c598c6f7d9440aec3c319f635a104daa7",
+        "task-visible-focus": "fb47adbd223e2ea31efb83b6e718931dbf8385e95a4fc65aa0f9b8db3d9fbeac",
+        "task-announcements": "db519e392605e5e72e19b6442f69d9e6192658595b03a5a83c05cda6a7b1ddf8",
+        "task-reader-preferences": "6845b9a3e1806d009d8417305ab642d12c3052dace1fb5a34b8ae3bf79d9accf",
+        "task-accessibility-harness": "284687476344eb288c24835fdb8a4bd21d9f381a344c174191813928e02ee9b0",
+        "task-failure-catalogue": "f6bf226c63a65c3400aeeab8fb6597f4bab958b670ab52aaa4d6b5c837192c7c",
+        "task-failure-on-screen": "7189792a6410ac8ec63967fe58e4afb293f6a8000a72ea77e5a30a501e291f03",
+        "task-quickstart": "34b9cad8a783edabab710dcb77e977647b5a261964ff92889130f8f6514f1c87",
+        "task-public-surface": "054c4165e2390ff950e27a059ee41e61752ddf89daf7612562f0a6f0f4930609",
+        "task-contract-grading": "27479c8118b15dc3101bd41d2f9b8c436a6d6605640b08c18eb7857719725c76",
+        "task-asset-names": "f9b3238bbbea3bb4b3875b84fb4653e30b5c3f7c265b72eb87a718efcb51392c",
+        "task-licence-and-history": "f153d110bf73eb8bdc07f9bcea07708f9a5535d50e233c9abe02b5617bac024a",
+        "task-init-snapshot": "0695e79834c6d48d909b248a5cdf90f71fe954859151774179a75bfc958a951d",
+        "task-explain-rejection": "d70a2a2a0ecfed7febaacc19ba005d0792aacaba10fc8ecaa4492dadd4b19f0a",
+        "task-snapshot-diff": "5c6d34132980301744aa3d8bdc44d3d2bed0d6eafe9eb0744b5f7fef85b104c9",
+        "task-record-attribution": "2004e175992b0be4dfe6f89948b3f41062fb62d9d79ffc7868cb049b41b8f10e",
+        "task-open-questions": "4200359b9b974f16f1cef27d0e99604f2783a8b0ec7b28c49ee04e45978978e6",
+        "task-scoped-withdrawal": "a807ec764cb977496620193f9325f8877e0121e1f3be22da60c65d52de3dd4a7",
+        "task-freshness-report": "95f3974f9f39903b2fb8673e40d10a3e5d73a7d48bc7b24af7c05e692ad82d99",
+        "task-code-reconciliation": "75956bfe4dfa990af1a0f06fd67f4d322abd1f42fcd079c27c8ad6234ab7a5c8",
+        "task-run-and-record": "0a02eb59ebcddd1392be9a1d867c1baea3e2c0a8a6ee1af64bddf2dd05bf37a0",
+        "task-export-formats": "b9ba942a5233240426252baf156a7c6b43cabdc312f3372f71ccf8e4ef41e429",
+        "task-diagram-parses": "35a4a90f617b9f1424379108438f9522247b1ba1991ca261c755639e55aeda60",
+        "task-inert-content": "295c1712074812256cc2c52d2e3a5c1b24da4c3975e97007f9f02e331809e7de",
+        "task-one-language": "ffe65a2be036cca2375b3804a114da5940b7c846667e2bcdec101bd350aa4ee8",
+        "check-zoom": "a8b148402a20d00ead558303809c0216c13fe7e076b15cff15d60d46232ab35c",
+        "check-navigation": "0057791f640f7f237bc9282a1c046cb7f9e45f6269292248a551b96fb80ab589",
+        "check-accessibility": "70b233ab3def1c3ef14c872d89bc21ded2e1c4fa7f59d17cf1924a138d9e7d23",
+        "check-performance": "fed4578001e1f3e27a9da3e181b2cbc5548d46079095b48ce18dd88917d2b68a",
+        "check-failures": "75bf617a1a0f180eea9605f039116f0127b3e15993c1c97308dd868cef6d1b90",
+        "check-documents": "95c493383bfae8f91d75f884c2d194a85c675931ee27ccf90af9e5f35df75c41",
+        "check-versioning": "7edcbae8a3c169a6b85629bb44fb5ac0d39435cf36c2cef1c199c157ae34336d",
+        "check-freshness": "efcbe3895f84ee50de782fc4439829b8ac270e87065f1f82bcd9326346b4b48b"
       },
       "bindings": {
         "apply-change": {

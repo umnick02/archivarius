@@ -17,6 +17,8 @@ export function ArchitectureEdge({ id, data }) {
   const look = relationAppearance(data.bundle);
   const dash = lineDashes[look.line];
   const color = data.active ? '#1f7758' : data.muted ? '#b7bdb1' : look.tone;
+  // Focusable from the first paint; which item of the level carries the map's one
+  // tab stop is decided in App.jsx and written straight to the attribute.
   return (
     <g
       data-relation={id}
@@ -24,7 +26,7 @@ export function ArchitectureEdge({ id, data }) {
       data-implemented={String(data.bundle.implemented)}
       data-implementation-state={data.bundle.state}
       role="button"
-      tabIndex={0}
+      tabIndex={-1}
       aria-label={
         copy.kinds[data.bundle.kind] +
         ': ' +
@@ -34,12 +36,6 @@ export function ArchitectureEdge({ id, data }) {
         ' · ' +
         confirmation
       }
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          data.onOpen(data.bundle);
-        }
-      }}
     >
       <title>
         {copy.kinds[data.bundle.kind] +
@@ -88,6 +84,7 @@ export function ArchitectureEdge({ id, data }) {
           <button
             className="edge-label nodrag nopan"
             data-edge-label={id}
+            tabIndex={-1}
             aria-label={data.bundle.label + ' · ' + confirmation}
             style={{
               color,

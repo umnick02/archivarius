@@ -6,6 +6,7 @@ import {
   readResources,
   prepareArchitecture,
 } from '../src/ui/load.mjs';
+import { architectureLimits } from '../src/model/parse.mjs';
 import { hashBytes } from '../src/model/digest.mjs';
 import {
   contractDigest,
@@ -41,6 +42,63 @@ const serve = (t, routes) => {
     globalThis.document = document;
   });
   return asked;
+};
+// Cancellation is watched, never slept on: a turn of the loop is enough for any
+// work the loader still had queued to show up in the stub's records.
+const tick = () => new Promise((resolve) => setImmediate(resolve));
+
+// A project whose one result is confirmable from the files a page can fetch: the
+// model, the bound source it hashes and the receipt that covers the run.
+const confirmable = () => {
+  const binding = new TextEncoder().encode('export const check = true;\n');
+  const model = ready();
+  bind(model, hashBytes(binding));
+  get(model, 'export-check').command = ['node', 'fixture.mjs'];
+  seal(model);
+  const record = receipt(model);
+  const evidence = new TextEncoder().encode(
+    JSON.stringify({
+      version: 1,
+      check: record.check,
+      contract: contractDigest(model),
+      realization: realizationDigest(model),
+      outcome: 'pass',
+      command: get(model, 'export-check').command,
+      exitCode: 0,
+      startedAt: '2026-01-01T00:00:00.000Z',
+      finishedAt: '2026-01-01T00:00:01.000Z',
+    }),
+  );
+  record.evidence = [{ path: 'run.json', digest: hashBytes(evidence) }];
+  model.records.push(record);
+  return {
+    model,
+    record,
+    routes: {
+      '/app/project.json': JSON.stringify(model),
+      '/app/fixture.mjs': () => new Response(binding),
+      '/app/run.json': () => new Response(evidence),
+    },
+  };
+};
+// A response the test hands over on demand, counting every read of its body: the
+// loader is only allowed to decode a document a caller still wants.
+const gated = (reads, name, body) => {
+  const answers = [];
+  const route = () =>
+    new Promise((resolve) => {
+      answers.push(() =>
+        resolve({
+          ok: true,
+          status: 200,
+          text: async () => {
+            reads.push(name);
+            return body;
+          },
+        }),
+      );
+    });
+  return { route, answers };
 };
 
 test('a model read over the network is parsed, and every failed read names itself', async (t) => {
@@ -137,32 +195,7 @@ test('shipped copy is read beside the package, or beside the base a host names',
 });
 
 test('the browser confirms a project against the artifacts it can fetch, and refuses the ones it cannot', async (t) => {
-  const binding = new TextEncoder().encode('export const check = true;\n');
-  const model = ready();
-  bind(model, hashBytes(binding));
-  get(model, 'export-check').command = ['node', 'fixture.mjs'];
-  seal(model);
-  const record = receipt(model);
-  const evidence = new TextEncoder().encode(
-    JSON.stringify({
-      version: 1,
-      check: record.check,
-      contract: contractDigest(model),
-      realization: realizationDigest(model),
-      outcome: 'pass',
-      command: get(model, 'export-check').command,
-      exitCode: 0,
-      startedAt: '2026-01-01T00:00:00.000Z',
-      finishedAt: '2026-01-01T00:00:01.000Z',
-    }),
-  );
-  record.evidence = [{ path: 'run.json', digest: hashBytes(evidence) }];
-  model.records.push(record);
-  const routes = {
-    '/app/project.json': JSON.stringify(model),
-    '/app/fixture.mjs': () => new Response(binding),
-    '/app/run.json': () => new Response(evidence),
-  };
+  const { model, record, routes } = confirmable();
   serve(t, routes);
   const prepared = await prepareArchitecture(base + 'project.json');
   assert.deepEqual(prepared.evidence.verifiedResults, [record.key]);
@@ -185,5 +218,134 @@ test('the browser confirms a project against the artifacts it can fetch, and ref
   assert(
     rejected.evidence.diagnostics.some((d) => d.code === 'ARTIFACT_PATH'),
     JSON.stringify(rejected.evidence.diagnostics),
+  );
+});
+
+// Cancellation is part of the contract, not a nicety: a caller that withdraws
+// stops the work at the next stage boundary and gets a cancellation back, and a
+// load a newer one replaced can never land on top of it.
+test('a withdrawn load stops before it decodes anything and settles as a cancellation', async (t) => {
+  const fixture = confirmable();
+  const reads = [];
+  const model = gated(reads, 'project.json', JSON.stringify(fixture.model));
+  const asked = serve(t, {
+    ...fixture.routes,
+    '/app/project.json': model.route,
+  });
+  const controller = new AbortController();
+  const pending = prepareArchitecture(base + 'project.json', {
+    signal: controller.signal,
+  });
+  while (!model.answers.length) await tick();
+  controller.abort();
+  await assert.rejects(pending, { name: 'AbortError' });
+  // The answer the loader was waiting for arrives after the withdrawal: nothing
+  // may read it, parse it or go on to fetch the artifacts it names.
+  model.answers[0]();
+  await tick();
+  await tick();
+  assert.deepEqual(reads, [], 'the abandoned response was still decoded');
+  assert.deepEqual(
+    asked,
+    [base + 'project.json'],
+    'the loader kept fetching after the caller withdrew',
+  );
+});
+
+test('a load superseded on the same handle is withdrawn by name and cannot overwrite the newer one', async (t) => {
+  const reads = [];
+  const first = gated(reads, 'first', JSON.stringify(architecture));
+  const second = gated(
+    reads,
+    'second',
+    JSON.stringify({ ...architecture, title: 'Replacement' }),
+  );
+  serve(t, {
+    '/app/first.json': first.route,
+    '/app/second.json': second.route,
+  });
+  const handle = {};
+  const stale = prepareArchitecture(base + 'first.json', { handle });
+  while (!first.answers.length) await tick();
+  const fresh = prepareArchitecture(base + 'second.json', { handle });
+  while (!second.answers.length) await tick();
+  await assert.rejects(stale, {
+    name: 'AbortError',
+    message: 'LOAD_SUPERSEDED',
+  });
+  // The superseded answer comes back late; only the newer load may be served.
+  first.answers[0]();
+  second.answers[0]();
+  const prepared = await fresh;
+  assert.equal(prepared.input.title, 'Replacement');
+  await tick();
+  await tick();
+  assert.deepEqual(reads, ['second'], 'a superseded load kept working');
+});
+
+test('every stated bound is published and refuses an input past it by name and value', async (t) => {
+  serve(t, {});
+  assert.deepEqual(Object.keys(architectureLimits).sort(), [
+    'maxBytes',
+    'maxDepth',
+    'maxRecords',
+    'maxRelations',
+  ]);
+  assert(Object.isFrozen(architectureLimits), 'the bounds can be rewritten');
+  for (const value of Object.values(architectureLimits))
+    assert(Number.isInteger(value) && value > 0, String(value));
+  const past = (bound, value, code) => (error) => {
+    assert.equal(error.code, code, error.message);
+    assert(error.message.includes(bound), error.message);
+    assert(error.message.includes(String(value)), error.message);
+    assert(
+      error.message.includes(String(architectureLimits[bound])),
+      error.message,
+    );
+    assert.deepEqual(error.diagnostics[0].params, {
+      bound,
+      value: String(value),
+      limit: String(architectureLimits[bound]),
+    });
+    return true;
+  };
+  const padding = 'x'.repeat(architectureLimits.maxBytes);
+  const padded = '{"version":3,"padding":"' + padding + '"}';
+  await assert.rejects(
+    readArchitecture(new Blob([padded])),
+    past('maxBytes', padded.length, 'MODEL_TOO_LARGE'),
+  );
+  const records = architectureLimits.maxRecords + 1;
+  await assert.rejects(
+    readArchitecture({
+      version: 3,
+      nodes: Array.from({ length: records }, (unused, i) => ({ key: 'n' + i })),
+      relations: [],
+    }),
+    past('maxRecords', records, 'MODEL_TOO_MANY_RECORDS'),
+  );
+  const relations = architectureLimits.maxRelations + 1;
+  await assert.rejects(
+    readArchitecture({
+      version: 3,
+      nodes: [],
+      relations: Array.from({ length: relations }, (unused, i) => ({
+        key: 'r' + i,
+      })),
+    }),
+    past('maxRelations', relations, 'MODEL_TOO_MANY_RELATIONS'),
+  );
+  const depth = architectureLimits.maxDepth + 1;
+  let node = { key: 'leaf' };
+  for (let level = depth - 1; level > 0; level--)
+    node = { key: 'level-' + level, children: [node] };
+  await assert.rejects(
+    readArchitecture({ version: 3, nodes: [node], relations: [] }),
+    past('maxDepth', depth, 'MODEL_TOO_DEEP'),
+  );
+  // A model inside every bound is still read the ordinary way.
+  assert.deepEqual(
+    await readArchitecture(new Blob([JSON.stringify(architecture)])),
+    architecture,
   );
 });

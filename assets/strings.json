@@ -111,11 +111,20 @@
     "Emphasizing a type keeps other interactions visible in gray.",
     "Search jumps to any component. Rules and properties appear in its inspector, not as separate components.",
     "Breadcrumbs, the minimap and the home button return you to context.",
-    "While the map has focus, + / − zoom, Home shows the overview and Escape closes details or moves up."
+    "One Tab reaches the map: arrow keys move between the blocks and arrows of the current level, Home and End are its ends, Space opens details, Enter explores a block, Escape closes details and then leaves the block, and + / − zoom."
   ],
   "aboutNote": "The map describes an understood target architecture. Detail stops at a known external contract where internals have not been studied.",
   "technicalNote": "React Flow · ELK.js. Geometry is calculated when a model loads and stays fixed during zoom.",
   "modelError": "Cannot build the map: {error}",
+  "announcements": {
+    "loaded": {
+      "one": "{title}: map ready, {count} block",
+      "other": "{title}: map ready, {count} blocks"
+    },
+    "level": "Level: {level}",
+    "selected": "Details: {name}",
+    "failure": "The map could not be built: {code}"
+  },
   "errors": {
     "SCHEMA_VIOLATION": "Schema violation at: {key}",
     "DUPLICATE_PROPERTY": "Duplicate JSON property: {key}",

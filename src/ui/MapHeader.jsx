@@ -1,7 +1,12 @@
+import { useMemo, useState } from 'react';
 import { useArchitecture } from './context.jsx';
+import { searchArchitecture } from '../model/search.mjs';
 
 // The chrome above the map: identity, the ways in, and the reading/map switch a
-// narrow screen needs. It owns no state - every control reports to the map.
+// narrow screen needs. Every control reports to the map, and the only state it
+// keeps is presentation: what the reader typed and which match they are on. The
+// matching itself belongs to `model/search.mjs`, which answers every accepted
+// contract version.
 export function MapHeader({
   layer,
   setLayer,
@@ -14,7 +19,19 @@ export function MapHeader({
   closePanel,
   fitNode,
 }) {
-  const { model, project, projectCopy, copy, graph } = useArchitecture();
+  const { model, project, projectCopy, copy, graph, instanceId } =
+    useArchitecture();
+  const [query, setQuery] = useState('');
+  const [highlighted, setHighlighted] = useState('');
+  const results = useMemo(
+    () => searchArchitecture(model, query),
+    [model, query],
+  );
+  const show = (key) => {
+    if (!key) return;
+    setHighlighted(key);
+    fitNode(key);
+  };
   return (
     <>
       <header>
@@ -40,7 +57,7 @@ export function MapHeader({
               {projectCopy.button}
             </button>
           )}
-          {project ? (
+          {project && (
             <button
               className="quiet"
               data-control="project-search"
@@ -54,22 +71,45 @@ export function MapHeader({
             >
               {projectCopy.search}
             </button>
-          ) : (
-            <select
-              data-control="node-search"
-              aria-label={copy.findNode}
-              value=""
-              onChange={(e) => fitNode(e.target.value)}
-            >
-              <option value="" disabled>
-                {copy.findNode}
-              </option>
-              {[...graph.nodes.values()].map((node) => (
-                <option key={node.key} value={node.key}>
-                  {node.title}
+          )}
+          {!!graph.nodes.size && (
+            <>
+              <input
+                data-control="node-search"
+                type="search"
+                aria-label={copy.findNode}
+                placeholder={copy.findNode}
+                aria-controls={instanceId + '-node-search-results'}
+                value={query}
+                onChange={(e) => {
+                  clearClick();
+                  setQuery(e.target.value);
+                  setHighlighted('');
+                }}
+                onKeyDown={(e) => {
+                  if (e.key !== 'Enter') return;
+                  e.preventDefault();
+                  show(highlighted || results[0]?.key);
+                }}
+              />
+              <select
+                data-control="node-search-results"
+                id={instanceId + '-node-search-results'}
+                aria-label={copy.findNode}
+                value={highlighted}
+                disabled={!results.length}
+                onChange={(e) => show(e.target.value)}
+              >
+                <option value="" disabled>
+                  {copy.findNode}
                 </option>
-              ))}
-            </select>
+                {results.map((result) => (
+                  <option key={result.key} value={result.key}>
+                    {result.title}
+                  </option>
+                ))}
+              </select>
+            </>
           )}
           <select
             data-control="layer"

@@ -1,6 +1,10 @@
 import { ArchitectureGraph } from '../model/graph.mjs';
 import { ArchitectureError } from '../model/errors.mjs';
-import { parseArchitecture, validateArchitecture } from '../model/parse.mjs';
+import {
+  assertArchitectureLimits,
+  parseArchitecture,
+  validateArchitecture,
+} from '../model/parse.mjs';
 import { analyzeProject } from '../model/project-analysis.mjs';
 import { projectArchitecture } from '../model/project-architecture.mjs';
 import {
@@ -9,8 +13,57 @@ import {
 } from '../model/evidence.mjs';
 import { legacyCompletion } from '../model/implementation.mjs';
 
+// One load at a time per handle: starting another load on the same handle
+// withdraws the one before it, so a slow answer can never land on top of a newer
+// model. A handle is any key the caller keeps — the mounted map uses itself.
+const current = new Map();
+
+function withdrawable(handle, signal) {
+  const controller = new AbortController();
+  const follow = () => controller.abort(signal.reason);
+  if (signal) {
+    if (signal.aborted) controller.abort(signal.reason);
+    else signal.addEventListener('abort', follow, { once: true });
+  }
+  if (handle !== undefined) {
+    current
+      .get(handle)
+      ?.abort(new DOMException('LOAD_SUPERSEDED', 'AbortError'));
+    current.set(handle, controller);
+  }
+  return {
+    signal: controller.signal,
+    done() {
+      signal?.removeEventListener('abort', follow);
+      if (current.get(handle) === controller) current.delete(handle);
+    },
+  };
+}
+
+// A withdrawal has to settle the promise the caller is holding. Racing it against
+// the work means a response that never comes back — or comes back long after the
+// caller moved on — cannot keep the promise pending or resolve over fresh state;
+// the stages themselves stop at their next boundary.
+async function untilWithdrawn(signal, work) {
+  if (!signal) return work();
+  let stop;
+  const withdrawal = new Promise((resolve, reject) => {
+    stop = () => reject(signal.reason);
+    signal.addEventListener('abort', stop, { once: true });
+  });
+  try {
+    return await Promise.race([(async () => work())(), withdrawal]);
+  } finally {
+    signal.removeEventListener('abort', stop);
+  }
+}
+
 export async function readArchitecture(source, { signal } = {}) {
   signal?.throwIfAborted();
+  return untilWithdrawn(signal, () => readSource(source, signal));
+}
+
+async function readSource(source, signal) {
   if (typeof source === 'string' || source instanceof URL) {
     let response;
     try {
@@ -19,19 +72,32 @@ export async function readArchitecture(source, { signal } = {}) {
       signal?.throwIfAborted();
       throw new ArchitectureError('MODEL_LOAD_FAILED');
     }
+    // A caller who withdrew is owed a cancellation, not a parse and not a load
+    // failure invented from the status of a response nobody will read.
+    signal?.throwIfAborted();
     if (!response.ok)
       throw new ArchitectureError('MODEL_LOAD_FAILED', [
         String(response.status),
       ]);
-    return parseArchitecture(await response.text());
+    const text = await response.text();
+    signal?.throwIfAborted();
+    return parseArchitecture(text, { signal });
   }
-  if (source instanceof Blob) return parseArchitecture(await source.text());
+  if (source instanceof Blob) {
+    const text = await source.text();
+    signal?.throwIfAborted();
+    return parseArchitecture(text, { signal });
+  }
   let model;
   try {
     model = structuredClone(source);
   } catch {
     throw new ArchitectureError('INVALID_MODEL');
   }
+  signal?.throwIfAborted();
+  // A model handed over as an object skips the text bound but faces the same
+  // shape bounds, and faces them before the contract walk.
+  assertArchitectureLimits(model);
   const graph = validateArchitecture(model);
   if (!graph.valid)
     throw new ArchitectureError(
@@ -49,6 +115,11 @@ const resourceURLs = {
 };
 
 export async function readResources({ assetsBaseUrl, signal } = {}) {
+  signal?.throwIfAborted();
+  return untilWithdrawn(signal, () => readAssets(assetsBaseUrl, signal));
+}
+
+async function readAssets(assetsBaseUrl, signal) {
   const names = ['strings', 'contracts', 'project'];
   const files = ['strings.json', 'contracts.json', 'project.json'];
   const [copy, contracts, projectCopy] = await Promise.all(
@@ -63,26 +134,47 @@ export async function readResources({ assetsBaseUrl, signal } = {}) {
         signal?.throwIfAborted();
         throw new ArchitectureError('RESOURCES_LOAD_FAILED');
       }
+      signal?.throwIfAborted();
       if (!response.ok) throw new ArchitectureError('RESOURCES_LOAD_FAILED');
-      return response.json();
+      const asset = await response.json();
+      signal?.throwIfAborted();
+      return asset;
     }),
   );
   return { copy, contracts, projectCopy };
 }
 
-export async function prepareArchitecture(source, { signal } = {}) {
+export async function prepareArchitecture(source, { signal, handle } = {}) {
+  const load = withdrawable(handle, signal);
+  try {
+    return await untilWithdrawn(load.signal, () =>
+      prepare(source, load.signal),
+    );
+  } finally {
+    load.done();
+  }
+}
+
+async function prepare(source, signal) {
   const input = await readArchitecture(source, { signal });
   signal?.throwIfAborted();
   const project = input.version === 4 ? input : null;
   const model = project ? projectArchitecture(project) : input;
+  // The projected graph is what the layout has to draw, so it faces the stated
+  // bounds too, before any geometry is computed.
+  if (project) assertArchitectureLimits(model);
   let evidence = { verifiedResults: [], diagnostics: [] };
   if (project && (typeof source === 'string' || source instanceof URL)) {
     const base = new URL(source, globalThis.document?.baseURI);
     evidence = await verifyProjectEvidence(project, async (path) => {
+      // Verification reads one artifact per receipt; a withdrawn caller stops
+      // that queue instead of paying for every remaining request.
+      signal?.throwIfAborted();
       if (!relativeArtifactPath(path)) throw new Error('ARTIFACT_PATH');
       const url = new URL(path, base);
       if (url.origin !== base.origin) throw new Error('ARTIFACT_PATH');
       const response = await fetch(url, { signal });
+      signal?.throwIfAborted();
       if (!response.ok) throw new Error('EVIDENCE_UNAVAILABLE');
       return new Uint8Array(await response.arrayBuffer());
     });
@@ -112,6 +204,7 @@ export async function prepareArchitecture(source, { signal } = {}) {
         layoutPasses: 0,
       },
     };
+  signal?.throwIfAborted();
   const { buildLayout, checkLayout } = await import('../layout/layout.mjs');
   const layout = await buildLayout(model, { signal });
   signal?.throwIfAborted();

@@ -14,7 +14,7 @@ import {
   useReactFlow,
   useViewport,
 } from '@xyflow/react';
-import { useArchitecture } from './context.jsx';
+import { useArchitecture, format } from './context.jsx';
 import { ArchitectureNode } from './ArchitectureNode.jsx';
 import { ArchitectureEdge } from './ArchitectureEdge.jsx';
 import { Inspector } from './Inspector.jsx';
@@ -30,7 +30,7 @@ const nodeTypes = { architecture: ArchitectureNode },
 const duration = () =>
   matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 280;
 
-export const App = forwardRef(function App({ onReady }, ref) {
+export const App = forwardRef(function App({ onReady, announce }, ref) {
   const { model, project, graph, layout, copy, rootColors, instanceId } =
     useArchitecture();
   const flow = useReactFlow(),
@@ -248,18 +248,22 @@ export const App = forwardRef(function App({ onReady }, ref) {
   while (zoomScope && !expanded.has(zoomScope))
     zoomScope = graph.parents.get(zoomScope);
   const activeKey = contextEnabled ? selected || zoomScope : null;
-  const { interfaces, bundles, nodes, edges, outside } = useMapProjection({
-    expanded,
-    viewport,
-    size,
-    layer,
-    selected,
-    activeKey,
-    panel,
-    fitNode,
-    showNode,
-    showRelation,
-  });
+  // APG composite widget: `cursor` is the one item of the current level that Tab
+  // can reach. The level, its ring and that item are derived from the projection,
+  // so the pointer's hover path never decides where the keyboard stands.
+  const [cursor, setCursor] = useState(null);
+  const { interfaces, bundles, nodes, edges, outside, level, ring, anchor } =
+    useMapProjection({
+      expanded,
+      viewport,
+      size,
+      layer,
+      selected,
+      activeKey,
+      cursor,
+      panel,
+      showRelation,
+    });
   const path = useMemo(() => {
     const result = [];
     let key = focus;
@@ -274,6 +278,75 @@ export const App = forwardRef(function App({ onReady }, ref) {
       parent = key && graph.parents.get(key);
     parent ? fitNode(parent) : home();
   }, [graph, path, fitNode, home]);
+  const firstInside = useCallback(
+    (key) =>
+      Object.values(layout.nodes)
+        .filter((box) => box.parent === key)
+        .sort((a, b) => a.y - b.y || a.x - b.x)[0]?.key,
+    [layout],
+  );
+  const item = useCallback(
+    (target) =>
+      target &&
+      pane.current?.querySelector(
+        '[data-' + target.type + '="' + target.id + '"]',
+      ),
+    [],
+  );
+  // The keyboard's own tab stop is written to the DOM instead of rendered: React
+  // Flow rebuilds an edge's element whenever the node array changes, and Chrome
+  // drops focus from an SVG element whose tabindex is rewritten under it. So the
+  // attribute is only ever touched where it really differs, and a move the ring
+  // cannot serve yet — a container that is still opening — is retried on the next
+  // commit, when its blocks exist.
+  const wanted = useRef(null);
+  useEffect(() => {
+    const stop = item(anchor);
+    for (const element of pane.current?.querySelectorAll(
+      '[data-node],[data-relation]',
+    ) || []) {
+      const value = element === stop ? 0 : -1;
+      if (element.tabIndex !== value) element.tabIndex = value;
+    }
+    const seeking = item(wanted.current);
+    if (!seeking) return;
+    wanted.current = null;
+    seeking.focus({ preventScroll: true });
+  }, [anchor, item, nodes, edges, panel]);
+  const seek = useCallback((type, id) => {
+    if (!id) return;
+    wanted.current = { type, id };
+    setCursor(id);
+  }, []);
+  const step = useCallback(
+    (from, delta) => {
+      const index = ring.findIndex((entry) => entry.id === from);
+      if (index < 0) return;
+      const next = ring[Math.max(0, Math.min(ring.length - 1, index + delta))];
+      if (next && next.id !== from) seek(next.type, next.id);
+    },
+    [ring, seek],
+  );
+  // Enter is the keyboard's double-click and Space its single click, so a block
+  // with an inside is entered — leaving the reader on its first part — and any
+  // other item explains itself.
+  const act = useCallback(
+    (target, enter) => {
+      if (target.type === 'relation') return showRelation(target.bundle);
+      if (enter && graph.nodes.get(target.id).children) {
+        seek('node', firstInside(target.id));
+        return fitNode(target.id);
+      }
+      return showNode(target.id);
+    },
+    [graph, fitNode, showNode, showRelation, seek, firstInside],
+  );
+  const leave = useCallback(() => {
+    if (!level) return up();
+    seek('node', level);
+    const parent = graph.parents.get(level);
+    return parent ? fitNode(parent) : home();
+  }, [level, graph, fitNode, home, up, seek]);
 
   useEffect(() => {
     let previous;
@@ -349,9 +422,20 @@ export const App = forwardRef(function App({ onReady }, ref) {
   ]);
   useEffect(() => {
     function keydown(e) {
+      const holder = e.target.closest?.('[data-node],[data-relation]');
+      const here =
+        holder &&
+        ring.find(
+          (entry) =>
+            entry.id === (holder.dataset.node || holder.dataset.relation),
+        );
       if (e.key === 'Escape') {
         e.preventDefault();
-        panel ? closePanel() : up();
+        if (panel) {
+          closePanel();
+          // The panel took the focus, so closing it has to give it back.
+          if (anchor) seek(anchor.type, anchor.id);
+        } else here ? leave() : up();
       } else if (e.key === 'F6') {
         e.preventDefault();
         const inspector = root.current.querySelector(
@@ -368,7 +452,21 @@ export const App = forwardRef(function App({ onReady }, ref) {
         else pane.current.focus();
       } else if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName))
         return;
-      else if (e.key === 'Home') {
+      // Standing on an item of the ring, the arrows and the ends belong to it;
+      // otherwise Home still means the overview.
+      else if (here && ['ArrowRight', 'ArrowDown'].includes(e.key)) {
+        e.preventDefault();
+        step(here.id, 1);
+      } else if (here && ['ArrowLeft', 'ArrowUp'].includes(e.key)) {
+        e.preventDefault();
+        step(here.id, -1);
+      } else if (here && (e.key === 'Home' || e.key === 'End')) {
+        e.preventDefault();
+        step(here.id, e.key === 'Home' ? -ring.length : ring.length);
+      } else if (here && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        act(here, e.key === 'Enter');
+      } else if (e.key === 'Home') {
         e.preventDefault();
         home();
       } else if (e.key === '+' || e.key === '=') {
@@ -382,7 +480,48 @@ export const App = forwardRef(function App({ onReady }, ref) {
     const element = root.current;
     element.addEventListener('keydown', keydown);
     return () => element.removeEventListener('keydown', keydown);
-  }, [flow, home, panel, up, closePanel, changeZoom]);
+  }, [
+    flow,
+    home,
+    panel,
+    up,
+    closePanel,
+    changeZoom,
+    ring,
+    step,
+    act,
+    leave,
+    seek,
+    anchor,
+  ]);
+  const selectionName = useMemo(() => {
+    if (panel?.type === 'relation')
+      return (
+        graph.nodes.get(panel.bundle.from).title +
+        ' → ' +
+        graph.nodes.get(panel.bundle.to).title
+      );
+    return panel?.key && graph.nodes.has(panel.key)
+      ? graph.nodes.get(panel.key).title
+      : null;
+  }, [panel, graph]);
+  const levelName = level ? graph.nodes.get(level).title : copy.wholeSystem;
+  // WCAG 4.1.3: what the reader did not type — the panel that opened, the level
+  // the zoom moved into — is said once, in the surface's one polite region.
+  const spoken = useRef({ selection: null, level: null });
+  useEffect(() => {
+    if (selectionName === spoken.current.selection) return;
+    spoken.current.selection = selectionName;
+    if (selectionName)
+      announce?.(format(copy.announcements.selected, { name: selectionName }));
+  }, [selectionName, announce, copy]);
+  useEffect(() => {
+    if (levelName === spoken.current.level) return;
+    const first = spoken.current.level === null || !initialized.current;
+    spoken.current.level = levelName;
+    if (!first)
+      announce?.(format(copy.announcements.level, { level: levelName }));
+  }, [levelName, announce, copy]);
   const snapshot = useRef(null);
   snapshot.current = () => ({
     viewport: flow.getViewport(),
@@ -458,7 +597,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
     <div
       className="map-app"
       ref={root}
-      tabIndex={0}
+      tabIndex={-1}
       role="region"
       aria-label={model.title || copy.title}
       data-engine="react-flow"
@@ -515,6 +654,7 @@ export const App = forwardRef(function App({ onReady }, ref) {
           elementsSelectable={false}
           nodesFocusable={false}
           edgesFocusable={false}
+          disableKeyboardA11y
           zoomOnDoubleClick={false}
           panOnScroll={false}
           zoomOnScroll

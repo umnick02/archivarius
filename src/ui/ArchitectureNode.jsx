@@ -8,17 +8,7 @@ import { ImplementationMark } from './ImplementationMark.jsx';
 export function ArchitectureNode({ data }) {
   const { copy, rootColors, completion } = useArchitecture();
   const { zoom } = useViewport();
-  const {
-    item,
-    box,
-    expanded,
-    handles,
-    interfaces,
-    onEnter,
-    onDetails,
-    highlighted,
-    muted,
-  } = data;
+  const { item, box, expanded, handles, interfaces, highlighted, muted } = data;
   const updateInternals = useUpdateNodeInternals();
   const handleKey = handles.map((h) => h.id).join('/');
   useEffect(() => {
@@ -53,6 +43,8 @@ export function ArchitectureNode({ data }) {
     borderWidth: highlighted ? 2 : 1,
     borderRadius: shapeRadii[look.shape](w, h),
   };
+  // Focusable from the first paint; which item of the level carries the map's one
+  // tab stop is decided in App.jsx and written straight to the attribute.
   return (
     <>
       <div
@@ -73,7 +65,8 @@ export function ArchitectureNode({ data }) {
         data-incoming={interfaces.incoming.length}
         data-outgoing={interfaces.outgoing.length}
         role="button"
-        tabIndex={0}
+        tabIndex={-1}
+        aria-expanded={item.children ? String(expanded) : undefined}
         aria-label={
           item.title +
           ' · ' +
@@ -81,13 +74,6 @@ export function ArchitectureNode({ data }) {
           ' — ' +
           (item.children ? copy.expandAction : copy.explainAction)
         }
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            e.stopPropagation();
-            item.children ? onEnter(item.key) : onDetails(item.key);
-          }
-        }}
       >
         <span className="node-implementation" title={confirmation}>
           <ImplementationMark state={state} />

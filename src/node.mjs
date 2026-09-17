@@ -18,6 +18,7 @@ import {
   storeProjectStorage,
 } from './io/project-storage.mjs';
 import { digest, hashBytes } from './model/digest.mjs';
+import { renderGraph } from './model/export.mjs';
 
 export async function readArchitectureFile(file) {
   file = await fs.realpath(file);
@@ -49,6 +50,12 @@ export async function generateReadme(model) {
       ),
     ),
   );
+}
+
+// The snapshot as the graph other tools read. It needs no shipped strings: a
+// DOT file, a mermaid flowchart and a record table carry the model's own words.
+export function generateGraph(model, format = 'dot') {
+  return renderGraph(model, format);
 }
 
 // Reads an artifact only from inside the project directory. Internal: evidence
