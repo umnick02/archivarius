@@ -38,6 +38,7 @@ by LLM agents. Read the directory instructions before editing.
 | Shipped contract, schemas, strings        | `assets/model.schema.json`               | [assets/AGENTS.md](assets/AGENTS.md)             |
 | Build, contract generation, package check | `tooling/build.mjs`, `tooling/*.mjs`     | [tooling/AGENTS.md](tooling/AGENTS.md)           |
 | Tests and consumer fixture                | `tests/*.test.mjs`, `tests/consumer/`    | [tests/AGENTS.md](tests/AGENTS.md)               |
+| Demo models for suites and the example    | `models/*.json`                          | [models/AGENTS.md](models/AGENTS.md)             |
 | Documentation validators and viewer       | `docs/scripts/`                          | [docs/scripts/AGENTS.md](docs/scripts/AGENTS.md) |
 
 The browser surface renders model facts and holds only presentation state; file

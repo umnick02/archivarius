@@ -21,9 +21,7 @@ test('package retains external data resources and project-independent scripts', 
       await read('dist/assets/' + file),
     );
   }
-  const model = JSON.parse(
-    await read('examples/basic/public/architecture.json'),
-  );
+  const model = JSON.parse(await read('models/rendering.json'));
   const copy = JSON.parse(await read('assets/strings.json'));
   let scripts = '';
   for (const file of await fs.readdir(new URL('dist/src/', root), {
@@ -33,7 +31,7 @@ test('package retains external data resources and project-independent scripts', 
   for (const node of model.nodes) assert(!scripts.includes(node.title));
   assert(!scripts.includes(copy.interpretationNote));
   const projectCopy = JSON.parse(await read('assets/project.json'));
-  const project = JSON.parse(await read('examples/basic/public/project.json'));
+  const project = JSON.parse(await read('models/documentation.json'));
   assert(!scripts.includes(projectCopy.conservative));
   assert(
     !scripts.includes(

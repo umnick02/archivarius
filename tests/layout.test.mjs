@@ -11,10 +11,7 @@ import {
 } from '../src/ui/view.mjs';
 
 const model = JSON.parse(
-  fs.readFileSync(
-    new URL('../examples/basic/public/architecture.json', import.meta.url),
-    'utf8',
-  ),
+  fs.readFileSync(new URL('../models/rendering.json', import.meta.url), 'utf8'),
 );
 const layout = await buildLayout(model),
   graph = Graph.validate(model);

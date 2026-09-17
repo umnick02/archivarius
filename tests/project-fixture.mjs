@@ -9,7 +9,7 @@ import {
 // asserting the same fixture instead of drifting into private variants.
 export const example = JSON.parse(
   await fs.readFile(
-    new URL('../examples/basic/public/project.json', import.meta.url),
+    new URL('../models/documentation.json', import.meta.url),
     'utf8',
   ),
 );

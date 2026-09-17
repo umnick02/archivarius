@@ -15,7 +15,7 @@ import { bind, get, ready, seal, receipt } from './project-fixture.mjs';
 
 const architecture = JSON.parse(
   await fs.readFile(
-    new URL('../examples/basic/public/architecture.json', import.meta.url),
+    new URL('../models/rendering.json', import.meta.url),
     'utf8',
   ),
 );

@@ -34,11 +34,11 @@ await fs.mkdir(consumer, { recursive: true });
 await fs.cp(path.join(root, 'tests/consumer'), consumer, { recursive: true });
 await fs.mkdir(path.join(consumer, 'public'), { recursive: true });
 await fs.copyFile(
-  path.join(root, 'examples/basic/public/architecture.json'),
+  path.join(root, 'models/rendering.json'),
   path.join(consumer, 'public/architecture.json'),
 );
 await fs.copyFile(
-  path.join(root, 'examples/basic/public/project.json'),
+  path.join(root, 'models/documentation.json'),
   path.join(consumer, 'public/project.json'),
 );
 const pkg = JSON.parse(

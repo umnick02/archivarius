@@ -9,7 +9,7 @@ import { files, staleParts } from '../docs/scripts/bind.mjs';
 
 const root = new URL('../', import.meta.url);
 const model = await readArchitectureFile(
-  new URL('examples/basic/public/architecture.json', root),
+  new URL('models/rendering.json', root),
 );
 const graph = ArchitectureGraph.validate(model);
 const run = (args) =>

@@ -16,7 +16,7 @@ await fs.cp(new URL('assets/', root), new URL('dist/assets/', root), {
   filter: shipped,
 });
 await fs.copyFile(
-  new URL('examples/basic/public/project.json', root),
+  new URL('models/documentation.json', root),
   new URL('dist/example.json', root),
 );
 for (const entry of await fs.readdir(new URL('src/', root), {

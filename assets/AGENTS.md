@@ -18,7 +18,8 @@ Invariants:
   together. `contracts.json` is hand-maintained and read only for prior-format
   input; the v4 panel copy lives in `project.json`.
 - `strings.json` and `project.json` are UI copy for the map and project surfaces —
-  not sample models. Plurals are `one`/`other`.
+  not sample models. Plurals are `one`/`other`. The sample models live in
+  [../models/](../models/AGENTS.md).
 - `authoring.md` and `contract.md` are the only prose files that ship to
   consumers. `AGENTS.md` is project-internal and `build.mjs` keeps it out of
   `dist/assets/`. Do not add project-internal prose here.

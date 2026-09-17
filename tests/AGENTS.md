@@ -34,7 +34,7 @@ Invariants:
   a whole and not per file. `load.test.mjs` covers `ui/load.mjs` in Node by
   stubbing `fetch`, so a network path never depends on Chrome to be exercised.
 - `project-fixture.mjs` owns the compact project and the steps that make it
-  confirmable; a suite imports it instead of re-reading the example or inventing
+  confirmable; a suite imports it instead of re-reading `models/` or inventing
   its own variant. Project subjects split by owner: completion semantics in
   `project.test.mjs`, rendering in `project-documents.test.mjs`, receipts and
   files in `project-checks.test.mjs`, authoring in `project-authoring.test.mjs`.

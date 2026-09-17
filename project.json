@@ -168,6 +168,346 @@
         ],
         "basis": null
       }
+    },
+    {
+      "digest": "3f35051262dcc13a620c7b578a796b8c8cd848de42e376a236ae56360fc94d37",
+      "record": {
+        "key": "semantic-zoom",
+        "type": "requirement",
+        "title": "Detail arrives by zooming",
+        "scope": "archivarius",
+        "category": "product",
+        "rule": "Zooming a container past its legibility threshold reveals its children in place and zooming out returns them to one card; no separate drill-down step is required.",
+        "when": [
+          "A container box crosses the expansion threshold."
+        ],
+        "exceptions": [
+          "A container with no children never expands."
+        ],
+        "appliesTo": [
+          "render",
+          "map"
+        ],
+        "sources": [
+          "owner-intent"
+        ]
+      }
+    },
+    {
+      "digest": "578af2420524ee7205e13a6383661da5addb4aa297501d023ef5dd93bb42ed73",
+      "record": {
+        "key": "addressable-view",
+        "type": "requirement",
+        "title": "A view can be handed to somebody else",
+        "scope": "archivarius",
+        "category": "experience",
+        "rule": "Every view a reader reaches - focus, expansion, open panel - is addressable by a link that restores it, and the same view leaves as an image without a screenshot tool.",
+        "when": [
+          "A reader shares what they are looking at."
+        ],
+        "exceptions": [],
+        "appliesTo": [
+          "map",
+          "render",
+          "inspector"
+        ],
+        "sources": [
+          "reader-observation"
+        ]
+      }
+    },
+    {
+      "digest": "e08f535fc14499833b027072b9563a6548ae8499aa19e6f4ac2bcb97528c65c4",
+      "record": {
+        "key": "searchable-model",
+        "type": "requirement",
+        "title": "A part can be found by name",
+        "scope": "archivarius",
+        "category": "experience",
+        "rule": "A reader finds a part by name from the map itself and the map moves to it, and a filter hides what is out of scope rather than only dimming it.",
+        "when": [
+          "A reader looks for a part."
+        ],
+        "exceptions": [],
+        "appliesTo": [
+          "map",
+          "inspector"
+        ],
+        "sources": [
+          "owner-intent"
+        ]
+      }
+    },
+    {
+      "digest": "bdd1e5c1662ca50f4642a363314ce301085bd6adb7787af63bd7bde89fd8388b",
+      "record": {
+        "key": "answers-about-change",
+        "type": "requirement",
+        "title": "The map answers where an effect reaches",
+        "scope": "archivarius",
+        "category": "product",
+        "rule": "The map answers where the effects of a part reach: the path between two parts, the transitive dependents of one, and the cycles between them.",
+        "when": [
+          "A reader asks what a change touches."
+        ],
+        "exceptions": [],
+        "appliesTo": [
+          "map",
+          "inspector",
+          "core"
+        ],
+        "sources": [
+          "owner-intent"
+        ]
+      }
+    },
+    {
+      "digest": "143b9fad26615f486f25401611c4a7ee476d7bbab32e2b2764dd1d56b1a6043e",
+      "record": {
+        "key": "keyboard-complete",
+        "type": "requirement",
+        "title": "Everything reachable by pointer is reachable by key",
+        "scope": "archivarius",
+        "category": "experience",
+        "rule": "Every action a pointer can take a keyboard can take: one tab stop per region, traversal between parts and their relations inside the map, and focus returned to the control that opened a panel.",
+        "when": [
+          "A reader navigates without a pointer."
+        ],
+        "exceptions": [],
+        "appliesTo": [
+          "map",
+          "inspector"
+        ],
+        "sources": [
+          "reader-observation"
+        ]
+      }
+    },
+    {
+      "digest": "f7fdec2771f3783b9be61ba0b390ebaa200ffc43d9be056c61b2f141eabe9dc7",
+      "record": {
+        "key": "announced-changes",
+        "type": "requirement",
+        "title": "A change the reader did not type is announced",
+        "scope": "archivarius",
+        "category": "experience",
+        "rule": "A change the reader did not type - zoom, expansion, focus, a panel opening or closing, a load failing - is announced to assistive technology.",
+        "when": [
+          "The view changes without a keystroke that caused it directly."
+        ],
+        "exceptions": [],
+        "appliesTo": [
+          "map",
+          "inspector",
+          "render"
+        ],
+        "sources": [
+          "reader-observation"
+        ]
+      }
+    },
+    {
+      "digest": "dc59793b342242421ec5a9f8ce85c8ec6e66d8be8f95f2cdb27ab6c5ff11ff2f",
+      "record": {
+        "key": "reader-settings",
+        "type": "requirement",
+        "title": "The reader owns motion, contrast, scheme and text size",
+        "scope": "archivarius",
+        "category": "experience",
+        "rule": "The map honours the reader motion, contrast, colour-scheme and text-size settings, and no fact is carried by colour alone.",
+        "when": [
+          "The map is rendered."
+        ],
+        "exceptions": [],
+        "appliesTo": [
+          "render",
+          "map",
+          "inspector"
+        ],
+        "sources": [
+          "reader-observation"
+        ]
+      }
+    },
+    {
+      "digest": "809739275fcc588bc69cdd7b3de6a0f82d53df082ec801cd676fb46790bdd623",
+      "record": {
+        "key": "responsive-at-scale",
+        "type": "requirement",
+        "title": "A large model stays interactive",
+        "scope": "archivarius",
+        "category": "product",
+        "rule": "Layout and geometry run off the interface thread, only visible parts are mounted, and a model of the stated size reaches first paint and stays interactive within the stated budget.",
+        "when": [
+          "A model larger than one screen is loaded."
+        ],
+        "exceptions": [],
+        "appliesTo": [
+          "render",
+          "map"
+        ],
+        "sources": [
+          "scale-observation"
+        ]
+      }
+    },
+    {
+      "digest": "f000a673423aaf15248ec50a8c71fe24a418675faf08b30e0b91b14447abf2c2",
+      "record": {
+        "key": "documented-failures",
+        "type": "requirement",
+        "title": "A failure can be caught and understood",
+        "scope": "archivarius",
+        "category": "product",
+        "rule": "Every failure the library raises carries a stable code, that code is listed in a shipped table with its cause and its remedy, and the declared type enumerates the codes instead of naming a bare string.",
+        "when": [
+          "The library refuses to load, validate, apply or render."
+        ],
+        "exceptions": [],
+        "appliesTo": [
+          "core",
+          "node-api",
+          "cli",
+          "render"
+        ],
+        "sources": [
+          "consumer-intent"
+        ]
+      }
+    },
+    {
+      "digest": "5ecdf8f71eae9a7e3595ffeb16899366205990eb206182d844f18eddd0f8995f",
+      "record": {
+        "key": "validated-change",
+        "type": "requirement",
+        "title": "Changes are validated against an unchanged context",
+        "scope": "archivarius",
+        "rule": "A change requires an unchanged context receipt; a stale context, unknown field or broken reference is rejected and the source file is preserved.",
+        "when": [
+          "A change is applied through the API or CLI."
+        ],
+        "exceptions": [],
+        "appliesTo": [
+          "node-api",
+          "core"
+        ],
+        "sources": [
+          "contract-basis"
+        ]
+      }
+    },
+    {
+      "digest": "5076af38ab7c31da9a3595e0851b700a3b9737d161fdaa3a9e322d7c0ed23b6a",
+      "record": {
+        "key": "versioning-promise",
+        "type": "requirement",
+        "title": "What a version promises is written down",
+        "scope": "archivarius",
+        "category": "product",
+        "rule": "The package states its license, records every release in a changelog, and says which contract versions a package version accepts and what a contract change costs a consumer.",
+        "when": [
+          "A version is published."
+        ],
+        "exceptions": [],
+        "appliesTo": [
+          "model",
+          "core"
+        ],
+        "sources": [
+          "consumer-intent"
+        ]
+      }
+    },
+    {
+      "digest": "76dfd1c2531d7c2cc756e417e710a53d9f12a38a7d425e4286e5f4e8fa4911e1",
+      "record": {
+        "key": "single-snapshot",
+        "type": "requirement",
+        "title": "One snapshot, one set of definitions",
+        "scope": "archivarius",
+        "rule": "Every statement has a single definition; all views render the one selected snapshot.",
+        "when": [
+          "A model is loaded or rendered."
+        ],
+        "exceptions": [],
+        "appliesTo": [
+          "core",
+          "render"
+        ],
+        "sources": [
+          "owner-intent"
+        ]
+      }
+    },
+    {
+      "digest": "9c20d7c9be0a1333552e05d9b0847c5d31ba91391cc011259f3d941024cf0914",
+      "record": {
+        "key": "layer-boundaries",
+        "type": "requirement",
+        "title": "Imports point down one table",
+        "scope": "archivarius",
+        "category": "architecture",
+        "rule": "Imports point down one layer table and never form a cycle, and the browser surface performs no file or network access outside its single loader.",
+        "when": [
+          "A module is added or moved."
+        ],
+        "exceptions": [],
+        "appliesTo": [
+          "model",
+          "core",
+          "render",
+          "node-api"
+        ],
+        "sources": [
+          "self-description"
+        ]
+      }
+    },
+    {
+      "digest": "6a50df50dc839653c68dcd795319679ca6553e858b89f9ab08b36a90ed3e1804",
+      "record": {
+        "key": "generated-documents-agree",
+        "type": "requirement",
+        "title": "Every document is generated",
+        "scope": "archivarius",
+        "category": "architecture",
+        "rule": "Every shipped document is generated from the snapshot and regenerating it in place is a no-op; drift fails the check instead of being repaired by hand.",
+        "when": [
+          "A document is generated or checked."
+        ],
+        "exceptions": [],
+        "appliesTo": [
+          "node-api",
+          "cli",
+          "model"
+        ],
+        "sources": [
+          "self-description"
+        ]
+      }
+    },
+    {
+      "digest": "839af2c68f2d40702f40367440635382a7a31b755e046efa2f029192b9418150",
+      "record": {
+        "key": "literal-content",
+        "type": "requirement",
+        "title": "Model content is inert",
+        "scope": "archivarius",
+        "category": "architecture",
+        "rule": "Model content renders as literal text: no executable markup, no active-content links, and no request outside the declared model and asset reads.",
+        "when": [
+          "Model content is rendered."
+        ],
+        "exceptions": [],
+        "appliesTo": [
+          "render",
+          "map",
+          "inspector"
+        ],
+        "sources": [
+          "contract-basis"
+        ]
+      }
     }
   ],
   "records": [
@@ -452,7 +792,8 @@
         "render"
       ],
       "sources": [
-        "owner-intent"
+        "owner-intent",
+        "standard-contract-versioning"
       ]
     },
     {
@@ -478,7 +819,8 @@
         "core"
       ],
       "sources": [
-        "contract-basis"
+        "contract-basis",
+        "research-design-by-contract"
       ]
     },
     {
@@ -752,6 +1094,2138 @@
       ],
       "uses": [
         "single-snapshot"
+      ],
+      "basis": null
+    },
+    {
+      "key": "consumer-intent",
+      "type": "source",
+      "scope": "archivarius",
+      "title": "A team adopts the library",
+      "origin": "owner",
+      "statement": "A team installs the library, mounts a map of its own system, and needs to find how to install it, how to read a failure and what it may rely on across versions."
+    },
+    {
+      "key": "reader-observation",
+      "type": "source",
+      "scope": "archivarius",
+      "title": "A reader works with a keyboard and a browser of their own",
+      "origin": "observation",
+      "statement": "A reader arrives with a keyboard, a screen reader, a text size, a motion preference and a colour perception the library does not choose, and a link is how a finding is passed to somebody else."
+    },
+    {
+      "key": "scale-observation",
+      "type": "source",
+      "scope": "archivarius",
+      "title": "A real system outgrows one screen",
+      "origin": "observation",
+      "statement": "A described system reaches hundreds of parts, layout runs on the same thread as the interface, and every part stays mounted whether it is visible or not."
+    },
+    {
+      "key": "code-truth-assumption",
+      "type": "source",
+      "scope": "archivarius",
+      "title": "Bytes cannot see meaning",
+      "origin": "assumption",
+      "statement": "A digest proves a file has not moved, not that the file still does what a record claims, so a description can stay confirmed while the code it describes contradicts it."
+    },
+    {
+      "key": "semantic-zoom",
+      "type": "requirement",
+      "title": "Detail arrives by zooming",
+      "scope": "archivarius",
+      "category": "product",
+      "rule": "Zooming a container past its legibility threshold reveals its children in place and zooming out returns them to one card; no separate drill-down step is required.",
+      "when": [
+        "A container box crosses the expansion threshold."
+      ],
+      "exceptions": [
+        "A container with no children never expands."
+      ],
+      "appliesTo": [
+        "render",
+        "map"
+      ],
+      "sources": [
+        "owner-intent",
+        "research-fisheye",
+        "research-zoomable-surface",
+        "research-visual-taxonomy",
+        "standard-architecture-model"
+      ]
+    },
+    {
+      "key": "addressable-view",
+      "type": "requirement",
+      "title": "A view can be handed to somebody else",
+      "scope": "archivarius",
+      "category": "experience",
+      "rule": "Every view a reader reaches - focus, expansion, open panel - is addressable by a link that restores it, and the same view leaves as an image without a screenshot tool.",
+      "when": [
+        "A reader shares what they are looking at."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "map",
+        "render",
+        "inspector"
+      ],
+      "sources": [
+        "reader-observation",
+        "research-zoom-review",
+        "research-visual-taxonomy"
+      ]
+    },
+    {
+      "key": "keyboard-complete",
+      "type": "requirement",
+      "title": "Everything reachable by pointer is reachable by key",
+      "scope": "archivarius",
+      "category": "experience",
+      "rule": "Every action a pointer can take a keyboard can take: one tab stop per region, traversal between parts and their relations inside the map, and focus returned to the control that opened a panel.",
+      "when": [
+        "A reader navigates without a pointer."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "map",
+        "inspector"
+      ],
+      "sources": [
+        "reader-observation",
+        "standard-accessibility"
+      ]
+    },
+    {
+      "key": "announced-changes",
+      "type": "requirement",
+      "title": "A change the reader did not type is announced",
+      "scope": "archivarius",
+      "category": "experience",
+      "rule": "A change the reader did not type - zoom, expansion, focus, a panel opening or closing, a load failing - is announced to assistive technology.",
+      "when": [
+        "The view changes without a keystroke that caused it directly."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "map",
+        "inspector",
+        "render"
+      ],
+      "sources": [
+        "reader-observation",
+        "standard-accessibility",
+        "standard-usability-heuristics"
+      ]
+    },
+    {
+      "key": "reader-settings",
+      "type": "requirement",
+      "title": "The reader owns motion, contrast, scheme and text size",
+      "scope": "archivarius",
+      "category": "experience",
+      "rule": "The map honours the reader motion, contrast, colour-scheme and text-size settings, and no fact is carried by colour alone.",
+      "when": [
+        "The map is rendered."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "render",
+        "map",
+        "inspector"
+      ],
+      "sources": [
+        "reader-observation",
+        "standard-accessibility"
+      ]
+    },
+    {
+      "key": "documented-failures",
+      "type": "requirement",
+      "title": "A failure can be caught and understood",
+      "scope": "archivarius",
+      "category": "product",
+      "rule": "Every failure the library raises carries a stable code, that code is listed in a shipped table with its cause and its remedy, and the declared type enumerates the codes instead of naming a bare string.",
+      "when": [
+        "The library refuses to load, validate, apply or render."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "core",
+        "node-api",
+        "cli",
+        "render"
+      ],
+      "sources": [
+        "consumer-intent",
+        "research-design-by-contract",
+        "standard-usability-heuristics"
+      ]
+    },
+    {
+      "key": "usable-from-the-readme",
+      "type": "requirement",
+      "title": "A consumer starts from the shipped documentation",
+      "scope": "archivarius",
+      "category": "product",
+      "rule": "A consumer can install the package, mount a map, style it and validate a model from the shipped documentation alone, without reading the source.",
+      "when": [
+        "A consumer adopts the library."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "render",
+        "node-api",
+        "cli"
+      ],
+      "sources": [
+        "consumer-intent"
+      ]
+    },
+    {
+      "key": "versioning-promise",
+      "type": "requirement",
+      "title": "What a version promises is written down",
+      "scope": "archivarius",
+      "category": "product",
+      "rule": "The package states its license, records every release in a changelog, and says which contract versions a package version accepts and what a contract change costs a consumer.",
+      "when": [
+        "A version is published."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "model",
+        "core"
+      ],
+      "sources": [
+        "consumer-intent",
+        "standard-contract-versioning"
+      ]
+    },
+    {
+      "key": "responsive-at-scale",
+      "type": "requirement",
+      "title": "A large model stays interactive",
+      "scope": "archivarius",
+      "category": "product",
+      "rule": "Layout and geometry run off the interface thread, only visible parts are mounted, and a model of the stated size reaches first paint and stays interactive within the stated budget.",
+      "when": [
+        "A model larger than one screen is loaded."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "render",
+        "map"
+      ],
+      "sources": [
+        "scale-observation",
+        "research-response-time",
+        "research-layered-layout"
+      ],
+      "parameters": {
+        "parts": 500,
+        "firstResponseMs": 100,
+        "interactiveMs": 1000,
+        "fullLayoutMs": 10000
+      }
+    },
+    {
+      "key": "bounded-input",
+      "type": "requirement",
+      "title": "Every read is bounded and cancellable",
+      "scope": "archivarius",
+      "category": "architecture",
+      "rule": "Every read bounds what it accepts - a size limit on input, a timeout on layout, a cap on concurrent artifact reads - and every bound is reported as a coded failure rather than a hang.",
+      "when": [
+        "Input is read from a file, a URL or a caller."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "core",
+        "render",
+        "evidence"
+      ],
+      "sources": [
+        "scale-observation"
+      ]
+    },
+    {
+      "key": "authoring-onboarding",
+      "type": "requirement",
+      "title": "Authoring starts from something valid",
+      "scope": "archivarius",
+      "category": "product",
+      "rule": "A new project starts from a generated skeleton, every record type has a template, a change can be rehearsed without writing, and every diagnostic names the field and the fix.",
+      "when": [
+        "A project is created or edited."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "cli",
+        "node-api"
+      ],
+      "sources": [
+        "consumer-intent"
+      ]
+    },
+    {
+      "key": "precise-bindings",
+      "type": "requirement",
+      "title": "A claim binds to what it rests on",
+      "scope": "archivarius",
+      "category": "product",
+      "rule": "A claim binds to the parts of the code it rests on - several files, and a range within a file - so an unrelated edit does not withdraw the confirmation.",
+      "when": [
+        "A record is bound to code."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "evidence",
+        "model"
+      ],
+      "sources": [
+        "contract-basis"
+      ]
+    },
+    {
+      "key": "scoped-freshness",
+      "type": "requirement",
+      "title": "Withdrawal follows dependency",
+      "scope": "archivarius",
+      "category": "product",
+      "rule": "A definition change withdraws confirmation from the records that depend on it, and a review confirms a subtree without re-reading the whole project.",
+      "when": [
+        "A definition changes."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "core",
+        "digest"
+      ],
+      "sources": [
+        "contract-basis"
+      ]
+    },
+    {
+      "key": "snapshot-diff",
+      "type": "requirement",
+      "title": "Two snapshots can be compared",
+      "scope": "archivarius",
+      "category": "product",
+      "rule": "Two snapshots of one project can be compared: what was added, removed, re-zoned, re-parented, re-confirmed or withdrawn, as a report and on the map.",
+      "when": [
+        "A snapshot is compared with an earlier one."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "cli",
+        "node-api",
+        "digest"
+      ],
+      "sources": [
+        "owner-intent"
+      ]
+    },
+    {
+      "key": "code-truth",
+      "type": "requirement",
+      "title": "A description is reconciled with the code",
+      "scope": "archivarius",
+      "category": "product",
+      "rule": "A described relation is reconciled against the dependency the code actually has: a declared edge that no longer exists and an existing edge nobody declared are both reported.",
+      "when": [
+        "Evidence is verified."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "evidence",
+        "model",
+        "cli"
+      ],
+      "sources": [
+        "code-truth-assumption"
+      ]
+    },
+    {
+      "key": "attributable-records",
+      "type": "requirement",
+      "title": "A claim can be aged and questioned",
+      "scope": "archivarius",
+      "category": "product",
+      "rule": "Every record states when it was last changed and by whom or what, so a claim can be aged, attributed and questioned.",
+      "when": [
+        "A record is written."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "model",
+        "core"
+      ],
+      "sources": [
+        "owner-intent"
+      ]
+    },
+    {
+      "key": "executable-checks",
+      "type": "requirement",
+      "title": "An outcome comes from running something",
+      "scope": "archivarius",
+      "category": "architecture",
+      "rule": "A check declares the command that proves it, an outcome is written only by running that command, and a hand-written pass is refused.",
+      "when": [
+        "A check outcome is recorded."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "evidence",
+        "cli"
+      ],
+      "sources": [
+        "contract-basis"
+      ]
+    },
+    {
+      "key": "literal-content",
+      "type": "requirement",
+      "title": "Model content is inert",
+      "scope": "archivarius",
+      "category": "architecture",
+      "rule": "Model content renders as literal text: no executable markup, no active-content links, and no request outside the declared model and asset reads.",
+      "when": [
+        "Model content is rendered."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "render",
+        "map",
+        "inspector"
+      ],
+      "sources": [
+        "contract-basis",
+        "standard-usability-heuristics"
+      ]
+    },
+    {
+      "key": "layer-boundaries",
+      "type": "requirement",
+      "title": "Imports point down one table",
+      "scope": "archivarius",
+      "category": "architecture",
+      "rule": "Imports point down one layer table and never form a cycle, and the browser surface performs no file or network access outside its single loader.",
+      "when": [
+        "A module is added or moved."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "model",
+        "core",
+        "render",
+        "node-api"
+      ],
+      "sources": [
+        "self-description",
+        "research-module-criteria"
+      ]
+    },
+    {
+      "key": "generated-documents-agree",
+      "type": "requirement",
+      "title": "Every document is generated",
+      "scope": "archivarius",
+      "category": "architecture",
+      "rule": "Every shipped document is generated from the snapshot and regenerating it in place is a no-op; drift fails the check instead of being repaired by hand.",
+      "when": [
+        "A document is generated or checked."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "node-api",
+        "cli",
+        "model"
+      ],
+      "sources": [
+        "self-description",
+        "research-view-model"
+      ]
+    },
+    {
+      "key": "english-only",
+      "type": "requirement",
+      "title": "English is the only language",
+      "scope": "archivarius",
+      "category": "exclusion",
+      "rule": "The library ships English copy only: no locale parameter, no translation table beyond the shipped copy, and the mounted subtree states its language.",
+      "when": [
+        "Copy is read or rendered."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "render",
+        "inspector"
+      ],
+      "sources": [
+        "owner-intent"
+      ]
+    },
+    {
+      "key": "exportable-elsewhere",
+      "type": "requirement",
+      "title": "A snapshot can leave the library",
+      "scope": "archivarius",
+      "category": "product",
+      "rule": "A snapshot leaves the library as a standalone diagram, a self-contained page and an image, each generated from the same projection the map draws.",
+      "when": [
+        "A snapshot is published outside the map."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "node-api",
+        "cli"
+      ],
+      "sources": [
+        "consumer-intent"
+      ]
+    },
+    {
+      "key": "searchable-model",
+      "type": "requirement",
+      "title": "A part can be found by name",
+      "scope": "archivarius",
+      "category": "experience",
+      "rule": "A reader finds a part by name from the map itself and the map moves to it, and a filter hides what is out of scope rather than only dimming it.",
+      "when": [
+        "A reader looks for a part."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "map",
+        "inspector"
+      ],
+      "sources": [
+        "owner-intent",
+        "research-visual-taxonomy"
+      ]
+    },
+    {
+      "key": "answers-about-change",
+      "type": "requirement",
+      "title": "The map answers where an effect reaches",
+      "scope": "archivarius",
+      "category": "product",
+      "rule": "The map answers where the effects of a part reach: the path between two parts, the transitive dependents of one, and the cycles between them.",
+      "when": [
+        "A reader asks what a change touches."
+      ],
+      "exceptions": [],
+      "appliesTo": [
+        "map",
+        "inspector",
+        "core"
+      ],
+      "sources": [
+        "owner-intent",
+        "research-fisheye",
+        "research-view-model"
+      ]
+    },
+    {
+      "key": "semantic-zoom-c",
+      "type": "criterion",
+      "title": "Expansion follows the threshold",
+      "scope": "archivarius",
+      "requirement": "semantic-zoom",
+      "assertion": "A container expands into its children when its box crosses the threshold and collapses back with hysteresis, and the map states which level is shown."
+    },
+    {
+      "key": "addressable-view-c",
+      "type": "criterion",
+      "title": "A link restores the view",
+      "scope": "archivarius",
+      "requirement": "addressable-view",
+      "assertion": "Opening a shared link restores the focus, the expanded containers and the open panel, and the map exports the current view as a vector and a raster image."
+    },
+    {
+      "key": "keyboard-complete-c",
+      "type": "criterion",
+      "title": "No action needs a pointer",
+      "scope": "archivarius",
+      "requirement": "keyboard-complete",
+      "assertion": "Every control and every part is reachable and operable by keyboard, the map is one tab stop with traversal inside it, and closing a panel returns focus to its opener."
+    },
+    {
+      "key": "announced-changes-c",
+      "type": "criterion",
+      "title": "Untyped changes reach assistive technology",
+      "scope": "archivarius",
+      "requirement": "announced-changes",
+      "assertion": "A zoom, expansion, focus, panel or failure change is published to a live region naming the new state."
+    },
+    {
+      "key": "reader-settings-c",
+      "type": "criterion",
+      "title": "Reader settings survive the map",
+      "scope": "archivarius",
+      "requirement": "reader-settings",
+      "assertion": "With reduced motion, forced colours, a dark scheme or doubled text size the map stays usable, and every zone, kind and relation kind reads without colour."
+    },
+    {
+      "key": "documented-failures-c",
+      "type": "criterion",
+      "title": "Every code is documented and typed",
+      "scope": "archivarius",
+      "requirement": "documented-failures",
+      "assertion": "Every code the library can throw appears in the shipped code table and in the declared code union, and no undocumented code is reachable."
+    },
+    {
+      "key": "usable-from-the-readme-c",
+      "type": "criterion",
+      "title": "A consumer mounts from the docs",
+      "scope": "archivarius",
+      "requirement": "usable-from-the-readme",
+      "assertion": "The shipped documentation carries install, mount, stylesheet, asset-path and validation instructions that run as written."
+    },
+    {
+      "key": "versioning-promise-c",
+      "type": "criterion",
+      "title": "A release states what it promises",
+      "scope": "archivarius",
+      "requirement": "versioning-promise",
+      "assertion": "The package ships a license and a changelog entry per version and states the contract versions it accepts."
+    },
+    {
+      "key": "responsive-at-scale-c",
+      "type": "criterion",
+      "title": "A stated size stays interactive",
+      "scope": "archivarius",
+      "requirement": "responsive-at-scale",
+      "assertion": "At the stated node count layout runs off the interface thread, only visible parts are mounted, and first paint and interaction stay inside the budget."
+    },
+    {
+      "key": "bounded-input-c",
+      "type": "criterion",
+      "title": "A bound is reported, not hit silently",
+      "scope": "archivarius",
+      "requirement": "bounded-input",
+      "assertion": "An input over the size limit, a layout over the timeout and an aborted read each fail with their own code and leave no work running."
+    },
+    {
+      "key": "authoring-onboarding-c",
+      "type": "criterion",
+      "title": "Authoring starts and fails helpfully",
+      "scope": "archivarius",
+      "requirement": "authoring-onboarding",
+      "assertion": "A generated skeleton validates, every record type has a template, a rehearsed change writes nothing, and every diagnostic names the field and the fix."
+    },
+    {
+      "key": "precise-bindings-c",
+      "type": "criterion",
+      "title": "A binding narrows to what it claims",
+      "scope": "archivarius",
+      "requirement": "precise-bindings",
+      "assertion": "A record binds several files and a range within a file, and an edit outside every bound range leaves the confirmation standing."
+    },
+    {
+      "key": "scoped-freshness-c",
+      "type": "criterion",
+      "title": "Withdrawal is proportionate",
+      "scope": "archivarius",
+      "requirement": "scoped-freshness",
+      "assertion": "A definition change withdraws only dependent records, and a subtree review restores currency without touching unrelated records."
+    },
+    {
+      "key": "snapshot-diff-c",
+      "type": "criterion",
+      "title": "A comparison names what moved",
+      "scope": "archivarius",
+      "requirement": "snapshot-diff",
+      "assertion": "Comparing two snapshots reports each added, removed, re-parented, re-zoned and re-confirmed record, and the map can show the difference."
+    },
+    {
+      "key": "code-truth-c",
+      "type": "criterion",
+      "title": "Declared and actual edges are reconciled",
+      "scope": "archivarius",
+      "requirement": "code-truth",
+      "assertion": "Verification reports every declared relation the code no longer has and every dependency the code has that no record declares."
+    },
+    {
+      "key": "attributable-records-c",
+      "type": "criterion",
+      "title": "A record carries its age and author",
+      "scope": "archivarius",
+      "requirement": "attributable-records",
+      "assertion": "Every record states its last change time and author, and both survive a round trip through apply and archive."
+    },
+    {
+      "key": "executable-checks-c",
+      "type": "criterion",
+      "title": "Only a run can pass a check",
+      "scope": "archivarius",
+      "requirement": "executable-checks",
+      "assertion": "A check without a command is refused, and an outcome written without a matching execution artifact does not confirm."
+    },
+    {
+      "key": "literal-content-c",
+      "type": "criterion",
+      "title": "Content cannot act",
+      "scope": "archivarius",
+      "requirement": "literal-content",
+      "assertion": "Model content renders as text with no executable markup or active link, and no request leaves the surface beyond the declared model and asset reads."
+    },
+    {
+      "key": "layer-boundaries-c",
+      "type": "criterion",
+      "title": "The import graph stays a directed layer table",
+      "scope": "archivarius",
+      "requirement": "layer-boundaries",
+      "assertion": "The import graph is acyclic and points down the layer table, and no module outside the loader reads a file or the network."
+    },
+    {
+      "key": "generated-documents-agree-c",
+      "type": "criterion",
+      "title": "Regeneration is a no-op",
+      "scope": "archivarius",
+      "requirement": "generated-documents-agree",
+      "assertion": "Regenerating every shipped document leaves the bytes unchanged, and a hand edit is reported as drift."
+    },
+    {
+      "key": "english-only-c",
+      "type": "criterion",
+      "title": "One language ships",
+      "scope": "archivarius",
+      "requirement": "english-only",
+      "assertion": "The shipped copy declares English, no exported function takes a locale, and the mounted subtree states its language."
+    },
+    {
+      "key": "exportable-elsewhere-c",
+      "type": "criterion",
+      "title": "A snapshot renders outside the map",
+      "scope": "archivarius",
+      "requirement": "exportable-elsewhere",
+      "assertion": "A standalone diagram, a self-contained page and an image are generated from the projection and open without the library."
+    },
+    {
+      "key": "searchable-model-c",
+      "type": "criterion",
+      "title": "Search moves the map",
+      "scope": "archivarius",
+      "requirement": "searchable-model",
+      "assertion": "Searching from the map finds a part by name and moves the view to it, and a filter removes out-of-scope parts from the canvas."
+    },
+    {
+      "key": "answers-about-change-c",
+      "type": "criterion",
+      "title": "Reach is answered on the map",
+      "scope": "archivarius",
+      "requirement": "answers-about-change",
+      "assertion": "The map reports the path between two parts, the transitive dependents of a part and any cycle among them."
+    },
+    {
+      "key": "research-fisheye",
+      "type": "source",
+      "scope": "archivarius",
+      "title": "Detail as a function of interest",
+      "origin": "observation",
+      "statement": "Furnas, Generalized Fisheye Views, CHI 1986 (https://doi.org/10.1145/22627.22342): a display that holds full detail near the point of interest and degrades it with distance shows a structure larger than the screen, so how much detail a part gets is a function of interest rather than a separate view the reader has to open."
+    },
+    {
+      "key": "research-zoomable-surface",
+      "type": "source",
+      "scope": "archivarius",
+      "title": "One zoomable surface with representations that change",
+      "origin": "observation",
+      "statement": "Perlin and Fox, Pad, SIGGRAPH 1993 (https://doi.org/10.1145/166117.166125), and Bederson and Hollan, Pad++, UIST 1994 (https://doi.org/10.1145/192426.192435): on one continuous zoomable surface an object may change its representation at a size threshold - semantic zoom - which replaces a stack of separate diagrams with a single space."
+    },
+    {
+      "key": "research-zoom-review",
+      "type": "source",
+      "scope": "archivarius",
+      "title": "Zooming alone loses the context it hides",
+      "origin": "observation",
+      "statement": "Cockburn, Karlson and Bederson, A Review of Overview+Detail, Zooming, and Focus+Context Interfaces, ACM Computing Surveys 2009 (https://doi.org/10.1145/1456650.1456652): pure zooming costs the reader the surrounding context and the memory of where they were, so a zoomable map owes them an overview and a way back to a named position."
+    },
+    {
+      "key": "research-visual-taxonomy",
+      "type": "source",
+      "scope": "archivarius",
+      "title": "The tasks a reader of a structure performs",
+      "origin": "observation",
+      "statement": "Shneiderman, The Eyes Have It, IEEE Symposium on Visual Languages 1996 (https://doi.org/10.1109/VL.1996.545307): overview first, zoom and filter, details on demand, then relate, history and extract - seven tasks, and a viewer that omits one of them leaves the reader without a move."
+    },
+    {
+      "key": "research-notation-physics",
+      "type": "source",
+      "scope": "archivarius",
+      "title": "A notation is judged by its visual variables",
+      "origin": "observation",
+      "statement": "Moody, The Physics of Notations, IEEE Transactions on Software Engineering 2009 (https://doi.org/10.1109/TSE.2009.67): a visual notation is judged by perceptual discriminability, dual coding and one symbol per concept, so shape, outline and tone must carry a meaning together instead of colour carrying it alone."
+    },
+    {
+      "key": "research-graphical-perception",
+      "type": "source",
+      "scope": "archivarius",
+      "title": "Geometry is read more accurately than hue",
+      "origin": "observation",
+      "statement": "Cleveland and McGill, Graphical Perception, Journal of the American Statistical Association 1984 (https://doi.org/10.1080/01621459.1984.10478080): position and length are decoded more accurately than area or colour, so anything a reader must compare belongs in geometry and colour stays a label."
+    },
+    {
+      "key": "research-secondary-notation",
+      "type": "source",
+      "scope": "archivarius",
+      "title": "Layout says things the notation never states",
+      "origin": "observation",
+      "statement": "Petre, Why Looking Isn't Always Seeing, Communications of the ACM 1995 (https://doi.org/10.1145/203241.203251): arrangement carries meaning the notation never states and only a practised reader sees it, so a generated picture must not let accidental placement stand in for a stated fact."
+    },
+    {
+      "key": "research-layered-layout",
+      "type": "source",
+      "scope": "archivarius",
+      "title": "Hierarchical layout is a solved, stated algorithm",
+      "origin": "observation",
+      "statement": "Sugiyama, Tagawa and Toda, Methods for Visual Understanding of Hierarchical System Structures, IEEE Transactions on Systems, Man, and Cybernetics 1981 (https://doi.org/10.1109/TSMC.1981.4308636), shipped as the layered algorithm this library asks ELK for (https://eclipse.dev/elk/reference/algorithms/org-eclipse-elk-layered.html): layer assignment, crossing reduction and straightening make a dependency graph readable without anybody placing a box by hand."
+    },
+    {
+      "key": "research-response-time",
+      "type": "source",
+      "scope": "archivarius",
+      "title": "Three response budgets a reader can feel",
+      "origin": "observation",
+      "statement": "Card, Robertson and Mackinlay, The Information Visualizer, CHI 1991 (https://doi.org/10.1145/108844.108874): 0.1 second reads as a direct response, 1 second keeps a train of thought unbroken and 10 seconds is the limit of held attention - the budgets any layout sharing the interface thread has to fit."
+    },
+    {
+      "key": "research-view-model",
+      "type": "source",
+      "scope": "archivarius",
+      "title": "One architecture, several views",
+      "origin": "observation",
+      "statement": "Kruchten, The 4+1 View Model of Architecture, IEEE Software 1995 (https://doi.org/10.1109/52.469759): one architecture is described by several views written for different concerns, so several documents rendered from one snapshot answer more than a single diagram trying to answer everything."
+    },
+    {
+      "key": "research-module-criteria",
+      "type": "source",
+      "scope": "archivarius",
+      "title": "A module hides a decision",
+      "origin": "observation",
+      "statement": "Parnas, On the Criteria to Be Used in Decomposing Systems into Modules, Communications of the ACM 1972 (https://doi.org/10.1145/361598.361623): a module exists to hide a decision behind its interface, which makes a layer table and a one-way import rule part of the description of the design rather than a lint preference."
+    },
+    {
+      "key": "research-design-by-contract",
+      "type": "source",
+      "scope": "archivarius",
+      "title": "A rejection names the rule it broke",
+      "origin": "observation",
+      "statement": "Meyer, Applying 'Design by Contract', IEEE Computer 1992 (https://doi.org/10.1109/2.161279): a component states its precondition, so a caller that violates one can be told which obligation it missed instead of receiving an anonymous failure."
+    },
+    {
+      "key": "standard-accessibility",
+      "type": "source",
+      "scope": "archivarius",
+      "title": "Accessibility is a stated conformance list",
+      "origin": "observation",
+      "statement": "W3C, Web Content Accessibility Guidelines 2.2 (https://www.w3.org/TR/WCAG22/), with the ARIA Authoring Practices Guide (https://www.w3.org/WAI/ARIA/apg/): keyboard operation, a cue that is not colour alone, contrast, reflow, a respected motion preference and an announced status change are numbered success criteria and named widget patterns, not matters of taste."
+    },
+    {
+      "key": "standard-usability-heuristics",
+      "type": "source",
+      "scope": "archivarius",
+      "title": "Status and errors in the reader’s language",
+      "origin": "observation",
+      "statement": "Nielsen, 10 Usability Heuristics for User Interface Design (https://www.nngroup.com/articles/ten-usability-heuristics/): visibility of system status, user control, and error messages that state the problem in plain language and suggest a remedy."
+    },
+    {
+      "key": "standard-contract-versioning",
+      "type": "source",
+      "scope": "archivarius",
+      "title": "A dated dialect and a graded change",
+      "origin": "observation",
+      "statement": "JSON Schema 2020-12 (https://json-schema.org/draft/2020-12/json-schema-core) and Semantic Versioning 2.0.0 (https://semver.org/spec/v2.0.0.html): the contract is declared in a dated dialect and every change to it is graded, so a consumer can tell an addition from a removal before upgrading."
+    },
+    {
+      "key": "standard-architecture-model",
+      "type": "source",
+      "scope": "archivarius",
+      "title": "A diagram is defined by its level and its audience",
+      "origin": "observation",
+      "statement": "Brown, the C4 model for visualising software architecture (https://c4model.com/): context, container, component and code are levels of one description with different audiences, which is what a zoom threshold has to correspond to if the map is to replace them."
+    },
+    {
+      "key": "redundant-encoding",
+      "type": "requirement",
+      "title": "No fact is carried by colour alone",
+      "scope": "archivarius",
+      "category": "experience",
+      "rule": "Every distinction the map or a generated diagram draws - zone, kind, interaction, selection, staleness - is carried by at least two of tone, shape, outline, line and text, and the text form alone is enough to read it.",
+      "when": [
+        "A node, a relation or a state is drawn in the map or in a generated diagram."
+      ],
+      "exceptions": [
+        "A purely decorative surface that states no model fact."
+      ],
+      "appliesTo": [
+        "render",
+        "map",
+        "inspector"
+      ],
+      "sources": [
+        "research-notation-physics",
+        "research-graphical-perception",
+        "research-secondary-notation",
+        "standard-accessibility",
+        "reader-observation"
+      ]
+    },
+    {
+      "key": "redundant-encoding-c",
+      "type": "criterion",
+      "title": "A second channel exists for every distinction",
+      "scope": "archivarius",
+      "requirement": "redundant-encoding",
+      "assertion": "For each value of every drawn contract enum the appearance table names a non-colour channel as well as a tone, and the panel states the same value in words."
+    },
+    {
+      "key": "layered-layout",
+      "type": "decision",
+      "title": "Ask for a layered graph rather than place boxes",
+      "scope": "archivarius",
+      "topic": "graph-layout",
+      "choice": "Compute geometry with the ELK layered algorithm - the Sugiyama pipeline - loaded on demand, and treat its output as the only source of position and size.",
+      "alternatives": [
+        "Store coordinates in the snapshot and let an author place each box.",
+        "Use a force-directed layout."
+      ],
+      "because": "A dependency graph read top to bottom needs layer assignment and crossing reduction, both solved by a stated algorithm, and hand-placed coordinates would make arrangement a fact nobody validates.",
+      "consequences": [
+        "Layout cost grows with the model, so it has to move off the interface thread to keep the response budget.",
+        "A reader cannot nudge a box; a bad reading is fixed by changing the model or the layout options."
+      ],
+      "affects": [
+        "render",
+        "map"
+      ],
+      "uses": [
+        "responsive-at-scale",
+        "semantic-zoom"
+      ],
+      "basis": null
+    },
+    {
+      "key": "read-a-structure",
+      "type": "scenario",
+      "title": "Read a system nobody explained",
+      "scope": "archivarius",
+      "actor": "An owner new to the system",
+      "given": [
+        "A validated snapshot of a system with more parts than fit on one screen is mounted."
+      ],
+      "steps": [
+        "Read the overview and the stated level.",
+        "Search for a part by name.",
+        "Zoom it past its threshold until its children appear in place.",
+        "Follow one relation to a neighbour and read the closure of what a change to it reaches.",
+        "Copy the address and open it again in a new tab."
+      ],
+      "uses": [
+        "semantic-zoom",
+        "searchable-model",
+        "answers-about-change",
+        "addressable-view",
+        "responsive-at-scale"
+      ],
+      "then": [
+        "semantic-zoom-c",
+        "searchable-model-c",
+        "answers-about-change-c",
+        "addressable-view-c",
+        "responsive-at-scale-c"
+      ],
+      "failures": [
+        "A name that matches nothing states so instead of clearing the map.",
+        "An address naming an absent record is refused with a stated failure."
+      ]
+    },
+    {
+      "key": "read-without-a-mouse",
+      "type": "scenario",
+      "title": "Read the map with a keyboard and a screen reader",
+      "scope": "archivarius",
+      "actor": "A reader using a keyboard, a screen reader and a reduced-motion setting",
+      "given": [
+        "A validated snapshot is mounted in a browser with the reader’s own settings."
+      ],
+      "steps": [
+        "Reach the map by tab and traverse it by arrow key.",
+        "Select a part and read the panel.",
+        "Change the level and hear what changed.",
+        "Enlarge the text until the page reflows to one column."
+      ],
+      "uses": [
+        "keyboard-complete",
+        "announced-changes",
+        "reader-settings",
+        "redundant-encoding"
+      ],
+      "then": [
+        "keyboard-complete-c",
+        "announced-changes-c",
+        "reader-settings-c",
+        "redundant-encoding-c"
+      ],
+      "failures": [
+        "A part reachable by pointer but not by key fails the run."
+      ]
+    },
+    {
+      "key": "adopt-the-library",
+      "type": "scenario",
+      "title": "Install it and mount a first map",
+      "scope": "archivarius",
+      "actor": "A consuming team",
+      "given": [
+        "Only the published package and its generated documentation are available."
+      ],
+      "steps": [
+        "Follow the shipped page to install the package.",
+        "Write a first snapshot from the starting template.",
+        "Mount the map in an application and feed it that snapshot.",
+        "Break the snapshot on purpose and read the failure.",
+        "Upgrade to the next version and read what the version promised."
+      ],
+      "uses": [
+        "usable-from-the-readme",
+        "authoring-onboarding",
+        "documented-failures",
+        "versioning-promise",
+        "bounded-input"
+      ],
+      "then": [
+        "usable-from-the-readme-c",
+        "authoring-onboarding-c",
+        "documented-failures-c",
+        "versioning-promise-c",
+        "bounded-input-c"
+      ],
+      "failures": [
+        "An input past the stated bounds is rejected by name, not by exhaustion.",
+        "A snapshot from a newer major contract is refused with the grade of the difference."
+      ]
+    },
+    {
+      "key": "confirm-a-claim",
+      "type": "scenario",
+      "title": "Confirm, withdraw and compare",
+      "scope": "archivarius",
+      "actor": "An owner auditing the description",
+      "given": [
+        "A snapshot with recorded outcomes and bound parts is loaded."
+      ],
+      "steps": [
+        "Run a check and store its output as evidence.",
+        "Change one definition and read what lost its basis and why.",
+        "Read the described part against the file it binds to.",
+        "Compare the snapshot with the previous release.",
+        "Export the result for a tool outside the library."
+      ],
+      "uses": [
+        "executable-checks",
+        "scoped-freshness",
+        "precise-bindings",
+        "code-truth",
+        "snapshot-diff",
+        "attributable-records",
+        "exportable-elsewhere",
+        "byte-exact-evidence"
+      ],
+      "then": [
+        "executable-checks-c",
+        "scoped-freshness-c",
+        "precise-bindings-c",
+        "code-truth-c",
+        "snapshot-diff-c",
+        "attributable-records-c",
+        "exportable-elsewhere-c",
+        "byte-exact-evidence-c"
+      ],
+      "failures": [
+        "An outcome with no recorded run is refused.",
+        "Moved bytes ask for a reading instead of staying confirmed."
+      ]
+    },
+    {
+      "key": "generate-the-documents",
+      "type": "scenario",
+      "title": "Regenerate every document",
+      "scope": "archivarius",
+      "actor": "An LLM agent",
+      "given": [
+        "A validated snapshot and the committed generated documents are present."
+      ],
+      "steps": [
+        "Regenerate the landing page, the reference and every diagram.",
+        "Parse each diagram with the renderer that will draw it.",
+        "Compare the result with the committed files.",
+        "Confirm a record carrying markup is drawn as text."
+      ],
+      "uses": [
+        "generated-documents-agree",
+        "literal-content",
+        "english-only",
+        "exportable-elsewhere"
+      ],
+      "then": [
+        "generated-documents-agree-c",
+        "literal-content-c",
+        "english-only-c",
+        "exportable-elsewhere-c"
+      ],
+      "failures": [
+        "Any drift between the model and a committed document fails the run."
+      ]
+    },
+    {
+      "key": "task-zoom-levels",
+      "type": "task",
+      "title": "Levels a reader can name",
+      "scope": "archivarius",
+      "change": "Give the map named zoom levels that correspond to abstraction, expand a container with hysteresis at its threshold, and state which level is shown.",
+      "affects": [
+        "map",
+        "render"
+      ],
+      "covers": [
+        "semantic-zoom-c"
+      ],
+      "needs": [],
+      "uses": [
+        "semantic-zoom",
+        "standard-architecture-model",
+        "research-zoomable-surface"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-overview-and-return",
+      "type": "task",
+      "title": "An overview and a way back",
+      "scope": "archivarius",
+      "change": "Add a constant overview of the whole snapshot beside the detail, and a return to the previous position, so zooming never loses the surrounding context.",
+      "affects": [
+        "map"
+      ],
+      "covers": [
+        "semantic-zoom-c",
+        "addressable-view-c"
+      ],
+      "needs": [
+        "task-zoom-levels"
+      ],
+      "uses": [
+        "research-zoom-review",
+        "semantic-zoom"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-addressable-state",
+      "type": "task",
+      "title": "The view lives in the address",
+      "scope": "archivarius",
+      "change": "Encode selection, zoom, level and filters in the address, restore them on load, and reject an address that names a record the snapshot does not hold.",
+      "affects": [
+        "map",
+        "inspector",
+        "render"
+      ],
+      "covers": [
+        "addressable-view-c"
+      ],
+      "needs": [],
+      "uses": [
+        "addressable-view",
+        "documented-failures"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-search-every-version",
+      "type": "task",
+      "title": "Search that does not depend on the contract version",
+      "scope": "archivarius",
+      "change": "Search records by name, type and zone through the model layer for every contract version the library accepts, instead of matching one version in the header component.",
+      "affects": [
+        "map",
+        "inspector",
+        "core"
+      ],
+      "covers": [
+        "searchable-model-c"
+      ],
+      "needs": [],
+      "uses": [
+        "searchable-model",
+        "research-visual-taxonomy"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-filter-and-relate",
+      "type": "task",
+      "title": "Filter, then relate",
+      "scope": "archivarius",
+      "change": "Filter the map by zone, kind and interaction kind, and highlight the neighbours of a selected part so a relation can be followed without reading every box.",
+      "affects": [
+        "map",
+        "inspector"
+      ],
+      "covers": [
+        "searchable-model-c",
+        "answers-about-change-c"
+      ],
+      "needs": [
+        "task-search-every-version"
+      ],
+      "uses": [
+        "searchable-model",
+        "research-visual-taxonomy"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-impact-closure",
+      "type": "task",
+      "title": "What a change reaches",
+      "scope": "archivarius",
+      "change": "Compute the upstream and downstream closure of a selected record in the model layer and draw it, so the map answers where an effect reaches.",
+      "affects": [
+        "core",
+        "graph",
+        "map",
+        "inspector"
+      ],
+      "covers": [
+        "answers-about-change-c"
+      ],
+      "needs": [],
+      "uses": [
+        "answers-about-change",
+        "research-fisheye"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-layer-separation",
+      "type": "task",
+      "title": "A layer is a view, not a dimming",
+      "scope": "archivarius",
+      "change": "Make a chosen layer a real projection - the parts of that zone with their relations - rather than a translucency over everything else.",
+      "affects": [
+        "map",
+        "render"
+      ],
+      "covers": [
+        "semantic-zoom-c",
+        "redundant-encoding-c"
+      ],
+      "needs": [],
+      "uses": [
+        "semantic-zoom",
+        "research-view-model"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-second-channel",
+      "type": "task",
+      "title": "Never colour alone",
+      "scope": "archivarius",
+      "change": "Give every drawn contract enum value a non-colour channel in the appearance table, name the value in words in the panel, and fail the suite when a value has only a tone.",
+      "affects": [
+        "render",
+        "map",
+        "inspector"
+      ],
+      "covers": [
+        "redundant-encoding-c"
+      ],
+      "needs": [],
+      "uses": [
+        "redundant-encoding",
+        "shared-appearance",
+        "research-notation-physics"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-generated-legend",
+      "type": "task",
+      "title": "A legend that cannot drift",
+      "scope": "archivarius",
+      "change": "Render the legend for the map and the generated diagram from the appearance table, so a new enum value appears in it without anybody writing it down.",
+      "affects": [
+        "render",
+        "map"
+      ],
+      "covers": [
+        "redundant-encoding-c",
+        "generated-documents-agree-c"
+      ],
+      "needs": [
+        "task-second-channel"
+      ],
+      "uses": [
+        "redundant-encoding",
+        "shared-appearance"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-layout-off-thread",
+      "type": "task",
+      "title": "Layout leaves the interface thread",
+      "scope": "archivarius",
+      "change": "Run ELK in a worker, keep the last good geometry while a new one is computed, and cancel a superseded layout.",
+      "affects": [
+        "render",
+        "map"
+      ],
+      "covers": [
+        "responsive-at-scale-c"
+      ],
+      "needs": [],
+      "uses": [
+        "responsive-at-scale",
+        "layered-layout",
+        "research-response-time"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-virtualized-map",
+      "type": "task",
+      "title": "Mount what is visible",
+      "scope": "archivarius",
+      "change": "Mount only the parts inside or near the viewport and release the rest, so a hundreds-of-parts model does not keep every node alive.",
+      "affects": [
+        "map",
+        "render"
+      ],
+      "covers": [
+        "responsive-at-scale-c"
+      ],
+      "needs": [
+        "task-layout-off-thread"
+      ],
+      "uses": [
+        "responsive-at-scale",
+        "scale-observation"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-response-budget",
+      "type": "task",
+      "title": "Measure the budget, do not assert it",
+      "scope": "archivarius",
+      "change": "Add a harness that loads a generated model of the stated size and records first response, interactive and full-layout times against the stated parameters.",
+      "affects": [
+        "render",
+        "map"
+      ],
+      "covers": [
+        "responsive-at-scale-c",
+        "executable-checks-c"
+      ],
+      "needs": [
+        "task-layout-off-thread"
+      ],
+      "uses": [
+        "responsive-at-scale",
+        "research-response-time"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-cancellable-reads",
+      "type": "task",
+      "title": "Every read can be abandoned",
+      "scope": "archivarius",
+      "change": "Thread an abort signal through load, parse and layout, and stop the work when the caller withdraws.",
+      "affects": [
+        "core",
+        "render",
+        "model-source"
+      ],
+      "covers": [
+        "bounded-input-c"
+      ],
+      "needs": [],
+      "uses": [
+        "bounded-input"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-stated-limits",
+      "type": "task",
+      "title": "Limits with a name",
+      "scope": "archivarius",
+      "change": "State the accepted bounds - bytes, records, depth, relation count - and reject anything past them with a named failure rather than an exhausted tab.",
+      "affects": [
+        "core",
+        "model-source"
+      ],
+      "covers": [
+        "bounded-input-c",
+        "documented-failures-c"
+      ],
+      "needs": [],
+      "uses": [
+        "bounded-input",
+        "research-design-by-contract"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-keyboard-map",
+      "type": "task",
+      "title": "The map under a keyboard",
+      "scope": "archivarius",
+      "change": "Make the map a single tab stop with arrow traversal, enter to select, escape to leave a container, and the same reach a pointer has.",
+      "affects": [
+        "map",
+        "inspector"
+      ],
+      "covers": [
+        "keyboard-complete-c"
+      ],
+      "needs": [],
+      "uses": [
+        "keyboard-complete",
+        "standard-accessibility"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-visible-focus",
+      "type": "task",
+      "title": "Focus that can be seen",
+      "scope": "archivarius",
+      "change": "Give every interactive element a visible focus ring that survives a high-contrast theme, and add the landmarks and headings a reader jumps between.",
+      "affects": [
+        "map",
+        "inspector",
+        "render"
+      ],
+      "covers": [
+        "keyboard-complete-c",
+        "redundant-encoding-c"
+      ],
+      "needs": [
+        "task-keyboard-map"
+      ],
+      "uses": [
+        "keyboard-complete",
+        "standard-accessibility"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-announcements",
+      "type": "task",
+      "title": "Say what changed",
+      "scope": "archivarius",
+      "change": "Announce a loaded model, a selection, a level change and a failure through a live region, so a change the reader did not type is not silent.",
+      "affects": [
+        "map",
+        "inspector",
+        "render"
+      ],
+      "covers": [
+        "announced-changes-c"
+      ],
+      "needs": [],
+      "uses": [
+        "announced-changes",
+        "standard-accessibility",
+        "standard-usability-heuristics"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-reader-preferences",
+      "type": "task",
+      "title": "The reader owns the surface",
+      "scope": "archivarius",
+      "change": "Honour reduced motion, forced colours, colour scheme and text zoom, and keep the map usable when the page reflows to one column.",
+      "affects": [
+        "render",
+        "map",
+        "inspector"
+      ],
+      "covers": [
+        "reader-settings-c"
+      ],
+      "needs": [],
+      "uses": [
+        "reader-settings",
+        "standard-accessibility"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-accessibility-harness",
+      "type": "task",
+      "title": "An accessibility failure fails the build",
+      "scope": "archivarius",
+      "change": "Run an accessibility audit and a keyboard walk-through in the browser harness and fail on a violation instead of on a screenshot review.",
+      "affects": [
+        "render",
+        "map",
+        "inspector"
+      ],
+      "covers": [
+        "keyboard-complete-c",
+        "announced-changes-c",
+        "reader-settings-c"
+      ],
+      "needs": [
+        "task-keyboard-map",
+        "task-announcements",
+        "task-reader-preferences"
+      ],
+      "uses": [
+        "standard-accessibility",
+        "executable-checks"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-failure-catalogue",
+      "type": "task",
+      "title": "One table of failures",
+      "scope": "archivarius",
+      "change": "Generate a table of every failure code with what it means and what to do, from the same module that raises them, and publish it in the shipped documentation.",
+      "affects": [
+        "core",
+        "node-api",
+        "cli"
+      ],
+      "covers": [
+        "documented-failures-c",
+        "generated-documents-agree-c"
+      ],
+      "needs": [],
+      "uses": [
+        "documented-failures",
+        "standard-usability-heuristics",
+        "research-design-by-contract"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-failure-on-screen",
+      "type": "task",
+      "title": "A failure is a picture, not an empty frame",
+      "scope": "archivarius",
+      "change": "Show a rejected or unreachable model as a stated failure inside the mounted surface, with the code, the record and the remedy.",
+      "affects": [
+        "render",
+        "map"
+      ],
+      "covers": [
+        "documented-failures-c",
+        "announced-changes-c"
+      ],
+      "needs": [
+        "task-failure-catalogue"
+      ],
+      "uses": [
+        "documented-failures",
+        "standard-usability-heuristics"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-quickstart",
+      "type": "task",
+      "title": "Start from the shipped page",
+      "scope": "archivarius",
+      "change": "Generate the install, mount and first-failure walk-through from the model, with the exact commands and the mounting snippet a consumer copies.",
+      "affects": [
+        "cli",
+        "node-api",
+        "render"
+      ],
+      "covers": [
+        "usable-from-the-readme-c",
+        "generated-documents-agree-c"
+      ],
+      "needs": [],
+      "uses": [
+        "usable-from-the-readme",
+        "generated-documents-agree"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-public-surface",
+      "type": "task",
+      "title": "What a version promises",
+      "scope": "archivarius",
+      "change": "Write down which exports, contract fields and asset paths are public, what a minor and a major change may do to them, and check the package against that list.",
+      "affects": [
+        "model",
+        "core",
+        "node-api"
+      ],
+      "covers": [
+        "versioning-promise-c"
+      ],
+      "needs": [],
+      "uses": [
+        "versioning-promise",
+        "standard-contract-versioning"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-contract-grading",
+      "type": "task",
+      "title": "Grade a contract change",
+      "scope": "archivarius",
+      "change": "Compare the shipped contract with the previous one, grade the difference as additive or breaking, and refuse a snapshot from a newer major with a named failure.",
+      "affects": [
+        "model",
+        "core"
+      ],
+      "covers": [
+        "versioning-promise-c",
+        "documented-failures-c"
+      ],
+      "needs": [
+        "task-public-surface"
+      ],
+      "uses": [
+        "versioning-promise",
+        "standard-contract-versioning"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-asset-names",
+      "type": "task",
+      "title": "Shipped copies say they are copies",
+      "scope": "archivarius",
+      "change": "Rename the shipped model and copy assets so a consumer cannot mistake them for their own project file, and release the change as a break.",
+      "affects": [
+        "model",
+        "render"
+      ],
+      "covers": [
+        "versioning-promise-c"
+      ],
+      "needs": [
+        "task-public-surface"
+      ],
+      "uses": [
+        "versioning-promise",
+        "external-resources"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-licence-and-history",
+      "type": "task",
+      "title": "Terms and history in the package",
+      "scope": "archivarius",
+      "change": "Add the licence the package claims and generate the release history from the snapshot, so what changed between two versions is readable without Git.",
+      "affects": [
+        "model",
+        "cli"
+      ],
+      "covers": [
+        "usable-from-the-readme-c",
+        "snapshot-diff-c"
+      ],
+      "needs": [],
+      "uses": [
+        "usable-from-the-readme",
+        "versioning-promise"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-init-snapshot",
+      "type": "task",
+      "title": "Start from something valid",
+      "scope": "archivarius",
+      "change": "Add a command that writes a minimal valid snapshot with a scope, a source, a requirement and a criterion, so authoring never starts from an empty file.",
+      "affects": [
+        "cli",
+        "node-api"
+      ],
+      "covers": [
+        "authoring-onboarding-c"
+      ],
+      "needs": [],
+      "uses": [
+        "authoring-onboarding"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-explain-rejection",
+      "type": "task",
+      "title": "A rejection that teaches",
+      "scope": "archivarius",
+      "change": "Point every validation failure at the record, the field and the value it read, and state the accepted shape beside it.",
+      "affects": [
+        "core",
+        "change-input"
+      ],
+      "covers": [
+        "authoring-onboarding-c",
+        "documented-failures-c"
+      ],
+      "needs": [
+        "task-failure-catalogue"
+      ],
+      "uses": [
+        "authoring-onboarding",
+        "research-design-by-contract"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-snapshot-diff",
+      "type": "task",
+      "title": "Compare two snapshots",
+      "scope": "archivarius",
+      "change": "Add a diff that reports added, removed and changed records between two snapshots, and what lost its basis as a result.",
+      "affects": [
+        "cli",
+        "node-api",
+        "digest"
+      ],
+      "covers": [
+        "snapshot-diff-c",
+        "scoped-freshness-c"
+      ],
+      "needs": [],
+      "uses": [
+        "snapshot-diff",
+        "conservative-freshness"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-record-attribution",
+      "type": "task",
+      "title": "A claim has an age and an author",
+      "scope": "archivarius",
+      "change": "Record when a claim was written and by whom, and show a claim older than its stated life as ageing rather than as current.",
+      "affects": [
+        "model",
+        "core",
+        "inspector"
+      ],
+      "covers": [
+        "attributable-records-c"
+      ],
+      "needs": [],
+      "uses": [
+        "attributable-records",
+        "contract-basis"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-open-questions",
+      "type": "task",
+      "title": "A question is a first-class record",
+      "scope": "archivarius",
+      "change": "Surface every question-origin source as an open list in the map and the documentation, so an unanswered question is not filed as a fact.",
+      "affects": [
+        "inspector",
+        "map",
+        "model"
+      ],
+      "covers": [
+        "attributable-records-c"
+      ],
+      "needs": [],
+      "uses": [
+        "attributable-records",
+        "owner-intent"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-scoped-withdrawal",
+      "type": "task",
+      "title": "Withdraw only what depended on it",
+      "scope": "archivarius",
+      "change": "Compute a per-definition basis so a changed definition withdraws its dependents instead of every basis in the snapshot.",
+      "affects": [
+        "digest",
+        "core"
+      ],
+      "covers": [
+        "scoped-freshness-c",
+        "precise-bindings-c"
+      ],
+      "needs": [],
+      "uses": [
+        "scoped-freshness",
+        "basis-digest"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-freshness-report",
+      "type": "task",
+      "title": "What went stale, and why",
+      "scope": "archivarius",
+      "change": "Report every record that lost its basis with the definition that moved, as a reading list the author can work through.",
+      "affects": [
+        "cli",
+        "core"
+      ],
+      "covers": [
+        "scoped-freshness-c",
+        "precise-bindings-c"
+      ],
+      "needs": [
+        "task-scoped-withdrawal"
+      ],
+      "uses": [
+        "scoped-freshness",
+        "conservative-freshness"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-code-reconciliation",
+      "type": "task",
+      "title": "Read the description against the file",
+      "scope": "archivarius",
+      "change": "Bind a described part to the region of code it claims, and when those bytes move, ask for a reading instead of accepting the digest as proof of meaning.",
+      "affects": [
+        "evidence",
+        "model",
+        "cli"
+      ],
+      "covers": [
+        "code-truth-c",
+        "precise-bindings-c"
+      ],
+      "needs": [],
+      "uses": [
+        "code-truth",
+        "code-truth-assumption"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-run-and-record",
+      "type": "task",
+      "title": "An outcome comes from a run",
+      "scope": "archivarius",
+      "change": "Run a check command, store its output as evidence with the contract it ran against, and refuse an outcome nobody ran.",
+      "affects": [
+        "evidence",
+        "cli",
+        "evidence-artifact"
+      ],
+      "covers": [
+        "executable-checks-c",
+        "byte-exact-evidence-c"
+      ],
+      "needs": [],
+      "uses": [
+        "executable-checks",
+        "byte-exact-evidence"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-export-formats",
+      "type": "task",
+      "title": "A snapshot travels",
+      "scope": "archivarius",
+      "change": "Export a snapshot as the graph other tools read - DOT, mermaid and a flat record table - from the same projection the map draws.",
+      "affects": [
+        "cli",
+        "node-api",
+        "model"
+      ],
+      "covers": [
+        "exportable-elsewhere-c",
+        "generated-documents-agree-c"
+      ],
+      "needs": [],
+      "uses": [
+        "exportable-elsewhere",
+        "generated-documents-agree"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-diagram-parses",
+      "type": "task",
+      "title": "The generated diagram is parsed, not eyeballed",
+      "scope": "archivarius",
+      "change": "Parse every generated diagram with the renderer that will draw it, in the browser harness, so a syntax error fails the build.",
+      "affects": [
+        "model",
+        "cli"
+      ],
+      "covers": [
+        "generated-documents-agree-c",
+        "executable-checks-c"
+      ],
+      "needs": [],
+      "uses": [
+        "generated-documents-agree",
+        "shared-appearance"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-inert-content",
+      "type": "task",
+      "title": "Model content stays inert",
+      "scope": "archivarius",
+      "change": "Prove that a record carrying markup, a link or a script is drawn as text in every surface and every generated document.",
+      "affects": [
+        "render",
+        "map",
+        "inspector"
+      ],
+      "covers": [
+        "literal-content-c"
+      ],
+      "needs": [],
+      "uses": [
+        "literal-content"
+      ],
+      "basis": null
+    },
+    {
+      "key": "task-one-language",
+      "type": "task",
+      "title": "English, and all of it",
+      "scope": "archivarius",
+      "change": "Check that every string the interface can show exists in the shipped copy, in English, with both plural forms, and fail on a missing key.",
+      "affects": [
+        "render",
+        "inspector"
+      ],
+      "covers": [
+        "english-only-c"
+      ],
+      "needs": [],
+      "uses": [
+        "english-only"
+      ],
+      "basis": null
+    },
+    {
+      "key": "check-zoom",
+      "type": "check",
+      "title": "Zooming, overview and address",
+      "scope": "archivarius",
+      "method": "Drive the mounted map in a browser: cross a threshold, read the stated level, return to the previous position, and restore a view from its address.",
+      "covers": [
+        "semantic-zoom-c",
+        "addressable-view-c"
+      ],
+      "scenarios": [
+        "read-a-structure"
+      ],
+      "targets": [
+        "map",
+        "render"
+      ],
+      "level": "integration",
+      "command": [
+        "npm run test:browser"
+      ],
+      "basis": null
+    },
+    {
+      "key": "check-navigation",
+      "type": "check",
+      "title": "Finding and relating a part",
+      "scope": "archivarius",
+      "method": "Search a part by name in each accepted contract version, filter by zone, and read the closure of a selected record.",
+      "covers": [
+        "searchable-model-c",
+        "answers-about-change-c"
+      ],
+      "scenarios": [
+        "read-a-structure"
+      ],
+      "targets": [
+        "map",
+        "inspector",
+        "core"
+      ],
+      "level": "integration",
+      "command": [
+        "npm run test:browser"
+      ],
+      "basis": null
+    },
+    {
+      "key": "check-accessibility",
+      "type": "check",
+      "title": "Keyboard, announcement and second channel",
+      "scope": "archivarius",
+      "method": "Audit the mounted surface for accessibility violations, walk it by keyboard only, and confirm every drawn enum value has a channel that is not a tone.",
+      "covers": [
+        "keyboard-complete-c",
+        "announced-changes-c",
+        "reader-settings-c",
+        "redundant-encoding-c"
+      ],
+      "scenarios": [
+        "read-without-a-mouse"
+      ],
+      "targets": [
+        "map",
+        "inspector",
+        "render"
+      ],
+      "level": "integration",
+      "command": [
+        "npm run test:browser"
+      ],
+      "basis": null
+    },
+    {
+      "key": "check-performance",
+      "type": "check",
+      "title": "The stated budget on a stated model",
+      "scope": "archivarius",
+      "method": "Load a generated model of the stated size and record first response, interactive and full-layout times, and confirm a withdrawn read stops.",
+      "covers": [
+        "responsive-at-scale-c",
+        "bounded-input-c"
+      ],
+      "scenarios": [
+        "read-a-structure"
+      ],
+      "targets": [
+        "render",
+        "map"
+      ],
+      "level": "integration",
+      "command": [
+        "npm run test:browser"
+      ],
+      "basis": null
+    },
+    {
+      "key": "check-failures",
+      "type": "check",
+      "title": "Every failure is named and explained",
+      "scope": "archivarius",
+      "method": "Feed each rejection path a bad input and confirm the code, the record it names and the remedy, in the API, the CLI and the mounted surface.",
+      "covers": [
+        "documented-failures-c",
+        "authoring-onboarding-c"
+      ],
+      "scenarios": [
+        "adopt-the-library"
+      ],
+      "targets": [
+        "core",
+        "cli",
+        "node-api",
+        "render"
+      ],
+      "level": "integration",
+      "command": [
+        "npm test"
+      ],
+      "basis": null
+    },
+    {
+      "key": "check-documents",
+      "type": "check",
+      "title": "Generated documents agree with the model",
+      "scope": "archivarius",
+      "method": "Regenerate every document, parse the diagrams, confirm no drift against the committed files and that model content stays inert English text.",
+      "covers": [
+        "generated-documents-agree-c",
+        "usable-from-the-readme-c",
+        "literal-content-c",
+        "english-only-c"
+      ],
+      "scenarios": [
+        "generate-the-documents"
+      ],
+      "targets": [
+        "model",
+        "cli",
+        "node-api"
+      ],
+      "level": "integration",
+      "command": [
+        "npm run check"
+      ],
+      "basis": null
+    },
+    {
+      "key": "check-versioning",
+      "type": "check",
+      "title": "What the package promises",
+      "scope": "archivarius",
+      "method": "Resolve every published export and asset path from an installed package and compare the contract with the previous release for a graded difference.",
+      "covers": [
+        "versioning-promise-c",
+        "exportable-elsewhere-c"
+      ],
+      "scenarios": [
+        "adopt-the-library"
+      ],
+      "targets": [
+        "model",
+        "node-api",
+        "cli"
+      ],
+      "level": "integration",
+      "command": [
+        "npm run test:package",
+        "npm run lint:package"
+      ],
+      "basis": null
+    },
+    {
+      "key": "check-freshness",
+      "type": "check",
+      "title": "Provenance, withdrawal and history",
+      "scope": "archivarius",
+      "method": "Change one definition and confirm that only its dependents lose their basis, that the diff reports it, and that an outcome without a recorded run is refused.",
+      "covers": [
+        "scoped-freshness-c",
+        "precise-bindings-c",
+        "snapshot-diff-c",
+        "attributable-records-c",
+        "code-truth-c",
+        "executable-checks-c"
+      ],
+      "scenarios": [
+        "confirm-a-claim"
+      ],
+      "targets": [
+        "core",
+        "digest",
+        "evidence"
+      ],
+      "level": "integration",
+      "command": [
+        "npm test"
       ],
       "basis": null
     }
@@ -1498,6 +3972,721 @@
         "check-render": "4ff9b21857262da1aab7301ac8b5b1e3afe69beb0b0b20bcee5ca1e7a9915c49",
         "check-evidence": "f245a6059dbe9e05f1ac12c93fcb15f9d54b81e4ac20237edfb191924ff20da5",
         "shared-appearance": "c516a8ce860bb8f6246b62cd70ce9257a3c13166a96ed88882d57248d6554ef9"
+      },
+      "bindings": {
+        "apply-change": {
+          "path": "src/node.mjs",
+          "digest": "9de5b535d525c93527ef050f7931d0a9a4e0497fd9429182d924e5f4210ba7a4"
+        },
+        "archivarius": {
+          "path": "package.json",
+          "digest": "84b3fb9e8f9771883ae968a3f0e4b6ed14d12ff69d88d1723ac506d7f83aa0bc"
+        },
+        "basis-value": {
+          "path": "src/model/project-digest.mjs",
+          "digest": "a2cbc41d786a167b5f20a2267f154615a9a7ce71b1c601a2a3f85b29b7c6aa67"
+        },
+        "change-input": {
+          "path": "src/model/project-authoring.mjs",
+          "digest": "a556b8939de34f0f299003915580e312e6a3af63c37f287394c4668768fd41f6"
+        },
+        "check-references": {
+          "path": "src/model/project-contract.mjs",
+          "digest": "47355797eed9677984ce5d18760a74de4c4b043dcdd91e836cb66a61e9b296ad"
+        },
+        "cli": {
+          "path": "src/cli.mjs",
+          "digest": "5172e64358ba7ae7703f572ebb636825e076d121521fccabdd5923366570e356"
+        },
+        "compute-basis": {
+          "path": "src/model/project-digest.mjs",
+          "digest": "a2cbc41d786a167b5f20a2267f154615a9a7ce71b1c601a2a3f85b29b7c6aa67"
+        },
+        "core": {
+          "path": "src/core.mjs",
+          "digest": "db9480e5f1fb88ebe2fd78ed685abc457026f1a373f1e21fd88c7d8742f3d788"
+        },
+        "digest": {
+          "path": "src/model/digest.mjs",
+          "digest": "cff43d0d16a94ad4490162347bca9672998b938f594eb0a19413c8afe37fc5f6"
+        },
+        "evidence": {
+          "path": "src/model/evidence.mjs",
+          "digest": "06294eb2436d78668873721fb965300eed403eafe18f53e3a2c0ee3ae7fb5270"
+        },
+        "evidence-artifact": {
+          "path": "src/model/evidence.mjs",
+          "digest": "06294eb2436d78668873721fb965300eed403eafe18f53e3a2c0ee3ae7fb5270"
+        },
+        "graph": {
+          "path": "src/model/graph.mjs",
+          "digest": "cc7b2e6d0a55869d32467bbd0d51a95f2095301f4ea18cdccb0c4ae3a9c818f9"
+        },
+        "inspect-record": {
+          "path": "src/index.jsx",
+          "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+        },
+        "inspector": {
+          "path": "src/ui/ProjectInspector.jsx",
+          "digest": "9f7f60897302cafd1ee4df6264bdaec9a998053efdc4cf5c30deabb897d4a786"
+        },
+        "load-model": {
+          "path": "src/ui/load.mjs",
+          "digest": "b220519fd079c0766420e52dcaef4df49ad44732dd108fb69ad05ab554dfb2e2"
+        },
+        "map": {
+          "path": "src/ui/ArchitectureMap.jsx",
+          "digest": "7699a8ef4e0a4830e8ef7182b24b4943ec0b7feb5acbb28704c2a4c81fbce48f"
+        },
+        "model": {
+          "path": "assets/model.schema.json",
+          "digest": "b7c715bcb5a600399d38bcd16b52cb1827040851eda4beedab7c4eed3a7eb9ef"
+        },
+        "model-source": {
+          "path": "src/ui/load.mjs",
+          "digest": "b220519fd079c0766420e52dcaef4df49ad44732dd108fb69ad05ab554dfb2e2"
+        },
+        "node-api": {
+          "path": "src/node.mjs",
+          "digest": "9de5b535d525c93527ef050f7931d0a9a4e0497fd9429182d924e5f4210ba7a4"
+        },
+        "record-detail": {
+          "path": "src/model/project-view.mjs",
+          "digest": "449418563de75327133380bb195407cec539f9da91d04fcc69fb8b5e7094dc97"
+        },
+        "reference-set": {
+          "path": "src/model/records.mjs",
+          "digest": "169993d9b21260390e6b08cf327c8319c0678a0c5331d632f6d2c7db3ea74eea"
+        },
+        "render": {
+          "path": "src/index.jsx",
+          "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+        },
+        "verify-evidence": {
+          "path": "src/node.mjs",
+          "digest": "9de5b535d525c93527ef050f7931d0a9a4e0497fd9429182d924e5f4210ba7a4"
+        }
+      }
+    },
+    {
+      "title": "Archivarius",
+      "root": "archivarius",
+      "entry": "map",
+      "contract": "c22234878c066b77fd49204f70de502549fe145c675bba45a5e9a53ae3ac65c6",
+      "realization": "02571770b2280cbc9197cb85523d03167912b7b6edbfbab3ae463d9f18e8a8b8",
+      "records": {
+        "archivarius": "d478102e4b79a22fcda80276465402bb1d7544dc23cff67792ef9ef22f44aab2",
+        "owner-intent": "d8eda33949d0ff75d1a23473ff150f735b9e6c988987f70ab16ee6cb3970ccc7",
+        "self-description": "0b910912710b40eeb3efca3d4f89ed12374635a41f782cc3cac31fe6e054e5fc",
+        "contract-basis": "077ed405be0f865c4b5cff7fcbc05a60bccde0403b10938f84e09b7151167767",
+        "model": "b017733d7db923a3fdfae3b73fb1a2f18b571dd194f1fc83764a36b47d5fdd55",
+        "core": "706e79d65ff0a6886e7e563982ec2c7e9f30d212d12003dc7c37ddb8d2a35c81",
+        "graph": "343788a25f41a140f4651943f2d8a262fbdc17a677880c174048b726a6709cfb",
+        "digest": "c118ed08dcaf8a03dabd4a5173ec5a7f16082f1b84964886b99e7afbe8d9338e",
+        "node-api": "b77b214cbecc25d262320c5dbad05c76ffe90506b31b55657c3d3addb43e4598",
+        "cli": "6e4f645d014d2cbfee83748a219af17ebe05d873289df17d5b20214dc5535d01",
+        "evidence": "c5e1d00a4ce17cf82caaddc1a622a197c99fd4d8601a08af404e6b6b551fcf4d",
+        "render": "a5b58be17f90c733433e8d7fc6bb49a1f1c0ec820b98694d2246271cfa0d6601",
+        "map": "f81d74d50cd4617f6e22ec2b2424f66c6ddd4f060e2e47c753a7b75151ef3cde",
+        "inspector": "f404bf808afe9fa07c0cb45ebb036cf55a5729d31cff16157ff0c86511b86880",
+        "model-source": "fd1edf25b79988cfa492c1643e3d6817ed81f16394e52d118ec2c228a9e1d9f8",
+        "change-input": "36700ab06f06beb646c3175473500db224d2afb798fdc1e538e476230a1a0b4e",
+        "evidence-artifact": "20f1f777c06d7160ee61d10eb56772d3d1e7d470a810e477cffea52672e72d97",
+        "reference-set": "8e3d45c40edac217ae1b424b8632ff0d0291599e74ee72f32d0350ca06001899",
+        "basis-value": "af443b0015619c65451a274414a8d286a7660af0ca3392185d78398b7fc4aebe",
+        "record-detail": "4141fbf755ed83f2ea570d144fc42b8c97bfccbedb8c801a37784463c3c7aeeb",
+        "load-model": "97709ccf95fc14621f75d832f5b61e1f54b1696e1d5c46236bc7c325284191cf",
+        "check-references": "ad6a21ddbcaf833fdb3f4554feae9e982ebf2c6bffbcaeefe63b46bd604a58d0",
+        "compute-basis": "f44be21695787d9b66c0e2698afb4209b7fe668d9424d1e0ab1c0d99887f78e3",
+        "inspect-record": "28da7823e8b8787b03d18025a4a053d11a442b0b6de39f1f410833c2480ed862",
+        "apply-change": "6460f9a6987c4b8a23ae5a4a96613b94249f2ba6f200d930fd64c84be74599ea",
+        "verify-evidence": "ab170aa235bf5eabce1983ddd52c3479de88581675785b5b2fda77bca8f5e363",
+        "single-snapshot": "76dfd1c2531d7c2cc756e417e710a53d9f12a38a7d425e4286e5f4e8fa4911e1",
+        "single-snapshot-c": "54682dc7a4da547b76349e3d286498f5934fa227620cfc84fb32930771d1d62f",
+        "validated-change": "5ecdf8f71eae9a7e3595ffeb16899366205990eb206182d844f18eddd0f8995f",
+        "validated-change-c": "f5b946e1ae5095a3ab95788a373ae5784abc62c4f08b91c3f1707ece890a0b68",
+        "byte-exact-evidence": "ee1948a7d615eed5fe92db4f0b64881e03a3b6da1a9876a376d9f150e3392f18",
+        "byte-exact-evidence-c": "ab1734ed6adf6ac9ee830b8bc9204e5d059db46142964b1956d14aa0f70d8dbf",
+        "conservative-freshness": "7911d529bb8fa23ea7b8916dd75a34e5e8f40741ac90373e38083e4e27a187ce",
+        "conservative-freshness-c": "7a4ff864fc435b6f679882c901981d824c4f8de4ab788a40e4e038d7517d6fde",
+        "basis-digest": "997583c2c7a5ed8e34e04678056bce0ec7660a2e3ef655502a747b81b515eee9",
+        "external-resources": "1d19447cd0ccc89e69fa2049684d80ca5e13c37331b3e8e6d696694279e81971",
+        "edit-and-render": "9130958b427c5349ff3febd5517f8051975a1aeca3e9c5897ca8cd87616bab22",
+        "task-model": "527869fabb9bb735c35cac86210ef917cff993ff13123a8157db3231938873e9",
+        "task-render": "1cbf90caf829f95167740d3cd0108b3f04da4da5d75e9277d3e184b57c596b9b",
+        "task-evidence": "91d971f2399f9d36855bc460069f81c85c2143b51bfaae13aed787ca489da2de",
+        "check-model": "d32ce95d409105ae84c57a90edf88e71049108f2c3264c2c242fc5a91a49a3af",
+        "check-render": "4ff9b21857262da1aab7301ac8b5b1e3afe69beb0b0b20bcee5ca1e7a9915c49",
+        "check-evidence": "f245a6059dbe9e05f1ac12c93fcb15f9d54b81e4ac20237edfb191924ff20da5",
+        "shared-appearance": "f805f5e24d9be1a4b1854aedef64ae0391ca0add8fe9e44ce862ccc362fd14cc"
+      },
+      "bindings": {
+        "apply-change": {
+          "path": "src/node.mjs",
+          "digest": "9de5b535d525c93527ef050f7931d0a9a4e0497fd9429182d924e5f4210ba7a4"
+        },
+        "archivarius": {
+          "path": "package.json",
+          "digest": "84b3fb9e8f9771883ae968a3f0e4b6ed14d12ff69d88d1723ac506d7f83aa0bc"
+        },
+        "basis-value": {
+          "path": "src/model/project-digest.mjs",
+          "digest": "a2cbc41d786a167b5f20a2267f154615a9a7ce71b1c601a2a3f85b29b7c6aa67"
+        },
+        "change-input": {
+          "path": "src/model/project-authoring.mjs",
+          "digest": "a556b8939de34f0f299003915580e312e6a3af63c37f287394c4668768fd41f6"
+        },
+        "check-references": {
+          "path": "src/model/project-contract.mjs",
+          "digest": "47355797eed9677984ce5d18760a74de4c4b043dcdd91e836cb66a61e9b296ad"
+        },
+        "cli": {
+          "path": "src/cli.mjs",
+          "digest": "5172e64358ba7ae7703f572ebb636825e076d121521fccabdd5923366570e356"
+        },
+        "compute-basis": {
+          "path": "src/model/project-digest.mjs",
+          "digest": "a2cbc41d786a167b5f20a2267f154615a9a7ce71b1c601a2a3f85b29b7c6aa67"
+        },
+        "core": {
+          "path": "src/core.mjs",
+          "digest": "db9480e5f1fb88ebe2fd78ed685abc457026f1a373f1e21fd88c7d8742f3d788"
+        },
+        "digest": {
+          "path": "src/model/digest.mjs",
+          "digest": "cff43d0d16a94ad4490162347bca9672998b938f594eb0a19413c8afe37fc5f6"
+        },
+        "evidence": {
+          "path": "src/model/evidence.mjs",
+          "digest": "06294eb2436d78668873721fb965300eed403eafe18f53e3a2c0ee3ae7fb5270"
+        },
+        "evidence-artifact": {
+          "path": "src/model/evidence.mjs",
+          "digest": "06294eb2436d78668873721fb965300eed403eafe18f53e3a2c0ee3ae7fb5270"
+        },
+        "graph": {
+          "path": "src/model/graph.mjs",
+          "digest": "cc7b2e6d0a55869d32467bbd0d51a95f2095301f4ea18cdccb0c4ae3a9c818f9"
+        },
+        "inspect-record": {
+          "path": "src/index.jsx",
+          "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+        },
+        "inspector": {
+          "path": "src/ui/ProjectInspector.jsx",
+          "digest": "9f7f60897302cafd1ee4df6264bdaec9a998053efdc4cf5c30deabb897d4a786"
+        },
+        "load-model": {
+          "path": "src/ui/load.mjs",
+          "digest": "b220519fd079c0766420e52dcaef4df49ad44732dd108fb69ad05ab554dfb2e2"
+        },
+        "map": {
+          "path": "src/ui/ArchitectureMap.jsx",
+          "digest": "7699a8ef4e0a4830e8ef7182b24b4943ec0b7feb5acbb28704c2a4c81fbce48f"
+        },
+        "model": {
+          "path": "assets/model.schema.json",
+          "digest": "b7c715bcb5a600399d38bcd16b52cb1827040851eda4beedab7c4eed3a7eb9ef"
+        },
+        "model-source": {
+          "path": "src/ui/load.mjs",
+          "digest": "b220519fd079c0766420e52dcaef4df49ad44732dd108fb69ad05ab554dfb2e2"
+        },
+        "node-api": {
+          "path": "src/node.mjs",
+          "digest": "9de5b535d525c93527ef050f7931d0a9a4e0497fd9429182d924e5f4210ba7a4"
+        },
+        "record-detail": {
+          "path": "src/model/project-view.mjs",
+          "digest": "449418563de75327133380bb195407cec539f9da91d04fcc69fb8b5e7094dc97"
+        },
+        "reference-set": {
+          "path": "src/model/records.mjs",
+          "digest": "169993d9b21260390e6b08cf327c8319c0678a0c5331d632f6d2c7db3ea74eea"
+        },
+        "render": {
+          "path": "src/index.jsx",
+          "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+        },
+        "verify-evidence": {
+          "path": "src/node.mjs",
+          "digest": "9de5b535d525c93527ef050f7931d0a9a4e0497fd9429182d924e5f4210ba7a4"
+        }
+      }
+    },
+    {
+      "title": "Archivarius",
+      "root": "archivarius",
+      "entry": "map",
+      "contract": "baf8b2a7da977c0f25673f6f579381b9e5773168b1180643f7858f6fbad4005b",
+      "realization": "02571770b2280cbc9197cb85523d03167912b7b6edbfbab3ae463d9f18e8a8b8",
+      "records": {
+        "archivarius": "d478102e4b79a22fcda80276465402bb1d7544dc23cff67792ef9ef22f44aab2",
+        "owner-intent": "d8eda33949d0ff75d1a23473ff150f735b9e6c988987f70ab16ee6cb3970ccc7",
+        "self-description": "0b910912710b40eeb3efca3d4f89ed12374635a41f782cc3cac31fe6e054e5fc",
+        "contract-basis": "077ed405be0f865c4b5cff7fcbc05a60bccde0403b10938f84e09b7151167767",
+        "model": "b017733d7db923a3fdfae3b73fb1a2f18b571dd194f1fc83764a36b47d5fdd55",
+        "core": "706e79d65ff0a6886e7e563982ec2c7e9f30d212d12003dc7c37ddb8d2a35c81",
+        "graph": "343788a25f41a140f4651943f2d8a262fbdc17a677880c174048b726a6709cfb",
+        "digest": "c118ed08dcaf8a03dabd4a5173ec5a7f16082f1b84964886b99e7afbe8d9338e",
+        "node-api": "b77b214cbecc25d262320c5dbad05c76ffe90506b31b55657c3d3addb43e4598",
+        "cli": "6e4f645d014d2cbfee83748a219af17ebe05d873289df17d5b20214dc5535d01",
+        "evidence": "c5e1d00a4ce17cf82caaddc1a622a197c99fd4d8601a08af404e6b6b551fcf4d",
+        "render": "a5b58be17f90c733433e8d7fc6bb49a1f1c0ec820b98694d2246271cfa0d6601",
+        "map": "f81d74d50cd4617f6e22ec2b2424f66c6ddd4f060e2e47c753a7b75151ef3cde",
+        "inspector": "f404bf808afe9fa07c0cb45ebb036cf55a5729d31cff16157ff0c86511b86880",
+        "model-source": "fd1edf25b79988cfa492c1643e3d6817ed81f16394e52d118ec2c228a9e1d9f8",
+        "change-input": "36700ab06f06beb646c3175473500db224d2afb798fdc1e538e476230a1a0b4e",
+        "evidence-artifact": "20f1f777c06d7160ee61d10eb56772d3d1e7d470a810e477cffea52672e72d97",
+        "reference-set": "8e3d45c40edac217ae1b424b8632ff0d0291599e74ee72f32d0350ca06001899",
+        "basis-value": "af443b0015619c65451a274414a8d286a7660af0ca3392185d78398b7fc4aebe",
+        "record-detail": "4141fbf755ed83f2ea570d144fc42b8c97bfccbedb8c801a37784463c3c7aeeb",
+        "load-model": "97709ccf95fc14621f75d832f5b61e1f54b1696e1d5c46236bc7c325284191cf",
+        "check-references": "ad6a21ddbcaf833fdb3f4554feae9e982ebf2c6bffbcaeefe63b46bd604a58d0",
+        "compute-basis": "f44be21695787d9b66c0e2698afb4209b7fe668d9424d1e0ab1c0d99887f78e3",
+        "inspect-record": "28da7823e8b8787b03d18025a4a053d11a442b0b6de39f1f410833c2480ed862",
+        "apply-change": "6460f9a6987c4b8a23ae5a4a96613b94249f2ba6f200d930fd64c84be74599ea",
+        "verify-evidence": "ab170aa235bf5eabce1983ddd52c3479de88581675785b5b2fda77bca8f5e363",
+        "single-snapshot": "76dfd1c2531d7c2cc756e417e710a53d9f12a38a7d425e4286e5f4e8fa4911e1",
+        "single-snapshot-c": "54682dc7a4da547b76349e3d286498f5934fa227620cfc84fb32930771d1d62f",
+        "validated-change": "5ecdf8f71eae9a7e3595ffeb16899366205990eb206182d844f18eddd0f8995f",
+        "validated-change-c": "f5b946e1ae5095a3ab95788a373ae5784abc62c4f08b91c3f1707ece890a0b68",
+        "byte-exact-evidence": "ee1948a7d615eed5fe92db4f0b64881e03a3b6da1a9876a376d9f150e3392f18",
+        "byte-exact-evidence-c": "ab1734ed6adf6ac9ee830b8bc9204e5d059db46142964b1956d14aa0f70d8dbf",
+        "conservative-freshness": "7911d529bb8fa23ea7b8916dd75a34e5e8f40741ac90373e38083e4e27a187ce",
+        "conservative-freshness-c": "7a4ff864fc435b6f679882c901981d824c4f8de4ab788a40e4e038d7517d6fde",
+        "basis-digest": "997583c2c7a5ed8e34e04678056bce0ec7660a2e3ef655502a747b81b515eee9",
+        "external-resources": "1d19447cd0ccc89e69fa2049684d80ca5e13c37331b3e8e6d696694279e81971",
+        "edit-and-render": "9130958b427c5349ff3febd5517f8051975a1aeca3e9c5897ca8cd87616bab22",
+        "task-model": "527869fabb9bb735c35cac86210ef917cff993ff13123a8157db3231938873e9",
+        "task-render": "1cbf90caf829f95167740d3cd0108b3f04da4da5d75e9277d3e184b57c596b9b",
+        "task-evidence": "91d971f2399f9d36855bc460069f81c85c2143b51bfaae13aed787ca489da2de",
+        "check-model": "d32ce95d409105ae84c57a90edf88e71049108f2c3264c2c242fc5a91a49a3af",
+        "check-render": "4ff9b21857262da1aab7301ac8b5b1e3afe69beb0b0b20bcee5ca1e7a9915c49",
+        "check-evidence": "f245a6059dbe9e05f1ac12c93fcb15f9d54b81e4ac20237edfb191924ff20da5",
+        "shared-appearance": "f805f5e24d9be1a4b1854aedef64ae0391ca0add8fe9e44ce862ccc362fd14cc",
+        "consumer-intent": "201faa8e06b1461114ff14c79d7808fbc426152635ebefc53547015452bf8cbe",
+        "reader-observation": "2b01cc0f641adfdacdbaafa8c65b8cd6722e09d57c498ef76c71487049dd4536",
+        "scale-observation": "1e6698846d993cea73bf6d57bb95d903e75a93f6642365da0ae69ee5e9ab9f5d",
+        "code-truth-assumption": "aba6b3ca64f6758329c4fd46ef11c1c502a01f888dae85c84d50afc0f9f61340"
+      },
+      "bindings": {
+        "apply-change": {
+          "path": "src/node.mjs",
+          "digest": "9de5b535d525c93527ef050f7931d0a9a4e0497fd9429182d924e5f4210ba7a4"
+        },
+        "archivarius": {
+          "path": "package.json",
+          "digest": "84b3fb9e8f9771883ae968a3f0e4b6ed14d12ff69d88d1723ac506d7f83aa0bc"
+        },
+        "basis-value": {
+          "path": "src/model/project-digest.mjs",
+          "digest": "a2cbc41d786a167b5f20a2267f154615a9a7ce71b1c601a2a3f85b29b7c6aa67"
+        },
+        "change-input": {
+          "path": "src/model/project-authoring.mjs",
+          "digest": "a556b8939de34f0f299003915580e312e6a3af63c37f287394c4668768fd41f6"
+        },
+        "check-references": {
+          "path": "src/model/project-contract.mjs",
+          "digest": "47355797eed9677984ce5d18760a74de4c4b043dcdd91e836cb66a61e9b296ad"
+        },
+        "cli": {
+          "path": "src/cli.mjs",
+          "digest": "5172e64358ba7ae7703f572ebb636825e076d121521fccabdd5923366570e356"
+        },
+        "compute-basis": {
+          "path": "src/model/project-digest.mjs",
+          "digest": "a2cbc41d786a167b5f20a2267f154615a9a7ce71b1c601a2a3f85b29b7c6aa67"
+        },
+        "core": {
+          "path": "src/core.mjs",
+          "digest": "db9480e5f1fb88ebe2fd78ed685abc457026f1a373f1e21fd88c7d8742f3d788"
+        },
+        "digest": {
+          "path": "src/model/digest.mjs",
+          "digest": "cff43d0d16a94ad4490162347bca9672998b938f594eb0a19413c8afe37fc5f6"
+        },
+        "evidence": {
+          "path": "src/model/evidence.mjs",
+          "digest": "06294eb2436d78668873721fb965300eed403eafe18f53e3a2c0ee3ae7fb5270"
+        },
+        "evidence-artifact": {
+          "path": "src/model/evidence.mjs",
+          "digest": "06294eb2436d78668873721fb965300eed403eafe18f53e3a2c0ee3ae7fb5270"
+        },
+        "graph": {
+          "path": "src/model/graph.mjs",
+          "digest": "cc7b2e6d0a55869d32467bbd0d51a95f2095301f4ea18cdccb0c4ae3a9c818f9"
+        },
+        "inspect-record": {
+          "path": "src/index.jsx",
+          "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+        },
+        "inspector": {
+          "path": "src/ui/ProjectInspector.jsx",
+          "digest": "9f7f60897302cafd1ee4df6264bdaec9a998053efdc4cf5c30deabb897d4a786"
+        },
+        "load-model": {
+          "path": "src/ui/load.mjs",
+          "digest": "b220519fd079c0766420e52dcaef4df49ad44732dd108fb69ad05ab554dfb2e2"
+        },
+        "map": {
+          "path": "src/ui/ArchitectureMap.jsx",
+          "digest": "7699a8ef4e0a4830e8ef7182b24b4943ec0b7feb5acbb28704c2a4c81fbce48f"
+        },
+        "model": {
+          "path": "assets/model.schema.json",
+          "digest": "b7c715bcb5a600399d38bcd16b52cb1827040851eda4beedab7c4eed3a7eb9ef"
+        },
+        "model-source": {
+          "path": "src/ui/load.mjs",
+          "digest": "b220519fd079c0766420e52dcaef4df49ad44732dd108fb69ad05ab554dfb2e2"
+        },
+        "node-api": {
+          "path": "src/node.mjs",
+          "digest": "9de5b535d525c93527ef050f7931d0a9a4e0497fd9429182d924e5f4210ba7a4"
+        },
+        "record-detail": {
+          "path": "src/model/project-view.mjs",
+          "digest": "449418563de75327133380bb195407cec539f9da91d04fcc69fb8b5e7094dc97"
+        },
+        "reference-set": {
+          "path": "src/model/records.mjs",
+          "digest": "169993d9b21260390e6b08cf327c8319c0678a0c5331d632f6d2c7db3ea74eea"
+        },
+        "render": {
+          "path": "src/index.jsx",
+          "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+        },
+        "verify-evidence": {
+          "path": "src/node.mjs",
+          "digest": "9de5b535d525c93527ef050f7931d0a9a4e0497fd9429182d924e5f4210ba7a4"
+        }
+      }
+    },
+    {
+      "title": "Archivarius",
+      "root": "archivarius",
+      "entry": "map",
+      "contract": "de4c9ab6f9febe97e138e3b614a446b7245e07c0f45205834a7f53e99d4bbd59",
+      "realization": "02571770b2280cbc9197cb85523d03167912b7b6edbfbab3ae463d9f18e8a8b8",
+      "records": {
+        "archivarius": "d478102e4b79a22fcda80276465402bb1d7544dc23cff67792ef9ef22f44aab2",
+        "owner-intent": "d8eda33949d0ff75d1a23473ff150f735b9e6c988987f70ab16ee6cb3970ccc7",
+        "self-description": "0b910912710b40eeb3efca3d4f89ed12374635a41f782cc3cac31fe6e054e5fc",
+        "contract-basis": "077ed405be0f865c4b5cff7fcbc05a60bccde0403b10938f84e09b7151167767",
+        "model": "b017733d7db923a3fdfae3b73fb1a2f18b571dd194f1fc83764a36b47d5fdd55",
+        "core": "706e79d65ff0a6886e7e563982ec2c7e9f30d212d12003dc7c37ddb8d2a35c81",
+        "graph": "343788a25f41a140f4651943f2d8a262fbdc17a677880c174048b726a6709cfb",
+        "digest": "c118ed08dcaf8a03dabd4a5173ec5a7f16082f1b84964886b99e7afbe8d9338e",
+        "node-api": "b77b214cbecc25d262320c5dbad05c76ffe90506b31b55657c3d3addb43e4598",
+        "cli": "6e4f645d014d2cbfee83748a219af17ebe05d873289df17d5b20214dc5535d01",
+        "evidence": "c5e1d00a4ce17cf82caaddc1a622a197c99fd4d8601a08af404e6b6b551fcf4d",
+        "render": "a5b58be17f90c733433e8d7fc6bb49a1f1c0ec820b98694d2246271cfa0d6601",
+        "map": "f81d74d50cd4617f6e22ec2b2424f66c6ddd4f060e2e47c753a7b75151ef3cde",
+        "inspector": "f404bf808afe9fa07c0cb45ebb036cf55a5729d31cff16157ff0c86511b86880",
+        "model-source": "fd1edf25b79988cfa492c1643e3d6817ed81f16394e52d118ec2c228a9e1d9f8",
+        "change-input": "36700ab06f06beb646c3175473500db224d2afb798fdc1e538e476230a1a0b4e",
+        "evidence-artifact": "20f1f777c06d7160ee61d10eb56772d3d1e7d470a810e477cffea52672e72d97",
+        "reference-set": "8e3d45c40edac217ae1b424b8632ff0d0291599e74ee72f32d0350ca06001899",
+        "basis-value": "af443b0015619c65451a274414a8d286a7660af0ca3392185d78398b7fc4aebe",
+        "record-detail": "4141fbf755ed83f2ea570d144fc42b8c97bfccbedb8c801a37784463c3c7aeeb",
+        "load-model": "97709ccf95fc14621f75d832f5b61e1f54b1696e1d5c46236bc7c325284191cf",
+        "check-references": "ad6a21ddbcaf833fdb3f4554feae9e982ebf2c6bffbcaeefe63b46bd604a58d0",
+        "compute-basis": "f44be21695787d9b66c0e2698afb4209b7fe668d9424d1e0ab1c0d99887f78e3",
+        "inspect-record": "28da7823e8b8787b03d18025a4a053d11a442b0b6de39f1f410833c2480ed862",
+        "apply-change": "6460f9a6987c4b8a23ae5a4a96613b94249f2ba6f200d930fd64c84be74599ea",
+        "verify-evidence": "ab170aa235bf5eabce1983ddd52c3479de88581675785b5b2fda77bca8f5e363",
+        "single-snapshot": "76dfd1c2531d7c2cc756e417e710a53d9f12a38a7d425e4286e5f4e8fa4911e1",
+        "single-snapshot-c": "54682dc7a4da547b76349e3d286498f5934fa227620cfc84fb32930771d1d62f",
+        "validated-change": "5ecdf8f71eae9a7e3595ffeb16899366205990eb206182d844f18eddd0f8995f",
+        "validated-change-c": "f5b946e1ae5095a3ab95788a373ae5784abc62c4f08b91c3f1707ece890a0b68",
+        "byte-exact-evidence": "ee1948a7d615eed5fe92db4f0b64881e03a3b6da1a9876a376d9f150e3392f18",
+        "byte-exact-evidence-c": "ab1734ed6adf6ac9ee830b8bc9204e5d059db46142964b1956d14aa0f70d8dbf",
+        "conservative-freshness": "7911d529bb8fa23ea7b8916dd75a34e5e8f40741ac90373e38083e4e27a187ce",
+        "conservative-freshness-c": "7a4ff864fc435b6f679882c901981d824c4f8de4ab788a40e4e038d7517d6fde",
+        "basis-digest": "997583c2c7a5ed8e34e04678056bce0ec7660a2e3ef655502a747b81b515eee9",
+        "external-resources": "1d19447cd0ccc89e69fa2049684d80ca5e13c37331b3e8e6d696694279e81971",
+        "edit-and-render": "9130958b427c5349ff3febd5517f8051975a1aeca3e9c5897ca8cd87616bab22",
+        "task-model": "527869fabb9bb735c35cac86210ef917cff993ff13123a8157db3231938873e9",
+        "task-render": "1cbf90caf829f95167740d3cd0108b3f04da4da5d75e9277d3e184b57c596b9b",
+        "task-evidence": "91d971f2399f9d36855bc460069f81c85c2143b51bfaae13aed787ca489da2de",
+        "check-model": "d32ce95d409105ae84c57a90edf88e71049108f2c3264c2c242fc5a91a49a3af",
+        "check-render": "4ff9b21857262da1aab7301ac8b5b1e3afe69beb0b0b20bcee5ca1e7a9915c49",
+        "check-evidence": "f245a6059dbe9e05f1ac12c93fcb15f9d54b81e4ac20237edfb191924ff20da5",
+        "shared-appearance": "f805f5e24d9be1a4b1854aedef64ae0391ca0add8fe9e44ce862ccc362fd14cc",
+        "consumer-intent": "201faa8e06b1461114ff14c79d7808fbc426152635ebefc53547015452bf8cbe",
+        "reader-observation": "2b01cc0f641adfdacdbaafa8c65b8cd6722e09d57c498ef76c71487049dd4536",
+        "scale-observation": "1e6698846d993cea73bf6d57bb95d903e75a93f6642365da0ae69ee5e9ab9f5d",
+        "code-truth-assumption": "aba6b3ca64f6758329c4fd46ef11c1c502a01f888dae85c84d50afc0f9f61340",
+        "semantic-zoom": "3f35051262dcc13a620c7b578a796b8c8cd848de42e376a236ae56360fc94d37",
+        "addressable-view": "578af2420524ee7205e13a6383661da5addb4aa297501d023ef5dd93bb42ed73",
+        "keyboard-complete": "143b9fad26615f486f25401611c4a7ee476d7bbab32e2b2764dd1d56b1a6043e",
+        "announced-changes": "f7fdec2771f3783b9be61ba0b390ebaa200ffc43d9be056c61b2f141eabe9dc7",
+        "reader-settings": "dc59793b342242421ec5a9f8ce85c8ec6e66d8be8f95f2cdb27ab6c5ff11ff2f",
+        "documented-failures": "f000a673423aaf15248ec50a8c71fe24a418675faf08b30e0b91b14447abf2c2",
+        "usable-from-the-readme": "40402a80fbdf5368fec622da1983d32394ae0aef55255c5686f57cbb1fd2d766",
+        "versioning-promise": "5076af38ab7c31da9a3595e0851b700a3b9737d161fdaa3a9e322d7c0ed23b6a",
+        "responsive-at-scale": "809739275fcc588bc69cdd7b3de6a0f82d53df082ec801cd676fb46790bdd623",
+        "bounded-input": "5e64a8f554cef4d4d55530229b99a2fac49040c57284542e8f650804e51ba42e",
+        "authoring-onboarding": "0e2b38b082d382defb0b5d02edc970b6e5a79270653aa00cebf9e3711f5673e7",
+        "precise-bindings": "54b959da8ea672077840b968b75401e0f894cd897eb992cb2a5d02c265b506bd",
+        "scoped-freshness": "014a74b4fc8a9b7548af5801d3bc7ca69b066fb56eb4e8c7defb2bd7a0b0b455",
+        "snapshot-diff": "b9b2ee31a9951fa326a22d7c7eee22f3549a8460b35a8c514e99c4e2d28c9a43",
+        "code-truth": "2b4557b6493db31561e76c47b0b423d2b4242c01b5bdbd985b889772fd5ba603",
+        "attributable-records": "e48c6097c85c4a7e261d71ca5c448e1342b61587882dc83aa382e74905f25328",
+        "executable-checks": "4cc922eba8a38c0c2a56881a083eb3af02f9cd105dc72a033a1aaabdd677c852",
+        "literal-content": "839af2c68f2d40702f40367440635382a7a31b755e046efa2f029192b9418150",
+        "layer-boundaries": "9c20d7c9be0a1333552e05d9b0847c5d31ba91391cc011259f3d941024cf0914",
+        "generated-documents-agree": "6a50df50dc839653c68dcd795319679ca6553e858b89f9ab08b36a90ed3e1804",
+        "english-only": "79f43e30023653c026ecd9fb714b26f29a968dce91889bfa06117587178c2ccb",
+        "exportable-elsewhere": "5657a218569fe1fc2d46126e62f518aa3866a76ba7bfd0349e3e546486683158",
+        "searchable-model": "e08f535fc14499833b027072b9563a6548ae8499aa19e6f4ac2bcb97528c65c4",
+        "answers-about-change": "bdd1e5c1662ca50f4642a363314ce301085bd6adb7787af63bd7bde89fd8388b",
+        "semantic-zoom-c": "527c248fb67cb2f46b12dec4d5a580dae41be5b20105743f57b70bb819b7b846",
+        "addressable-view-c": "0e4ccbe2aa9a4cfb24d49a82123223416afc96229f1d3fc1a87876c6aaa5819c",
+        "keyboard-complete-c": "02ef4bec3374cf30287c22adddec8d5c0c16dac65e3bdd834d86e15701a56af3",
+        "announced-changes-c": "3c0f2dab61cfb4fea63f20833152d0cb91926fb21d6bfd78dbb304283bfb6d62",
+        "reader-settings-c": "5fedafab027314402851d9730ad74b6012c099c28e055098de3657a3741750af",
+        "documented-failures-c": "a4cb6aa92636601cee782f603eebb7adea0b0a32a6c18d73c61aa96a966aef17",
+        "usable-from-the-readme-c": "2e434997c6d3d3fed0f7018314eb061141c72da19b9beb6a0e8700aa2a86ca39",
+        "versioning-promise-c": "2d57da1dece78c94dd6aa91c4b9bca83321590c65d74344b711cf24772d83bc4",
+        "responsive-at-scale-c": "ad55072e0c30afb54c345ff1679683ab293e013ddc0abb5c6478a3bcdd0d55d9",
+        "bounded-input-c": "6425a7b00fe08ec29f33816ffe595f7f324180689276c175cd329f9087479d2b",
+        "authoring-onboarding-c": "d7ee183cdb3e12b2e151ae4e16a676d2773bebda2953f809061d3b682de0ade6",
+        "precise-bindings-c": "c1408a734e130a84a5bb02402bdda03f1226320cef1158cbcb24b43b6927f89f",
+        "scoped-freshness-c": "a794409b091081c07d2cca9dcbdba0e8219cc8c5c1d84e3e03179f59f4f91d95",
+        "snapshot-diff-c": "af4701a3c3c2726290b67b7ae38462cea9e09e9b2b58327b6e41c04c94d4add3",
+        "code-truth-c": "dfffcc9a31caab8268e87d335bfe03f67e4979364d017879df62936a53be4c90",
+        "attributable-records-c": "d21de8870e6a820227c7baf3425200ea9d4eca98ff50dfeb6aa9f6297646ed63",
+        "executable-checks-c": "e67edc1df96a9ebf928ee8e60280f7879ff0de8bc66b177b894f131f2103e8f9",
+        "literal-content-c": "ccd0e438d465d15ec3cf38f4b571a73bca14aaac402281df76c164c6d1060d6e",
+        "layer-boundaries-c": "fef1c92dbb4c7bfb6e5e14c76c7986315b3805e95313deb77f6770538bb6611e",
+        "generated-documents-agree-c": "aedb6383d3e0b5d75e5661becb84f3fd4cc8fbbcee0685d27e4d3eea2ea90d72",
+        "english-only-c": "548f3c6df239eb4f41704c6a27fcd1a7bbc9174ba0e37a58587fbec40730485c",
+        "exportable-elsewhere-c": "659b21ea65feb8e7cba547ed2de48f48d8adddf89057ec3444903e5aad35b8bb",
+        "searchable-model-c": "37a0d9143983a272ec5e2d28cb705ed7811d514f90705975048a3134a67daa51",
+        "answers-about-change-c": "64b40c046ce6e4b693ed2a8aa07709786c2c35857094cc05d1d23afcb43d74a7"
+      },
+      "bindings": {
+        "apply-change": {
+          "path": "src/node.mjs",
+          "digest": "9de5b535d525c93527ef050f7931d0a9a4e0497fd9429182d924e5f4210ba7a4"
+        },
+        "archivarius": {
+          "path": "package.json",
+          "digest": "84b3fb9e8f9771883ae968a3f0e4b6ed14d12ff69d88d1723ac506d7f83aa0bc"
+        },
+        "basis-value": {
+          "path": "src/model/project-digest.mjs",
+          "digest": "a2cbc41d786a167b5f20a2267f154615a9a7ce71b1c601a2a3f85b29b7c6aa67"
+        },
+        "change-input": {
+          "path": "src/model/project-authoring.mjs",
+          "digest": "a556b8939de34f0f299003915580e312e6a3af63c37f287394c4668768fd41f6"
+        },
+        "check-references": {
+          "path": "src/model/project-contract.mjs",
+          "digest": "47355797eed9677984ce5d18760a74de4c4b043dcdd91e836cb66a61e9b296ad"
+        },
+        "cli": {
+          "path": "src/cli.mjs",
+          "digest": "5172e64358ba7ae7703f572ebb636825e076d121521fccabdd5923366570e356"
+        },
+        "compute-basis": {
+          "path": "src/model/project-digest.mjs",
+          "digest": "a2cbc41d786a167b5f20a2267f154615a9a7ce71b1c601a2a3f85b29b7c6aa67"
+        },
+        "core": {
+          "path": "src/core.mjs",
+          "digest": "db9480e5f1fb88ebe2fd78ed685abc457026f1a373f1e21fd88c7d8742f3d788"
+        },
+        "digest": {
+          "path": "src/model/digest.mjs",
+          "digest": "cff43d0d16a94ad4490162347bca9672998b938f594eb0a19413c8afe37fc5f6"
+        },
+        "evidence": {
+          "path": "src/model/evidence.mjs",
+          "digest": "06294eb2436d78668873721fb965300eed403eafe18f53e3a2c0ee3ae7fb5270"
+        },
+        "evidence-artifact": {
+          "path": "src/model/evidence.mjs",
+          "digest": "06294eb2436d78668873721fb965300eed403eafe18f53e3a2c0ee3ae7fb5270"
+        },
+        "graph": {
+          "path": "src/model/graph.mjs",
+          "digest": "cc7b2e6d0a55869d32467bbd0d51a95f2095301f4ea18cdccb0c4ae3a9c818f9"
+        },
+        "inspect-record": {
+          "path": "src/index.jsx",
+          "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+        },
+        "inspector": {
+          "path": "src/ui/ProjectInspector.jsx",
+          "digest": "9f7f60897302cafd1ee4df6264bdaec9a998053efdc4cf5c30deabb897d4a786"
+        },
+        "load-model": {
+          "path": "src/ui/load.mjs",
+          "digest": "b220519fd079c0766420e52dcaef4df49ad44732dd108fb69ad05ab554dfb2e2"
+        },
+        "map": {
+          "path": "src/ui/ArchitectureMap.jsx",
+          "digest": "7699a8ef4e0a4830e8ef7182b24b4943ec0b7feb5acbb28704c2a4c81fbce48f"
+        },
+        "model": {
+          "path": "assets/model.schema.json",
+          "digest": "b7c715bcb5a600399d38bcd16b52cb1827040851eda4beedab7c4eed3a7eb9ef"
+        },
+        "model-source": {
+          "path": "src/ui/load.mjs",
+          "digest": "b220519fd079c0766420e52dcaef4df49ad44732dd108fb69ad05ab554dfb2e2"
+        },
+        "node-api": {
+          "path": "src/node.mjs",
+          "digest": "9de5b535d525c93527ef050f7931d0a9a4e0497fd9429182d924e5f4210ba7a4"
+        },
+        "record-detail": {
+          "path": "src/model/project-view.mjs",
+          "digest": "449418563de75327133380bb195407cec539f9da91d04fcc69fb8b5e7094dc97"
+        },
+        "reference-set": {
+          "path": "src/model/records.mjs",
+          "digest": "169993d9b21260390e6b08cf327c8319c0678a0c5331d632f6d2c7db3ea74eea"
+        },
+        "render": {
+          "path": "src/index.jsx",
+          "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+        },
+        "verify-evidence": {
+          "path": "src/node.mjs",
+          "digest": "9de5b535d525c93527ef050f7931d0a9a4e0497fd9429182d924e5f4210ba7a4"
+        }
+      }
+    },
+    {
+      "title": "Archivarius",
+      "root": "archivarius",
+      "entry": "map",
+      "contract": "6e535e5e06565f99702001127be639ec00e95f3093b5793e9b35fb62afdc12db",
+      "realization": "02571770b2280cbc9197cb85523d03167912b7b6edbfbab3ae463d9f18e8a8b8",
+      "records": {
+        "archivarius": "d478102e4b79a22fcda80276465402bb1d7544dc23cff67792ef9ef22f44aab2",
+        "owner-intent": "d8eda33949d0ff75d1a23473ff150f735b9e6c988987f70ab16ee6cb3970ccc7",
+        "self-description": "0b910912710b40eeb3efca3d4f89ed12374635a41f782cc3cac31fe6e054e5fc",
+        "contract-basis": "077ed405be0f865c4b5cff7fcbc05a60bccde0403b10938f84e09b7151167767",
+        "model": "b017733d7db923a3fdfae3b73fb1a2f18b571dd194f1fc83764a36b47d5fdd55",
+        "core": "706e79d65ff0a6886e7e563982ec2c7e9f30d212d12003dc7c37ddb8d2a35c81",
+        "graph": "343788a25f41a140f4651943f2d8a262fbdc17a677880c174048b726a6709cfb",
+        "digest": "c118ed08dcaf8a03dabd4a5173ec5a7f16082f1b84964886b99e7afbe8d9338e",
+        "node-api": "b77b214cbecc25d262320c5dbad05c76ffe90506b31b55657c3d3addb43e4598",
+        "cli": "6e4f645d014d2cbfee83748a219af17ebe05d873289df17d5b20214dc5535d01",
+        "evidence": "c5e1d00a4ce17cf82caaddc1a622a197c99fd4d8601a08af404e6b6b551fcf4d",
+        "render": "a5b58be17f90c733433e8d7fc6bb49a1f1c0ec820b98694d2246271cfa0d6601",
+        "map": "f81d74d50cd4617f6e22ec2b2424f66c6ddd4f060e2e47c753a7b75151ef3cde",
+        "inspector": "f404bf808afe9fa07c0cb45ebb036cf55a5729d31cff16157ff0c86511b86880",
+        "model-source": "fd1edf25b79988cfa492c1643e3d6817ed81f16394e52d118ec2c228a9e1d9f8",
+        "change-input": "36700ab06f06beb646c3175473500db224d2afb798fdc1e538e476230a1a0b4e",
+        "evidence-artifact": "20f1f777c06d7160ee61d10eb56772d3d1e7d470a810e477cffea52672e72d97",
+        "reference-set": "8e3d45c40edac217ae1b424b8632ff0d0291599e74ee72f32d0350ca06001899",
+        "basis-value": "af443b0015619c65451a274414a8d286a7660af0ca3392185d78398b7fc4aebe",
+        "record-detail": "4141fbf755ed83f2ea570d144fc42b8c97bfccbedb8c801a37784463c3c7aeeb",
+        "load-model": "97709ccf95fc14621f75d832f5b61e1f54b1696e1d5c46236bc7c325284191cf",
+        "check-references": "ad6a21ddbcaf833fdb3f4554feae9e982ebf2c6bffbcaeefe63b46bd604a58d0",
+        "compute-basis": "f44be21695787d9b66c0e2698afb4209b7fe668d9424d1e0ab1c0d99887f78e3",
+        "inspect-record": "28da7823e8b8787b03d18025a4a053d11a442b0b6de39f1f410833c2480ed862",
+        "apply-change": "6460f9a6987c4b8a23ae5a4a96613b94249f2ba6f200d930fd64c84be74599ea",
+        "verify-evidence": "ab170aa235bf5eabce1983ddd52c3479de88581675785b5b2fda77bca8f5e363",
+        "single-snapshot": "899d40eeac3d670274767f4162a55c594205e7fbc2ce6e47c6df06283673e442",
+        "single-snapshot-c": "54682dc7a4da547b76349e3d286498f5934fa227620cfc84fb32930771d1d62f",
+        "validated-change": "dbf7d05ac04c11ccedc9d534f72c029ef2b98990bcb753a5a11e885ec3574bd7",
+        "validated-change-c": "f5b946e1ae5095a3ab95788a373ae5784abc62c4f08b91c3f1707ece890a0b68",
+        "byte-exact-evidence": "ee1948a7d615eed5fe92db4f0b64881e03a3b6da1a9876a376d9f150e3392f18",
+        "byte-exact-evidence-c": "ab1734ed6adf6ac9ee830b8bc9204e5d059db46142964b1956d14aa0f70d8dbf",
+        "conservative-freshness": "7911d529bb8fa23ea7b8916dd75a34e5e8f40741ac90373e38083e4e27a187ce",
+        "conservative-freshness-c": "7a4ff864fc435b6f679882c901981d824c4f8de4ab788a40e4e038d7517d6fde",
+        "basis-digest": "997583c2c7a5ed8e34e04678056bce0ec7660a2e3ef655502a747b81b515eee9",
+        "external-resources": "1d19447cd0ccc89e69fa2049684d80ca5e13c37331b3e8e6d696694279e81971",
+        "edit-and-render": "9130958b427c5349ff3febd5517f8051975a1aeca3e9c5897ca8cd87616bab22",
+        "task-model": "527869fabb9bb735c35cac86210ef917cff993ff13123a8157db3231938873e9",
+        "task-render": "1cbf90caf829f95167740d3cd0108b3f04da4da5d75e9277d3e184b57c596b9b",
+        "task-evidence": "91d971f2399f9d36855bc460069f81c85c2143b51bfaae13aed787ca489da2de",
+        "check-model": "d32ce95d409105ae84c57a90edf88e71049108f2c3264c2c242fc5a91a49a3af",
+        "check-render": "4ff9b21857262da1aab7301ac8b5b1e3afe69beb0b0b20bcee5ca1e7a9915c49",
+        "check-evidence": "f245a6059dbe9e05f1ac12c93fcb15f9d54b81e4ac20237edfb191924ff20da5",
+        "shared-appearance": "f805f5e24d9be1a4b1854aedef64ae0391ca0add8fe9e44ce862ccc362fd14cc",
+        "consumer-intent": "201faa8e06b1461114ff14c79d7808fbc426152635ebefc53547015452bf8cbe",
+        "reader-observation": "2b01cc0f641adfdacdbaafa8c65b8cd6722e09d57c498ef76c71487049dd4536",
+        "scale-observation": "1e6698846d993cea73bf6d57bb95d903e75a93f6642365da0ae69ee5e9ab9f5d",
+        "code-truth-assumption": "aba6b3ca64f6758329c4fd46ef11c1c502a01f888dae85c84d50afc0f9f61340",
+        "semantic-zoom": "e482eddccbd0d7d7f2ac4b065a273a2e1b52594263a5a82a639d634246130693",
+        "addressable-view": "5a4bc53748ebde4e14cce6f2639d611d5b163e3d04732766fe72881e316813fc",
+        "keyboard-complete": "b404dac13c497e0bc5721889aba0669dba105d2d6c23d4cdb4d913c50183fda9",
+        "announced-changes": "4aac27402750e6bb65772c4a4d4ec7855658b4dec4ec9f2ccf049c472cf933ea",
+        "reader-settings": "26cdbed474755881f9945cf678f22f596f045e0c63687b243f893f3d4e9cf067",
+        "documented-failures": "452a14fe8274d184ed59efc20511a625c5686a3904421b8478e4200a72322728",
+        "usable-from-the-readme": "40402a80fbdf5368fec622da1983d32394ae0aef55255c5686f57cbb1fd2d766",
+        "versioning-promise": "0e23235c325b24a5ed0903d0f53af941b42b01ad4fbe493acaa63a3e8aed906d",
+        "responsive-at-scale": "ed213c5a05d9f1a7e47d85363aff5924f3bb29e22291e3391313f2765506f191",
+        "bounded-input": "5e64a8f554cef4d4d55530229b99a2fac49040c57284542e8f650804e51ba42e",
+        "authoring-onboarding": "0e2b38b082d382defb0b5d02edc970b6e5a79270653aa00cebf9e3711f5673e7",
+        "precise-bindings": "54b959da8ea672077840b968b75401e0f894cd897eb992cb2a5d02c265b506bd",
+        "scoped-freshness": "014a74b4fc8a9b7548af5801d3bc7ca69b066fb56eb4e8c7defb2bd7a0b0b455",
+        "snapshot-diff": "b9b2ee31a9951fa326a22d7c7eee22f3549a8460b35a8c514e99c4e2d28c9a43",
+        "code-truth": "2b4557b6493db31561e76c47b0b423d2b4242c01b5bdbd985b889772fd5ba603",
+        "attributable-records": "e48c6097c85c4a7e261d71ca5c448e1342b61587882dc83aa382e74905f25328",
+        "executable-checks": "4cc922eba8a38c0c2a56881a083eb3af02f9cd105dc72a033a1aaabdd677c852",
+        "literal-content": "a9d4b45e4c0467d7095e270a96e968e55f7a4c38b80b3f714cc87764371f29cb",
+        "layer-boundaries": "fa466f177125c24046c44c54dab602537d43578a9d2b0b64474407fbae7c85d8",
+        "generated-documents-agree": "5fb820b0047e70c15749d931a926d7eb23ed4b56686768dfcc4f1e966e9579b0",
+        "english-only": "79f43e30023653c026ecd9fb714b26f29a968dce91889bfa06117587178c2ccb",
+        "exportable-elsewhere": "5657a218569fe1fc2d46126e62f518aa3866a76ba7bfd0349e3e546486683158",
+        "searchable-model": "e0371f972de94e6dc2c8d9836f7ef3d8ae95dff2d659a7a3f5b113d0ae989098",
+        "answers-about-change": "e48bdacc8ddf1237253258cea3f4a7be9fb3fdcc40cad68d2cbd178eee4f312d",
+        "semantic-zoom-c": "527c248fb67cb2f46b12dec4d5a580dae41be5b20105743f57b70bb819b7b846",
+        "addressable-view-c": "0e4ccbe2aa9a4cfb24d49a82123223416afc96229f1d3fc1a87876c6aaa5819c",
+        "keyboard-complete-c": "02ef4bec3374cf30287c22adddec8d5c0c16dac65e3bdd834d86e15701a56af3",
+        "announced-changes-c": "3c0f2dab61cfb4fea63f20833152d0cb91926fb21d6bfd78dbb304283bfb6d62",
+        "reader-settings-c": "5fedafab027314402851d9730ad74b6012c099c28e055098de3657a3741750af",
+        "documented-failures-c": "a4cb6aa92636601cee782f603eebb7adea0b0a32a6c18d73c61aa96a966aef17",
+        "usable-from-the-readme-c": "2e434997c6d3d3fed0f7018314eb061141c72da19b9beb6a0e8700aa2a86ca39",
+        "versioning-promise-c": "2d57da1dece78c94dd6aa91c4b9bca83321590c65d74344b711cf24772d83bc4",
+        "responsive-at-scale-c": "ad55072e0c30afb54c345ff1679683ab293e013ddc0abb5c6478a3bcdd0d55d9",
+        "bounded-input-c": "6425a7b00fe08ec29f33816ffe595f7f324180689276c175cd329f9087479d2b",
+        "authoring-onboarding-c": "d7ee183cdb3e12b2e151ae4e16a676d2773bebda2953f809061d3b682de0ade6",
+        "precise-bindings-c": "c1408a734e130a84a5bb02402bdda03f1226320cef1158cbcb24b43b6927f89f",
+        "scoped-freshness-c": "a794409b091081c07d2cca9dcbdba0e8219cc8c5c1d84e3e03179f59f4f91d95",
+        "snapshot-diff-c": "af4701a3c3c2726290b67b7ae38462cea9e09e9b2b58327b6e41c04c94d4add3",
+        "code-truth-c": "dfffcc9a31caab8268e87d335bfe03f67e4979364d017879df62936a53be4c90",
+        "attributable-records-c": "d21de8870e6a820227c7baf3425200ea9d4eca98ff50dfeb6aa9f6297646ed63",
+        "executable-checks-c": "e67edc1df96a9ebf928ee8e60280f7879ff0de8bc66b177b894f131f2103e8f9",
+        "literal-content-c": "ccd0e438d465d15ec3cf38f4b571a73bca14aaac402281df76c164c6d1060d6e",
+        "layer-boundaries-c": "fef1c92dbb4c7bfb6e5e14c76c7986315b3805e95313deb77f6770538bb6611e",
+        "generated-documents-agree-c": "aedb6383d3e0b5d75e5661becb84f3fd4cc8fbbcee0685d27e4d3eea2ea90d72",
+        "english-only-c": "548f3c6df239eb4f41704c6a27fcd1a7bbc9174ba0e37a58587fbec40730485c",
+        "exportable-elsewhere-c": "659b21ea65feb8e7cba547ed2de48f48d8adddf89057ec3444903e5aad35b8bb",
+        "searchable-model-c": "37a0d9143983a272ec5e2d28cb705ed7811d514f90705975048a3134a67daa51",
+        "answers-about-change-c": "64b40c046ce6e4b693ed2a8aa07709786c2c35857094cc05d1d23afcb43d74a7",
+        "research-fisheye": "7a223446223587b50f7e517b783bcdb14d4f5125ffc0bc0555d07a821bf104bb",
+        "research-zoomable-surface": "16ed1ba8d831f386ccc57dd264efa77bf284fc0e82e3eb4c97116a58f6ed82f1",
+        "research-zoom-review": "1186ba2f7ad0a5ce325972c6f006efddeaeb0acb03029aa64349175555d5a509",
+        "research-visual-taxonomy": "e8fb265ecc0ba826aa4ce7b1d60cf34c8f463265c9779436832e85d5a4526f89",
+        "research-notation-physics": "78ee8cfd6d5540636c6d3ea3e4b5ac8f8bd7bf9397a2c6361d75d882504e78a6",
+        "research-graphical-perception": "c64a79739f05b7303cfba0d88f026b398a9dd7dfdc8c807df991a25da6053ea7",
+        "research-secondary-notation": "aca00a04c93058f41c9982886d99673b7e3af3258803ca8d82234e06adfa1555",
+        "research-layered-layout": "8b7d9160ca6c2b02fc605f7150fd2cb259af0f40eeb178933ad7fe94f67d5040",
+        "research-response-time": "74118bcd4b4a23d04e4476e1bb3fe29356d99e90a1b8fe0fb1b516911188d9ab",
+        "research-view-model": "5219ba83bf0741f9360401e7e91711f10e00b663ca9fe910fa57756534f6bf22",
+        "research-module-criteria": "f24c21d4460f5ff3b10e06f3683545368a15c919f312b7f629b4af2e5fe6fc1c",
+        "research-design-by-contract": "c4808d41d5451f12f79144a6d6a72b1de8f36c5ae47e889034c32478eed364a0",
+        "standard-accessibility": "f937ec24355a9370ad48bb7956bf1700313032b249cdf13144762a7e09faf9ba",
+        "standard-usability-heuristics": "6593233a57273a625fa6543e36efaf2b16144f752b747f841e591f75feaea5de",
+        "standard-contract-versioning": "4313b1129ddc73b116b5443e3559fab7f37ff39c59863926366dee5a53c3c601",
+        "standard-architecture-model": "9e3c202ddcb849a5e8b899d1b2dbae90a7f5e7af18b4fcb5084086c2e6781ddd",
+        "redundant-encoding": "ae67491c2cbf002150efb00555a2cb0cab8622959c9acbe5b269b8c8c077d2b0",
+        "redundant-encoding-c": "80b403855b49096948ffb9ffc96c3b6a926074b708d22bfbe72639cb9437266f",
+        "layered-layout": "50fd423ba0be2f5cd4e981690d7e1786170e620592f30b5df19869679513bc2e"
       },
       "bindings": {
         "apply-change": {

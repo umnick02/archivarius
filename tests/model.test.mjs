@@ -9,7 +9,7 @@ import { legacyCompletion } from '../src/model/implementation.mjs';
 
 const read = (name) =>
   JSON.parse(fs.readFileSync(new URL('../' + name, import.meta.url), 'utf8'));
-const model = read('examples/basic/public/architecture.json');
+const model = read('models/rendering.json');
 const schema = new Ajv({ strict: false }).compile(
   read('assets/architecture.schema.json'),
 );

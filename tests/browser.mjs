@@ -7,7 +7,7 @@ import { nodeAppearance } from '../src/model/appearance.mjs';
 
 const model = JSON.parse(
   await fs.readFile(
-    new URL('../examples/basic/public/architecture.json', import.meta.url),
+    new URL('../models/rendering.json', import.meta.url),
     'utf8',
   ),
 );

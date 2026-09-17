@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import example from '../examples/basic/public/project.json' with { type: 'json' };
+import example from '../models/documentation.json' with { type: 'json' };
 import documents from './fixtures/documents.json' with { type: 'json' };
 import { analyzeProject } from '../src/model/project-analysis.mjs';
 import {

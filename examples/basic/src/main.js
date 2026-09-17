@@ -9,7 +9,7 @@ import './style.css';
 const demo = (name) => import.meta.env.BASE_URL + name;
 
 const map = mountArchitectureMap(document.querySelector('#map'), {
-  source: demo('project.json'),
+  source: demo('documentation.json'),
 });
 map.ready.catch(() => {});
 for (const button of document.querySelectorAll('[data-demo]'))
