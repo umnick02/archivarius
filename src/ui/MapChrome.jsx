@@ -1,6 +1,5 @@
 import { Fragment } from 'react';
 import { format, useArchitecture } from './context.jsx';
-import { relationTones } from '../model/appearance.mjs';
 import { namedLevel, levelName } from '../model/zoom.mjs';
 
 // The chrome around the map: where the reader is, what the current focus reaches,
@@ -34,12 +33,16 @@ export function MapChrome({
       {/* The breadcrumbs say which containers are open; this says what the level
           they opened is — the abstraction the reader is reading, named the same
           way the live region names it, so zoom is a step between levels rather
-          than a percentage. */}
-      <p className="map-level" data-control="level">
-        {format(copy.announcements.level, {
-          level: levelName(copy, namedLevel(graph, path)),
-        })}
-      </p>
+          than a percentage. At home the two say the same words, and the line is
+          left out rather than repeating the crumb beside it. */}
+      {levelName(copy, namedLevel(graph, path)).toLowerCase() !==
+      copy.wholeSystem.toLowerCase() ? (
+        <p className="map-level" data-control="level">
+          {format(copy.announcements.level, {
+            level: levelName(copy, namedLevel(graph, path)),
+          })}
+        </p>
+      ) : null}
       {activeKey && (
         <div className="map-context">
           <button
@@ -68,23 +71,6 @@ export function MapChrome({
           )}
         </div>
       )}
-      <div className="hint">
-        <strong>{copy.hints.zoom}</strong> · {copy.hints.pan}
-        <br />
-        {copy.hints.enter} · {copy.hints.edge}
-        <br />
-        <span style={{ color: relationTones.data }}>
-          ━ {copy.layers.data}
-        </span>{' '}
-        ·{' '}
-        <span style={{ color: relationTones.command }}>
-          ┄ {copy.layers.command}
-        </span>{' '}
-        ·{' '}
-        <span style={{ color: relationTones.state }}>
-          ┈ {copy.layers.state}
-        </span>
-      </div>
       <div className="map-controls">
         <button
           data-control="back"

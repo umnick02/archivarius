@@ -18,10 +18,17 @@
   line-height: 1.35;
 }
 
-.archivarius .legend > strong {
+.archivarius .legend > summary {
   font-size: 11px;
+  font-weight: 650;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  cursor: pointer;
+}
+/* Closed, the key is the width of its own title, so it takes a corner rather
+   than a strip of the drawing. */
+.archivarius .legend:not([open]) {
+  gap: 0;
 }
 
 .archivarius .legend-group {

@@ -166,26 +166,32 @@ test('the help text offers history', async () => {
   assert.match(help, /^\s+archivarius history <project\.json> --output/m);
 });
 
-// The terms are part of the package a consumer installs, not a claim in prose.
-test('the MIT licence ships with the package', async () => {
-  const licence = await fs.readFile(new URL('LICENSE', root), 'utf8');
-  assert.match(licence, /^MIT License/);
-  assert.match(licence, /Permission is hereby granted, free of charge/);
-  assert.match(licence, /WITHOUT WARRANTY OF ANY KIND/);
+// The terms are the package's own statement, not a file it carries. This
+// repository ships no licence text, so the tarball must not contain one and the
+// manifest must say so rather than name terms nobody granted.
+test('the package grants no licence and carries no licence file', async () => {
+  assert.equal(
+    await fs
+      .stat(new URL('LICENSE', root))
+      .then(() => true)
+      .catch(() => false),
+    false,
+    'a LICENSE file is back in the repository',
+  );
   const pkg = JSON.parse(await fs.readFile(new URL('package.json', root)));
-  assert.equal(pkg.license, 'MIT');
-  // npm packs the licence with every tarball, whatever `files` lists. Scripts are
-  // off: what the tarball carries is decided by `files` and npm's own defaults,
-  // and letting `prepare` rebuild dist/ here would pull it out from under the
-  // suites running beside this one.
+  assert.equal(pkg.license, 'UNLICENSED');
+  // Scripts are off: what the tarball carries is decided by `files` and npm's own
+  // defaults, and letting `prepare` rebuild dist/ here would pull it out from
+  // under the suites running beside this one.
   const packed = JSON.parse(
     execFileSync('npm', ['pack', '--dry-run', '--json', '--ignore-scripts'], {
       cwd: root,
       encoding: 'utf8',
     }),
   );
-  assert(
-    packed[0].files.some((entry) => entry.path === 'LICENSE'),
-    'the tarball carries no LICENSE',
+  assert.deepEqual(
+    packed[0].files.filter((entry) => /LICEN[CS]E/i.test(entry.path)),
+    [],
+    'the tarball carries a licence file',
   );
 });

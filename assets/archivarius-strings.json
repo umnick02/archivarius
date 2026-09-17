@@ -5,6 +5,7 @@
   "subtitle": "Target architecture · components and interactions",
   "layerLabel": "Emphasize interaction type",
   "findNode": "Find a component…",
+  "nodeMatches": "Matches",
   "filters": {
     "label": "Narrow the map",
     "zone": "Responsibility zone",

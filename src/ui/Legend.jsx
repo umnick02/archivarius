@@ -47,8 +47,8 @@ export function Legend() {
   // this component invented.
   if (!legend || !graph.nodes.size) return null;
   return (
-    <div className="legend" data-control="appearance-legend">
-      <strong>{legend.title}</strong>
+    <details className="legend" data-control="appearance-legend">
+      <summary>{legend.title}</summary>
       {legendGroups(legend).map((group) => (
         <div className="legend-group" key={group.group}>
           <span className="legend-label">{group.label}</span>
@@ -67,6 +67,15 @@ export function Legend() {
         </div>
       ))}
       <span className="legend-note">{legend.note}</span>
-    </div>
+      {/* How the picture is operated, beside how it is read: both are what a
+          reader opens this for, and neither needs a strip of the drawing while
+          it is closed. */}
+      <span className="legend-note">
+        {copy.hints.zoom} · {copy.hints.pan}
+      </span>
+      <span className="legend-note">
+        {copy.hints.enter} · {copy.hints.edge}
+      </span>
+    </details>
   );
 }

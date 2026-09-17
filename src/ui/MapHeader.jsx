@@ -82,7 +82,14 @@ export function MapHeader({
                 type="search"
                 aria-label={copy.findNode}
                 placeholder={copy.findNode}
-                aria-controls={instanceId + '-node-search-results'}
+                // The list only exists while there are matches, so the field only
+                // claims to control it then: an aria-controls pointing at nothing
+                // is an invalid value, not a hint.
+                aria-controls={
+                  results.length
+                    ? instanceId + '-node-search-results'
+                    : undefined
+                }
                 value={query}
                 onChange={(e) => {
                   clearClick();
@@ -95,23 +102,25 @@ export function MapHeader({
                   show(highlighted || results[0]?.key);
                 }}
               />
-              <select
-                data-control="node-search-results"
-                id={instanceId + '-node-search-results'}
-                aria-label={copy.findNode}
-                value={highlighted}
-                disabled={!results.length}
-                onChange={(e) => show(e.target.value)}
-              >
-                <option value="" disabled>
-                  {copy.findNode}
-                </option>
-                {results.map((result) => (
-                  <option key={result.key} value={result.key}>
-                    {result.title}
-                  </option>
-                ))}
-              </select>
+              {/* The matches, and only when there are matches. A list that is
+                  always there - carrying the search field's own placeholder as a
+                  disabled first option - reads as a second search field beside the
+                  first one. */}
+              {!!results.length && (
+                <select
+                  data-control="node-search-results"
+                  id={instanceId + '-node-search-results'}
+                  aria-label={copy.nodeMatches}
+                  value={highlighted || results[0].key}
+                  onChange={(e) => show(e.target.value)}
+                >
+                  {results.map((result) => (
+                    <option key={result.key} value={result.key}>
+                      {result.title}
+                    </option>
+                  ))}
+                </select>
+              )}
             </>
           )}
           <select

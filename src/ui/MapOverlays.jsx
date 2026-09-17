@@ -26,19 +26,19 @@ export function MapOverlays({ zoom, neighbours, follow, empty }) {
           gains appears beside the map without anybody writing a row. */}
       <Legend />
       {!!graph.nodes.size && (
-        <div
+        <details
           className="implementation-legend"
           data-control="implementation-legend"
           title={copy.implementationUnconfirmed}
         >
-          <strong>{copy.mapImplementation.label}</strong>
+          <summary>{copy.mapImplementation.label}</summary>
           {['confirmed', 'partial', 'unconfirmed'].map((state) => (
             <span key={state}>
               <ImplementationMark state={state} />
               {copy.mapImplementation[state]}
             </span>
           ))}
-        </div>
+        </details>
       )}
       {empty && (
         <p className="map-empty" data-control="filter-empty" role="status">

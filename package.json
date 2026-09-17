@@ -3,7 +3,7 @@
   "version": "0.5.0",
   "description": "Architecture maps with semantic zoom, explicit interactions and a validated JSON contract",
   "type": "module",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/umnick02/archivarius.git"

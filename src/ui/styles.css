@@ -117,17 +117,21 @@
   cursor: default;
   opacity: 0.35;
 }
+/* The header holds a row of controls whose number the model decides, so it wraps
+   rather than clipping or scrolling what does not fit, and its height is
+   published as `--header-height` by the app that measures it. */
 .archivarius header {
-  height: var(--header-height);
+  min-height: var(--header-height);
   position: relative;
   z-index: 50;
   background: var(--raised);
   border-bottom: 1px solid var(--line);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1.625rem;
-  gap: 1rem;
+  padding: 0.625rem 1.625rem;
+  gap: 0.625rem 1rem;
 }
 .archivarius .identity,
 .archivarius .header-right {
@@ -157,7 +161,9 @@
   min-width: 0;
 }
 .archivarius .header-right {
-  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: 0;
 }
 .archivarius .project-filters {
   display: flex;
@@ -293,11 +299,13 @@
   border-color: var(--accent);
 }
 /* A card's accent is model data, chosen once for the whole picture: it identifies
-   the container the part sits in. On a dark card that same tone would read at
-   about 3.5:1, so the text it colours uses a variant mixed toward the card's own
-   light while the edge keeps the tone itself. */
+   the container the part sits in. The tone itself reads at about 4.35:1 on a light
+   card, which a large title carries and a small one does not, so the text it
+   colours is mixed a step toward ink and clears 4.5:1 at every size the card
+   writes at; the edge keeps the tone itself. On a dark card the same tone would
+   read at about 3.5:1, so there the mix goes the other way. */
 .archivarius .node-card {
-  --accent-ink: var(--accent);
+  --accent-ink: color-mix(in srgb, var(--accent) 88%, #000000);
 }
 @media (prefers-color-scheme: dark) {
   .archivarius .node-card {
@@ -373,8 +381,12 @@
   color: var(--muted);
   pointer-events: auto;
 }
-.archivarius .implementation-legend strong {
+.archivarius .implementation-legend > summary {
   font-weight: 550;
+  cursor: pointer;
+}
+.archivarius .implementation-legend:not([open]) {
+  gap: 0;
 }
 .archivarius .implementation-legend span {
   display: flex;
@@ -755,9 +767,6 @@
   }
 }
 @container (max-width: 780px) {
-  .archivarius .map-app {
-    --header-height: 6rem;
-  }
   .archivarius header {
     padding: 0 0.75rem;
     gap: 0.5rem;
@@ -774,21 +783,14 @@
     font-size: 0.9375rem;
   }
   .archivarius .header-right {
-    position: absolute;
-    top: 2.9375rem;
-    left: 0.75rem;
-    right: 0.75rem;
-    overflow-x: auto;
-    padding-bottom: 4px;
+    flex-basis: 100%;
+    justify-content: flex-start;
   }
   .archivarius [data-control='node-search'] {
     max-width: 8.125rem;
   }
   .archivarius .header-right {
     gap: 0.3125rem;
-  }
-  .archivarius .header-right > * {
-    flex-shrink: 0;
   }
   .archivarius [data-control='contracts'] {
     font-size: 0.625rem;

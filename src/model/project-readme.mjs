@@ -44,6 +44,10 @@ const table = (copy, type, entries) => {
     of: (record) => value(record, field),
   }));
   return [
+    // A section a reader can jump to, worded by the map's own name for the type;
+    // the generator names nothing the copy has not already named.
+    '## ' + copy.types[type],
+    '',
     row([copy.types[type], ...columns.map((column) => column.heading)]),
     row(['---', ...columns.map(() => '---')]),
     ...entries.map(([title, record]) =>
@@ -173,9 +177,6 @@ export function renderProjectReadme(whole, copy) {
     // What the scope settles is what a reader needs before a command; the
     // walk-through then comes before every fact the page merely describes.
     ...quickstart(whole, copy),
-    // What the statements settle - whose system this is and what it is for - has
-    // to be read before the picture, not after.
-    ...records('source').flatMap(statements),
     ...architectureDiagram(model),
     // A reader who does not know the vocabulary yet needs one concrete run
     // through the system before the parts it is made of.
@@ -204,6 +205,16 @@ export function renderProjectReadme(whole, copy) {
       'decision',
       records('decision').map((record) => [record.title, record]),
     ),
+    // The grounds - the observations and the published work the design rests on
+    // - are what a reader consults after the map and the tables, not a wall to
+    // wade through before the first command.
+    ...(records('source').length
+      ? [
+          '## ' + copy.types.source,
+          '',
+          ...records('source').flatMap(statements),
+        ]
+      : []),
     generatedNotice,
     '',
   ].join('\n');

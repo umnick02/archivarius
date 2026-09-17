@@ -35,7 +35,8 @@ import {
   writeAddress,
 } from '../model/address.mjs';
 import { failureReport } from '../model/failure.mjs';
-import { levelName } from '../model/zoom.mjs';
+import { expansionThresholds, levelName } from '../model/zoom.mjs';
+import { fitToFrame } from './frame.mjs';
 
 const nodeTypes = { architecture: ArchitectureNode },
   edgeTypes = { architecture: ArchitectureEdge };
@@ -172,19 +173,16 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
           width: pane.current.clientWidth,
           height: pane.current.clientHeight,
         };
-      const zoom = Math.min(
-        maxZoom,
-        Math.min(
-          Math.max(60, size.width - 48) / n.width,
-          (size.height - 170) / n.height,
-        ) * 0.92,
-      );
+      // Framing a container has to leave it legible, or the reader is moved to a
+      // box that then refuses to open. The scale its own threshold asks for is the
+      // floor of the fit, with a hair over it so a rounded pixel cannot close it.
+      const opens = expansionThresholds(n, size).expand;
+      const atLeast =
+        layout.nodes[key]?.parent === n.key || n === box
+          ? Math.max(opens.width / n.width, opens.height / n.height) * 1.02
+          : 0;
       return flow.setViewport(
-        {
-          x: size.width / 2 - (n.x + n.width / 2) * zoom,
-          y: size.height / 2 + 12 - (n.y + n.height / 2) * zoom,
-          zoom,
-        },
+        fitToFrame(size, n, { margin: 0.92, maxZoom, atLeast }),
         { duration: duration() },
       );
     },
@@ -214,19 +212,9 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
       width: pane.current.clientWidth,
       height: pane.current.clientHeight,
     };
-    const b = layout.bounds,
-      zoom = Math.min(
-        (size.width - 70) / b.width,
-        (size.height - 180) / b.height,
-      );
-    return flow.setViewport(
-      {
-        x: (size.width - b.width * zoom) / 2,
-        y: (size.height - b.height * zoom) / 2 + 10,
-        zoom,
-      },
-      { duration: duration() },
-    );
+    return flow.setViewport(fitToFrame(size, layout.bounds), {
+      duration: duration(),
+    });
   }, [flow, layout, clearClick, project, graph, resetPanel]);
   const showNode = useCallback(
     (key) => {
@@ -427,13 +415,7 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         };
         const selectedBox = layout.nodes[selectedRef.current];
         if (atHome.current) {
-          const bounds = layout.bounds;
-          adjusted.zoom = Math.min(
-            (next.width - 70) / bounds.width,
-            (next.height - 180) / bounds.height,
-          );
-          adjusted.x = (next.width - bounds.width * adjusted.zoom) / 2;
-          adjusted.y = (next.height - bounds.height * adjusted.zoom) / 2 + 10;
+          Object.assign(adjusted, fitToFrame(next, layout.bounds));
         } else if (selectedBox && next.width < previous.width) {
           const left = selectedBox.x * current.zoom + adjusted.x;
           const width = selectedBox.width * current.zoom;
@@ -454,6 +436,22 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     observer.observe(pane.current);
     return () => observer.disconnect();
   }, [flow, layout]);
+  // The header wraps its controls when a width cannot hold them in one row, so
+  // its height is a measurement rather than a constant. The pane and every
+  // overlay positioned under the header read this variable, so a control pushed
+  // to a second row pushes them down instead of hiding behind them.
+  useEffect(() => {
+    const header = root.current?.querySelector('header');
+    if (!header) return undefined;
+    const observer = new ResizeObserver(([entry]) =>
+      root.current?.style.setProperty(
+        '--header-height',
+        entry.target.offsetHeight + 'px',
+      ),
+    );
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
   useEffect(() => {
     if (explicitFocus.current) return;
     const rect = pane.current.getBoundingClientRect();
@@ -725,10 +723,7 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     return () => clearTimeout(timer);
   }, [address]);
 
-  const overviewZoom = Math.min(
-    (size.width - 70) / layout.bounds.width,
-    (size.height - 180) / layout.bounds.height,
-  );
+  const overviewZoom = fitToFrame(size, layout.bounds).zoom;
   return (
     <div
       className="map-app"

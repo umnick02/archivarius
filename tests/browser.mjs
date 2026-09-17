@@ -475,7 +475,7 @@ try {
     await b.evaluate(
       () =>
         document.querySelector(
-          '#second [data-control=implementation-legend] strong',
+          '#second [data-control=implementation-legend] summary',
         ).textContent,
     ),
     copy.mapImplementation.label,
