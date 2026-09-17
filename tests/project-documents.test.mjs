@@ -19,6 +19,33 @@ import { escape, generatedNotice } from '../src/model/documents.mjs';
 import { failureCatalogue, failureCodes } from '../src/model/errors.mjs';
 import { clone, get, ready } from './project-fixture.mjs';
 
+const root = new URL('../', import.meta.url);
+const readJSON = async (name) =>
+  JSON.parse(await fs.readFile(new URL(name, root), 'utf8'));
+// The quickstart is only worth publishing if a reader can run it, so the oracle
+// is the shipped package: the fence is cut out of the generated page and every
+// specifier, name and code in it is resolved against package.json, the built
+// entry and the failure catalogue.
+const quickstartHeading = '## Quickstart';
+// The walk-through runs from its heading to the picture the page shows next, so
+// nothing further down the landing page can stand in for a line it is missing.
+const section = (readme) => {
+  const at = readme.indexOf(quickstartHeading);
+  assert(at >= 0, 'the landing page carries no quickstart');
+  const ends = ['\n```mermaid', '\n## ']
+    .map((mark) => readme.indexOf(mark, at + quickstartHeading.length))
+    .filter((end) => end >= 0);
+  assert(ends.length, 'the quickstart runs to the end of the page');
+  return readme.slice(at, Math.min(...ends));
+};
+const fence = (text, language) => {
+  const found = text.match(
+    new RegExp('```' + language + '\\n([\\s\\S]*?)\\n```'),
+  );
+  assert(found, 'the quickstart has no ' + language + ' block');
+  return found[1];
+};
+
 test('documentation and history retain records and links without a separate prose source', async () => {
   const original = clone(),
     context = projectContext(original, ['row-limit']);
@@ -345,4 +372,87 @@ test('documentation publishes the failure catalogue held by the module that rais
       'the reference does not describe ' + code,
     );
   assert.equal(markdown, await generateDocumentation(clone()));
+});
+
+// A page that opens with a command a reader cannot run is worse than no page, so
+// the walk-through is held to the package it tells them to install: the real
+// name, the real export map, the real built entry and the codes the raising
+// module describes. The consumer fixture is the second oracle - it is what
+// `npm run test:package` installs from the tarball and drives in a browser, so a
+// snippet naming anything it does not exercise is a snippet nothing proves.
+test('the landing page opens with a quickstart the shipped package can run', async () => {
+  const pkg = await readJSON('package.json');
+  const model = await readJSON('project.json');
+  const readme = await generateReadme(model);
+  const quickstart = section(readme);
+  assert(
+    readme.indexOf(quickstartHeading) < readme.indexOf('```mermaid'),
+    'the quickstart comes after the picture',
+  );
+  // Install: the one command, naming the package a reader really installs.
+  assert.equal(fence(quickstart, 'sh'), 'npm install ' + pkg.name);
+  // Mount: every specifier resolves through the published export map, and every
+  // name taken from the package is an export of the built entry.
+  const snippet = fence(quickstart, 'js');
+  const entry = await import(new URL('dist/src/index.js', root));
+  const imports = [
+    ...snippet.matchAll(/^import (?:\{([^}]*)\} from )?'([^']+)';$/gm),
+  ];
+  assert(imports.length > 1, 'the snippet imports nothing');
+  for (const [, names, specifier] of imports) {
+    const subpath = specifier.replace(pkg.name, '.');
+    assert(
+      Object.hasOwn(pkg.exports, subpath),
+      specifier + ' is not a published entry point',
+    );
+    for (const name of (names || '').split(',').filter((part) => part.trim()))
+      assert.equal(
+        typeof entry[name.trim()],
+        'function',
+        name + ' is not an export',
+      );
+  }
+  // Failure: a code the catalogue describes, and where the whole table lives.
+  const codes = [...quickstart.matchAll(/`([A-Z][A-Z0-9_]+)`/g)].map(
+    (m) => m[1],
+  );
+  assert(codes.length, 'the quickstart names no failure code');
+  for (const code of codes)
+    assert(Object.hasOwn(failureCodes, code), code + ' is described nowhere');
+  assert(
+    quickstart.includes(failureCatalogue.title),
+    'the quickstart does not say where the codes are listed',
+  );
+  // The packed consumer already runs what the snippet claims.
+  const consumer = await fs.readFile(
+    new URL('tests/consumer/main.jsx', root),
+    'utf8',
+  );
+  for (const [, names, specifier] of imports) {
+    assert(
+      consumer.includes("'" + specifier + "'"),
+      specifier + ' is not exercised by the packed consumer',
+    );
+    for (const name of (names || '').split(',').filter((part) => part.trim()))
+      assert(
+        new RegExp('\\b' + name.trim() + '\\b').test(consumer),
+        name + ' is not exercised by the packed consumer',
+      );
+  }
+  for (const [, member] of snippet.matchAll(/\bmap\.(\w+)/g))
+    assert(
+      new RegExp('\\.' + member + '\\b').test(consumer),
+      'map.' + member + ' is not exercised by the packed consumer',
+    );
+  assert.equal(readme, await generateReadme(await readJSON('project.json')));
+});
+
+// The renderer draws any project's landing page, and a project that does not
+// ship this package must not tell its readers to install itself.
+test('a project that binds neither the package nor the mount entry gets no quickstart', async () => {
+  const readme = await generateReadme(ready());
+  assert(
+    !readme.includes(quickstartHeading),
+    'a foreign project was given a quickstart',
+  );
 });

@@ -202,5 +202,17 @@
   "documentData": "Structured data",
   "documentTable": "Document table",
   "openRecord": "Open record",
-  "documentIntro": "About this document"
+  "documentIntro": "About this document",
+  "quickstart": {
+    "heading": "Quickstart",
+    "install": "npm install {name}",
+    "import": "import { mountArchitectureMap } from '{name}';",
+    "style": "import '{name}/style.css';",
+    "mount": "const map = mountArchitectureMap(document.querySelector('#map'), {",
+    "source": "  source: './{model}',",
+    "close": "});",
+    "await": "await map.ready;",
+    "failure": "A rejected model throws with a code: {code}.",
+    "codes": "Every code is in the {table} table the {command} command writes."
+  }
 }

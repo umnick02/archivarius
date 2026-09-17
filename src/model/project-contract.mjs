@@ -1,7 +1,7 @@
 import { validateDocuments } from './documents.mjs';
 import { checkStructure } from './structure.mjs';
 import { ArchitectureGraph } from './graph.mjs';
-import { ArchitectureError } from './errors.mjs';
+import { ArchitectureError, explainDiagnostics } from './errors.mjs';
 import { digest } from './digest.mjs';
 import { index, recordReferences } from './records.mjs';
 import { projectArchitecture } from './project-architecture.mjs';
@@ -15,11 +15,14 @@ export function validateProject(model) {
   const diagnostics = checkStructure(model);
   const issue = (code, subject, path = '/records') =>
     diagnostics.push({ code, subject, path });
-  const finish = () => ({
-    valid: !diagnostics.length,
-    errors: diagnostics.map((d) => d.code + ':' + (d.subject || d.path)),
-    diagnostics,
-  });
+  const finish = () => {
+    const explained = explainDiagnostics(diagnostics, model);
+    return {
+      valid: !explained.length,
+      errors: explained.map((d) => d.code + ':' + (d.subject || d.path)),
+      diagnostics: explained,
+    };
+  };
   if (diagnostics.length) return finish();
   if (model.version !== 4) {
     issue('PROJECT_VERSION', '', '/version');

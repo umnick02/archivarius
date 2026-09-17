@@ -35,6 +35,30 @@ export function updateProjectFile(
   context: ProjectContext,
   change: ProjectChange,
 ): Promise<ProjectModel>;
+
+export interface ProjectDiffRecord {
+  key: string;
+  type: string;
+  title: string;
+}
+export interface ProjectDiffSide {
+  snapshot: string;
+  contract: string;
+  realization: string;
+}
+export interface ProjectDiff {
+  before: ProjectDiffSide;
+  after: ProjectDiffSide;
+  added: ProjectDiffRecord[];
+  removed: ProjectDiffRecord[];
+  changed: Array<ProjectDiffRecord & { fields: string[] }>;
+  moved: string[];
+  readingList: Array<ProjectDiffRecord & { code: string; moved: string[] }>;
+}
+export function diffProjectFiles(
+  file: string | URL,
+  against?: string | URL | null,
+): Promise<ProjectDiff>;
 export function executeProjectCheck(
   model: ProjectModel,
   key: string,

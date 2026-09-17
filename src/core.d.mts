@@ -15,6 +15,10 @@ export interface ArchitectureDiagnostic {
   code: string;
   path: string;
   subject?: string;
+  record?: string;
+  field?: string;
+  value?: string;
+  expected?: string;
   keyword?: string;
   schemaPath?: string;
   params?: Record<string, unknown>;

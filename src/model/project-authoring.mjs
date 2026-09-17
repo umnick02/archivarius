@@ -1,6 +1,10 @@
 import { documentReferences, documentSections } from './documents.mjs';
 import { checkStructure } from './structure.mjs';
-import { ArchitectureError } from './errors.mjs';
+import {
+  ArchitectureError,
+  explainDiagnostics,
+  staleContextDiagnostics,
+} from './errors.mjs';
 import { digest } from './digest.mjs';
 import {
   applicableRequirements,
@@ -139,17 +143,36 @@ export function applyProjectChanges(model, context, change) {
   assertProject(model);
   const diagnostics = checkStructure(change, validateChange);
   if (diagnostics.length)
-    throw new ArchitectureError('INVALID_CHANGE', [], diagnostics);
+    throw new ArchitectureError(
+      'INVALID_CHANGE',
+      [],
+      explainDiagnostics(diagnostics, change),
+    );
   const { put = [], remove = [], review = [], reason } = change;
+  // A stale receipt says which read moved, so the author reads that record again
+  // instead of the whole closure. Taking the read may itself fail on a key the
+  // model dropped, and that is still a receipt that moved.
+  const asRead = (keys) => {
+    try {
+      return collectProjectContext(model, keys);
+    } catch {
+      return null;
+    }
+  };
+  const stale = (current) =>
+    new ArchitectureError(
+      'CONTEXT_CHANGED',
+      [],
+      staleContextDiagnostics(context, current),
+    );
   // Reconstruct the original receipt from immutable revisions, then compare the
   // current read closure. Disjoint edits may rebase; trimmed or stale reads may not.
-  if (!context || !Array.isArray(context.keys))
-    throw new ArchitectureError('CONTEXT_CHANGED');
+  if (!context || !Array.isArray(context.keys)) throw stale(null);
   const manifest = snapshotManifest(model);
   let basis = model;
   if (context.snapshot !== digest(manifest)) {
     const saved = model.snapshots.find((s) => digest(s) === context.snapshot);
-    if (!saved) throw new ArchitectureError('CONTEXT_CHANGED');
+    if (!saved) throw stale(asRead(context.keys));
     const revisions = new Map([
       ...model.history.map((h) => [h.digest, h.record]),
       ...model.records.map((r) => [digest(r), r]),
@@ -164,8 +187,7 @@ export function applyProjectChanges(model, context, change) {
   }
   if (basis !== model) assertProject(basis);
   const expected = collectProjectContext(basis, context.keys);
-  if (digest(expected) !== digest(context))
-    throw new ArchitectureError('CONTEXT_CHANGED');
+  if (digest(expected) !== digest(context)) throw stale(asRead(context.keys));
   const current = collectProjectContext(model, context.keys);
   if (
     digest(current.reads) !== digest(context.reads) ||
@@ -176,7 +198,7 @@ export function applyProjectChanges(model, context, change) {
     (context.contract !== current.contract &&
       put.some((r) => r.type === 'result'))
   )
-    throw new ArchitectureError('CONTEXT_CHANGED');
+    throw stale(current);
   const next = structuredClone(model),
     records = index(next);
   if (!next.snapshots.some((s) => digest(s) === digest(manifest)))

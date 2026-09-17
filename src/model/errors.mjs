@@ -1,10 +1,20 @@
+import prose from '../generated/prose.mjs';
+import referenceFields from '../generated/references.mjs';
+
 /**
  * What a validator reports about one failure: a stable `code` and the JSON
  * Pointer `path` that failed, plus whichever detail the producer has — the
  * record a rule names, or the schema keyword that rejected the value.
  *
+ * `record`, `field`, `value` and `expected` are what `explainDiagnostics` adds
+ * so a reader never has to decode the contract: the record key the failure sits
+ * in, the field inside it, a short safe summary of the value that was read
+ * (`'absent'` when there is none) and the accepted shape in words.
+ *
  * @typedef {{ code: string, path: string, subject?: string, keyword?: string,
- *   schemaPath?: string, params?: Record<string, string | undefined> }} Diagnostic
+ *   schemaPath?: string, params?: Record<string, string | undefined>,
+ *   record?: string, field?: string, value?: string,
+ *   expected?: string }} Diagnostic
  */
 
 export class ArchitectureError extends Error {
@@ -15,6 +25,408 @@ export class ArchitectureError extends Error {
     this.issues = issues;
     this.diagnostics = diagnostics;
   }
+}
+
+// A rejection is a message to a person, so it names the record, the field and
+// the value it read, and states the accepted shape beside them. One path does it
+// for every validator: the diagnostics carry a JSON Pointer, so the value and
+// the record it sits in are read back out of the input the validator was given.
+
+const maxCharacters = 80;
+const maxNames = 8;
+
+const pointerSegment = (value) =>
+  String(value).replaceAll('~', '~0').replaceAll('/', '~1');
+
+const pointerTokens = (path) =>
+  !path || path === '/'
+    ? []
+    : String(path)
+        .replace(/^\//, '')
+        .split('/')
+        .map((token) => token.replaceAll('~1', '/').replaceAll('~0', '~'));
+
+// Model content is never trusted output: control characters are neutralized and
+// the text is cut, so no diagnostic can carry a document or drive a renderer.
+const plain = (text, limit = maxCharacters) => {
+  const safe = String(text).replace(/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/gu, ' ');
+  return safe.length > limit ? safe.slice(0, limit) + '\u2026' : safe;
+};
+
+const quoted = (text) =>
+  '"' +
+  plain(text) +
+  '"' +
+  (String(text).length > maxCharacters
+    ? ' (' + String(text).length + ' characters)'
+    : '');
+
+const nameList = (names) => {
+  const shown = names.slice(0, maxNames).map((name) => plain(name, 40));
+  const rest = names.length - shown.length;
+  const joined = shown.length
+    ? shown.length > 1
+      ? shown.slice(0, -1).join(', ') + ' and ' + shown[shown.length - 1]
+      : shown[0]
+    : 'nothing';
+  return rest ? joined + ' and ' + rest + ' more' : joined;
+};
+
+const literal = (value) =>
+  typeof value === 'string' ? quoted(value) : String(value);
+
+/** @param {unknown} value @returns {string} */
+function readValue(value) {
+  if (value === undefined) return 'absent';
+  if (value === null) return 'null';
+  if (typeof value === 'string') return 'the string ' + quoted(value);
+  if (typeof value === 'number' || typeof value === 'boolean')
+    return 'the ' + typeof value + ' ' + String(value);
+  if (Array.isArray(value))
+    return (
+      'an array of ' +
+      value.length +
+      (value.length === 1 ? ' entry' : ' entries')
+    );
+  if (typeof value === 'object')
+    return 'an object with the fields ' + nameList(Object.keys(value));
+  return 'a ' + typeof value;
+}
+
+/** @param {unknown} value @returns {string} */
+const typeName = (value) =>
+  value === null
+    ? 'null'
+    : Array.isArray(value)
+      ? 'a list of ' +
+        (value.length ? typeName(value[0]).replace(/^an? /, '') + 's' : 'items')
+      : typeof value === 'object'
+        ? 'an object'
+        : 'a ' + typeof value;
+
+const isRecord = (value) =>
+  !!value &&
+  typeof value === 'object' &&
+  !Array.isArray(value) &&
+  typeof value.key === 'string' &&
+  typeof value.type === 'string';
+
+// Both inputs a validator is handed carry records: a model under `records`, a
+// change under `put`.
+function* everyRecord(root) {
+  for (const list of [root?.records, root?.put])
+    if (Array.isArray(list))
+      for (const item of list) if (isRecord(item)) yield item;
+}
+
+// Follow the pointer through the input, remembering the innermost record on the
+// way, so a failure deep inside a block still names the record it belongs to.
+function locate(root, path) {
+  const tokens = pointerTokens(path);
+  const chain = [root];
+  let inside = root;
+  let stopped = tokens.length;
+  for (const [i, token] of tokens.entries()) {
+    if (!inside || typeof inside !== 'object') {
+      stopped = i;
+      break;
+    }
+    inside = Object.hasOwn(inside, token) ? inside[token] : undefined;
+    chain.push(inside);
+    if (inside === undefined) {
+      stopped = i + 1;
+      break;
+    }
+  }
+  let record,
+    at = 0;
+  for (const [i, entry] of chain.entries())
+    if (isRecord(entry)) {
+      record = entry;
+      at = i;
+    }
+  const reached = stopped === tokens.length;
+  const relative = record ? tokens.slice(at) : tokens.slice(-1);
+  return {
+    record,
+    field: relative.length ? relative.join('/') : undefined,
+    value: reached ? chain[chain.length - 1] : undefined,
+    reached,
+  };
+}
+
+const branchOf = (schemaPath) =>
+  (String(schemaPath ?? '').match(/^#\/(?:oneOf|anyOf)\/\d+/) || [''])[0];
+
+// A record union reports every branch it tried. The branch that describes the
+// record's own type is the one whose `type` constant still held, so the constants
+// the other branches raised name them and the missing entry names this record.
+const branchTypes = (diagnostics) => {
+  const found = new Map();
+  for (const item of diagnostics)
+    if (
+      item.keyword === 'const' &&
+      /\/properties\/type\/const$/.test(String(item.schemaPath ?? ''))
+    )
+      found.set(branchOf(item.schemaPath), item.params?.allowedValue);
+  return found;
+};
+
+// What the contract says a field holds, in the order the answer is trustworthy:
+// what its siblings really hold, then the prose and reference tables generated
+// from the schema.
+function fieldShape(root, type, field) {
+  for (const other of everyRecord(root))
+    if (other.type === type && other[field] !== undefined)
+      return typeName(other[field]);
+  const written = (prose[type] ?? []).find((entry) => entry.name === field);
+  if (written) return written.many ? 'a list of strings' : 'a string';
+  const reference = (referenceFields[type] ?? []).find(
+    (entry) => entry.name === field,
+  );
+  return reference
+    ? 'a record key of type ' + nameList(reference.types)
+    : undefined;
+}
+
+const declaredFields = (root, type, record, unknown) => {
+  const others = [...everyRecord(root)].filter(
+    (other) => other.type === type && other !== record,
+  );
+  const names = new Set(others.flatMap((other) => Object.keys(other)));
+  if (!names.size)
+    for (const name of Object.keys(record ?? {}))
+      if (name !== unknown) names.add(name);
+  return [...names];
+};
+
+const referenceTargets = (type, field) => {
+  const reference = (referenceFields[type] ?? []).find(
+    (entry) => entry.name === field,
+  );
+  return reference
+    ? 'The key of an existing record of type ' + nameList(reference.types) + '.'
+    : 'The key of an existing record.';
+};
+
+function acceptedShape(diagnostic, found) {
+  const { code, keyword, params = {} } = diagnostic;
+  const { root, record, field, value, branch } = found;
+  const own = record?.type;
+  const type = branch ?? own;
+  if (code === 'MISSING_REFERENCE' || code === 'REFERENCE_TYPE')
+    return referenceTargets(own, field);
+  if (code === 'SELF_REFERENCE')
+    return 'The key of another record, not this one.';
+  switch (keyword) {
+    case 'required': {
+      const name = params.missingProperty;
+      if (!type) return 'The field "' + name + '" is required.';
+      if (branch && own && branch !== own)
+        return (
+          'Only a "' +
+          branch +
+          '" record requires the field "' +
+          name +
+          '"; this record declares type "' +
+          own +
+          '".'
+        );
+      const shape = fieldShape(root, type, name);
+      return (
+        'A "' +
+        type +
+        '" record requires the field "' +
+        name +
+        '"' +
+        (shape ? ' (' + shape + ')' : '') +
+        '.'
+      );
+    }
+    case 'enum': {
+      const allowed = nameList((params.allowedValues ?? []).map(literal));
+      return type
+        ? 'A "' +
+            type +
+            '" record allows "' +
+            field +
+            '" to be ' +
+            allowed +
+            '.'
+        : 'One of ' + allowed + '.';
+    }
+    case 'const':
+      return 'Exactly ' + literal(params.allowedValue) + '.';
+    case 'type':
+      return (
+        'A ' +
+        [].concat(params.type).join(' or ') +
+        ', not ' +
+        typeName(value) +
+        '.'
+      );
+    case 'additionalProperties':
+    case 'unevaluatedProperties': {
+      const unknown =
+        params.additionalProperty ?? params.unevaluatedProperty ?? field;
+      return type
+        ? 'A field a "' +
+            type +
+            '" record declares: ' +
+            nameList(declaredFields(root, type, record, unknown)) +
+            '.'
+        : 'A field the contract accepts at this path, which "' +
+            plain(unknown, 40) +
+            '" is not.';
+    }
+    case 'minItems':
+      return 'At least ' + params.limit + ' entries.';
+    case 'maxItems':
+      return 'At most ' + params.limit + ' entries.';
+    case 'minLength':
+      return 'At least ' + params.limit + ' characters.';
+    case 'maxLength':
+      return 'At most ' + params.limit + ' characters.';
+    case 'pattern':
+      return 'Text matching ' + quoted(params.pattern) + '.';
+    case 'format':
+      return 'A value in the ' + params.format + ' format.';
+    case 'uniqueItems':
+      return 'Entries that all differ.';
+    case 'minimum':
+    case 'maximum':
+    case 'exclusiveMinimum':
+    case 'exclusiveMaximum':
+      return 'A number ' + params.comparison + ' ' + params.limit + '.';
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Point every diagnostic at what it read: the record key, the field, a summary
+ * of the value and the accepted shape. Fields a producer already stated are
+ * kept, and a pointer that does not resolve in `root` only loses the value.
+ *
+ * @param {Diagnostic[]} diagnostics
+ * @param {unknown} root the input the validator was given
+ * @returns {Diagnostic[]}
+ */
+export function explainDiagnostics(diagnostics, root) {
+  if (!diagnostics.length) return diagnostics;
+  const branches = branchTypes(diagnostics);
+  return diagnostics.map((diagnostic) => {
+    const found = locate(root, diagnostic.path);
+    // A rule that names one broken entry read that entry, not the list holding it.
+    const value =
+      Array.isArray(found.value) &&
+      diagnostic.subject !== undefined &&
+      found.value.includes(diagnostic.subject)
+        ? diagnostic.subject
+        : found.value;
+    const field = diagnostic.field ?? found.field;
+    const key = diagnostic.record ?? found.record?.key;
+    const expected =
+      diagnostic.expected ??
+      acceptedShape(diagnostic, {
+        root,
+        record: found.record,
+        field,
+        value,
+        branch: branches.get(branchOf(diagnostic.schemaPath)),
+      });
+    return {
+      ...diagnostic,
+      ...(key === undefined ? {} : { record: key }),
+      ...(field === undefined ? {} : { field }),
+      ...(found.reached ? { value: readValue(value) } : {}),
+      ...(expected === undefined ? {} : { expected }),
+    };
+  });
+}
+
+/**
+ * Say what moved under a receipt: which read, document or manifest digest the
+ * author was shown and what the model reads now.
+ *
+ * @typedef {{ keys?: unknown, snapshot?: string, records?: unknown[],
+ *   reads?: Record<string, string>,
+ *   documents?: Array<{ key?: string, digest?: string }> }} Receipt
+ * @param {Receipt | null | undefined} context the receipt a change was based on
+ * @param {Receipt | null | undefined} current the same read taken from the model
+ *   as it stands
+ * @returns {Diagnostic[]}
+ */
+export function staleContextDiagnostics(context, current) {
+  const code = 'CONTEXT_CHANGED';
+  if (!context || typeof context !== 'object' || !Array.isArray(context.keys))
+    return explainDiagnostics(
+      [
+        {
+          code,
+          path: '/keys',
+          field: 'keys',
+          expected:
+            'A receipt whose keys field lists the record keys it was read for.',
+        },
+      ],
+      context ?? {},
+    );
+  /** @type {Diagnostic[]} */
+  const raw = [];
+  const was =
+    context.reads && typeof context.reads === 'object' ? context.reads : {};
+  const now = current?.reads ?? {};
+  for (const key of new Set([...Object.keys(was), ...Object.keys(now)]))
+    if (was[key] !== now[key])
+      raw.push({
+        code,
+        subject: key,
+        path: '/reads/' + pointerSegment(key),
+        record: key,
+        field: 'reads',
+        expected: now[key]
+          ? 'The digest "' + now[key] + '" the model now reads for that record.'
+          : 'No read at all, because the model no longer defines that record.',
+      });
+  const documents = Array.isArray(context.documents) ? context.documents : [];
+  const rendered = new Map(
+    (current?.documents ?? []).map((entry) => [entry.key, entry.digest]),
+  );
+  for (const [i, entry] of documents.entries())
+    if (entry?.digest !== rendered.get(entry?.key))
+      raw.push({
+        code,
+        subject: entry?.key,
+        path: '/documents/' + i + '/digest',
+        record: entry?.key,
+        field: 'documents',
+        expected: rendered.has(entry?.key)
+          ? 'The digest "' +
+            rendered.get(entry?.key) +
+            '" that document renders to now.'
+          : 'No section at all, because that document no longer covers the read.',
+      });
+  if (current && context.snapshot !== current.snapshot)
+    raw.push({
+      code,
+      path: '/snapshot',
+      field: 'snapshot',
+      expected:
+        'The digest "' + current.snapshot + '" of the manifest as it stands.',
+    });
+  if (!raw.length)
+    raw.push({
+      code,
+      path: '/records',
+      field: 'records',
+      expected: current
+        ? 'The ' +
+          current.records.length +
+          ' records the model now reads for those keys.'
+        : 'A receipt read from the model as it stands.',
+    });
+  return explainDiagnostics(raw, context);
 }
 
 /**
@@ -233,6 +645,12 @@ export const failureCodes = {
   OUTPUT_IS_MODEL: {
     meaning: 'The requested output file is the model file being read.',
     remedy: 'Write the output to a different path.',
+  },
+  SNAPSHOT_INCOMPLETE: {
+    meaning:
+      'A stored snapshot manifest names a record revision the history no longer holds.',
+    remedy:
+      'Restore the history archive, or compare against a snapshot whose revisions are still present.',
   },
   REALIZATION_CHANGED: {
     meaning: 'A bound file changed while the check was being verified or run.',

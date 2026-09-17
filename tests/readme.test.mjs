@@ -46,10 +46,20 @@ const fromCopy = (line) =>
 const record = (type) => model.records.find((r) => r.type === type);
 const records = (type) => model.records.filter((r) => r.type === type);
 
-test('the readme opens with the scope as the only heading', () => {
+test('the readme opens with the scope and writes no heading of its own', () => {
   const readme = renderReadme(model, copy);
   assert.equal(readme.split('\n')[0], '# ' + record('scope').title);
-  assert.equal(readme.match(/^#+ /gm).length, 1);
+  // One top-level heading, and any section under it is wording the copy owns:
+  // the generator may not name a section the project never worded.
+  const headings = readme.match(/^#+ .*/gm);
+  assert.equal(headings.filter((h) => h.startsWith('# ')).length, 1);
+  for (const heading of headings.slice(1)) {
+    assert(heading.startsWith('## '), 'buried heading: ' + heading);
+    assert(
+      fromCopy(heading.slice(3)),
+      'heading absent from the copy: ' + heading,
+    );
+  }
 });
 
 test('the readme states the purpose and the sources from the model', () => {
@@ -267,11 +277,20 @@ test('rendering the same model twice gives the same readme', () => {
 // field set instead of the system, and the reference view already prints them.
 test('the readme quotes no raw record', () => {
   const readme = renderReadme(model, copy);
-  const fences = readme.split('\n').filter((line) => line.startsWith('```'));
-  for (let index = 0; index < fences.length; index += 2)
-    assert.equal(
-      fences[index],
-      '```mermaid',
-      'a fenced block other than the diagram is on the landing page',
-    );
+  const lines = readme.split('\n');
+  let open = null;
+  for (const line of lines) {
+    if (!line.startsWith('```')) {
+      // Inside any fence that is not the diagram, every line is copy the
+      // project worded: a snippet may show an API, never dump a record.
+      if (open && open !== '```mermaid')
+        assert(
+          !line.trim() || fromCopy(line),
+          'a fenced line the copy does not word: ' + line,
+        );
+      continue;
+    }
+    open = open ? null : line;
+  }
+  assert.equal(open, null, 'an unclosed fence is on the landing page');
 });

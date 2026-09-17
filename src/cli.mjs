@@ -11,6 +11,7 @@ import {
   verifyProjectFiles,
   updateProjectFile,
   executeProjectCheck,
+  diffProjectFiles,
   writeAtomic,
   archiveProjectFile,
 } from './node.mjs';
@@ -35,6 +36,8 @@ async function main() {
         result: { type: 'string' },
         evidence: { type: 'string' },
         format: { type: 'string' },
+        against: { type: 'string' },
+        stale: { type: 'boolean' },
       },
     }));
     if (values.help && positionals.length === 0) {
@@ -56,6 +59,7 @@ async function main() {
       context: ['focus', 'json', 'output'],
       read: ['focus', 'json'],
       archive: ['json'],
+      diff: ['against', 'stale', 'output', 'json'],
       apply: ['context', 'change', 'json'],
       verify: ['json'],
       run: ['focus', 'result', 'evidence', 'json'],
@@ -73,6 +77,7 @@ async function main() {
         'context',
         'read',
         'archive',
+        'diff',
         'apply',
         'verify',
         'run',
@@ -121,6 +126,33 @@ async function main() {
     }
     if (command === 'read') {
       print(projectRead(model, values.focus));
+      return;
+    }
+    if (command === 'diff') {
+      const diff = await diffProjectFiles(input, values.against);
+      // --stale keeps the freshness report: every record that lost its basis,
+      // with the definition that moved, in the order it should be read.
+      const report = values.stale
+        ? {
+            before: diff.before,
+            after: diff.after,
+            moved: diff.moved,
+            readingList: diff.readingList,
+          }
+        : diff;
+      if (values.output) {
+        const output = path.resolve(values.output);
+        const actual = await fs.realpath(output).catch((error) => {
+          if (error.code !== 'ENOENT') throw error;
+        });
+        if (
+          output === path.resolve(input) ||
+          actual === (await fs.realpath(input))
+        )
+          throw new Error('OUTPUT_IS_MODEL');
+        await writeAtomic(output, JSON.stringify(report, null, 2) + '\n');
+        process.stdout.write(output + '\n');
+      } else print(report);
       return;
     }
     if (command === 'context') {

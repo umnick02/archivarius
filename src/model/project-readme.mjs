@@ -1,5 +1,6 @@
 import { architectureDiagram } from './project-document.mjs';
-import { generatedNotice } from './documents.mjs';
+import { escape, generatedNotice } from './documents.mjs';
+import { failureCatalogue, failureCodes } from './errors.mjs';
 import { projectArchitecture } from './project-architecture.mjs';
 import { assertProject } from './project-contract.mjs';
 import { primaryFields } from './project-view.mjs';
@@ -84,6 +85,70 @@ const carried = (model) => {
   return { ...model, records: model.records.filter((r) => !gone.has(r.key)) };
 };
 
+// The walk-through a team runs before it reads a single record. A landing page
+// may describe any project, so it is emitted only for the project that binds
+// both the published manifest - whose record key is the installed name - and the
+// file the mount API lives in: nothing else can offer this API, and a consumer's
+// own page must never tell its readers to install the consumer.
+const manifestFile = 'package.json';
+const mountFile = 'src/index.jsx';
+const modelFile = 'architecture.json';
+// The command that writes the full record-by-record report; the help text and
+// the CLI record are held to the same command names by the suite.
+const referenceCommand = 'reference';
+// The code a consumer meets first; catalogued, so a rename fails the suite.
+const failureExample = 'INVALID_MODEL';
+// Every line the walk-through prints, code included, is copy filled with facts
+// the model and the failure catalogue already carry: the generator writes none
+// of it, so a drifting name, version or code fails the suite, not the reader.
+const fill = (line, facts) =>
+  line.replaceAll(/\{(\w+)\}/g, (whole, key) =>
+    key in facts ? facts[key] : whole,
+  );
+
+const quickstart = (model, copy) => {
+  const words = copy.quickstart;
+  const bound = (file) =>
+    Object.entries(model.bindings).find(([, at]) => at.path === file)?.[0];
+  const name = bound(manifestFile);
+  if (!words || !name || !bound(mountFile)) return [];
+  // Prose is escaped before the facts land, so an identifier keeps its code
+  // span; only names matching this shape are allowed to be one.
+  const safe = (word) => (/^[A-Za-z_]+$/.test(word) ? '`' + word + '`' : word);
+  const facts = {
+    name,
+    model: modelFile,
+    code:
+      failureExample in failureCodes ? safe(failureExample) : failureExample,
+    table: failureCatalogue.title,
+    command: safe(referenceCommand),
+  };
+  const say = (key) => fill(words[key], facts);
+  const said = (key) => fill(escape(words[key]), facts);
+  return [
+    '## ' + said('heading'),
+    '',
+    '```sh',
+    say('install'),
+    '```',
+    '',
+    '```js',
+    say('import'),
+    say('style'),
+    '',
+    say('mount'),
+    say('source'),
+    say('close'),
+    say('await'),
+    '```',
+    '',
+    said('failure'),
+    '',
+    said('codes'),
+    '',
+  ];
+};
+
 export function renderProjectReadme(whole, copy) {
   assertProject(whole);
   const model = carried(whole);
@@ -105,6 +170,9 @@ export function renderProjectReadme(whole, copy) {
     '# ' + scope.title,
     '',
     ...statements(scope),
+    // What the scope settles is what a reader needs before a command; the
+    // walk-through then comes before every fact the page merely describes.
+    ...quickstart(whole, copy),
     // What the statements settle - whose system this is and what it is for - has
     // to be read before the picture, not after.
     ...records('source').flatMap(statements),

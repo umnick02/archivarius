@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { Worker as NodeWorker } from 'node:worker_threads';
 import { buildLayout, checkLayout } from '../src/layout/layout.mjs';
 import { ArchitectureGraph as Graph } from '../src/model/graph.mjs';
 import {
@@ -171,4 +172,148 @@ test('the reported layout engine version is the installed one', () => {
   );
   assert.equal(layout.engine, 'elkjs');
   assert.equal(layout.version, installed.version);
+});
+
+// A browser Worker over node:worker_threads, so the suite exercises the very
+// module a browser loads instead of a stand-in for its message protocol.
+const spawned = [];
+const host = (url) =>
+  new URL(
+    'data:text/javascript,' +
+      encodeURIComponent(
+        [
+          "import { parentPort } from 'node:worker_threads';",
+          'globalThis.self = {',
+          '  addEventListener: (type, handler) =>',
+          "    parentPort.on('message', (data) => handler({ data })),",
+          '  postMessage: (message) => parentPort.postMessage(message),',
+          '};',
+          'await import(' + JSON.stringify(String(url)) + ');',
+        ].join('\n'),
+      ),
+  );
+
+class ThreadWorker {
+  constructor(url, options) {
+    this.url = String(url);
+    this.options = options;
+    this.terminated = false;
+    this.handlers = new Map();
+    this.thread = new NodeWorker(host(url));
+    this.thread.on('message', (data) => this.emit('message', { data }));
+    this.thread.on('error', (error) =>
+      this.emit('error', { message: error.message }),
+    );
+    spawned.push(this);
+  }
+  emit(type, event) {
+    for (const handler of this.handlers.get(type) || []) handler(event);
+  }
+  addEventListener(type, handler) {
+    if (!this.handlers.has(type)) this.handlers.set(type, new Set());
+    this.handlers.get(type).add(handler);
+  }
+  removeEventListener(type, handler) {
+    this.handlers.get(type)?.delete(handler);
+  }
+  postMessage(message) {
+    this.thread.postMessage(message);
+  }
+  terminate() {
+    this.terminated = true;
+    this.thread.terminate();
+  }
+}
+
+// A worker that starts and then dies, the way an out-of-memory or blocked-import
+// one does: the map still has to get its geometry.
+class DyingWorker extends ThreadWorker {
+  constructor(url, options) {
+    super(url, options);
+    this.thread.terminate();
+  }
+  postMessage() {
+    queueMicrotask(() => this.emit('error', { message: 'WORKER_DIED' }));
+  }
+}
+
+const usingWorker = async (constructor, run) => {
+  const present = 'Worker' in globalThis;
+  const before = globalThis.Worker;
+  globalThis.Worker = constructor;
+  try {
+    return await run();
+  } finally {
+    if (present) globalThis.Worker = before;
+    else delete globalThis.Worker;
+  }
+};
+
+const untilSpawned = async () => {
+  const deadline = Date.now() + 5000;
+  while (!spawned.length) {
+    if (Date.now() > deadline) throw new Error('WORKER_NEVER_SPAWNED');
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+  return spawned.at(-1);
+};
+
+test('geometry is computed off the main thread and the worker is stopped after it', async () => {
+  spawned.length = 0;
+  const offThread = await usingWorker(ThreadWorker, () =>
+    buildLayout(model, { cached: false }),
+  );
+  assert.equal(spawned.length, 1);
+  assert.match(spawned[0].url, /layout\/layout-worker\.mjs$/);
+  assert.equal(spawned[0].options?.type, 'module');
+  assert.equal(spawned[0].terminated, true);
+  assert.deepEqual(offThread, layout);
+  assert.deepEqual(checkLayout(model, offThread), []);
+});
+
+test('a platform without a worker, one that refuses it, and one whose worker dies all still lay out', async () => {
+  assert.equal('Worker' in globalThis, false);
+  assert.deepEqual(await buildLayout(model, { cached: false }), layout);
+  const refused = await usingWorker(
+    class {
+      constructor() {
+        throw new DOMException('blocked by policy', 'SecurityError');
+      }
+    },
+    () => buildLayout(model, { cached: false }),
+  );
+  assert.deepEqual(refused, layout);
+  spawned.length = 0;
+  const died = await usingWorker(DyingWorker, () =>
+    buildLayout(model, { cached: false }),
+  );
+  assert.equal(spawned.length, 1);
+  assert.equal(spawned[0].terminated, true);
+  assert.deepEqual(died, layout);
+});
+
+test('a withdrawn layout stops its worker, rejects with the reason and leaves the last geometry in place', async () => {
+  const withdrawn = structuredClone(model);
+  const last = withdrawn.nodes.at(-1);
+  const renamed = last.key + '-withdrawn';
+  for (const relation of withdrawn.relations)
+    for (const side of ['from', 'to'])
+      if (relation[side] === last.key) relation[side] = renamed;
+  last.key = renamed;
+  spawned.length = 0;
+  const controller = new AbortController();
+  const reason = new DOMException('LOAD_SUPERSEDED', 'AbortError');
+  const superseded = usingWorker(ThreadWorker, async () => {
+    const pending = buildLayout(withdrawn, { signal: controller.signal });
+    await untilSpawned();
+    controller.abort(reason);
+    return pending;
+  });
+  await assert.rejects(superseded, (error) => error === reason);
+  assert.equal(spawned.length, 1);
+  assert.equal(spawned[0].terminated, true);
+  // The map keeps painting what it already had, and the layout it never finished
+  // is not left half-built for the next caller either.
+  assert.equal(await buildLayout(model), layout);
+  assert.deepEqual(checkLayout(withdrawn, await buildLayout(withdrawn)), []);
 });

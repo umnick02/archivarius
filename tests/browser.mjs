@@ -157,6 +157,72 @@ const load = (data) =>
       }),
     );
   }, data);
+// A model the size `responsive-at-scale` budgets for, built rather than stored:
+// the number of parts is the parameter under test, not a fixture to maintain.
+const scaleModel = (groups, perGroup, fanOut) => {
+  const zones = ['presentation', 'application', 'infrastructure', 'pure'];
+  const nodes = [];
+  const relations = [];
+  for (let group = 0; group < groups; group++) {
+    const children = [];
+    for (let index = 0; index < perGroup; index++)
+      children.push({
+        key: 'part-' + group + '-' + index,
+        title: 'Part ' + group + '.' + index,
+        summary: 'A generated part of the scale model.',
+        kind: 'component',
+        zone: zones[(group + index) % zones.length],
+        rules: [],
+        detail: 'boundary',
+        detailNote: 'Generated part, not expanded.',
+        implemented: false,
+      });
+    for (let index = 0; index < perGroup; index++)
+      for (let step = 1; step <= fanOut; step++)
+        relations.push({
+          key: 'call-' + group + '-' + index + '-' + step,
+          from: 'part-' + group + '-' + index,
+          to: 'part-' + group + '-' + ((index + step) % perGroup),
+          kind: 'command',
+          channel: 'generated',
+          label: 'Call ' + step,
+          payload: 'A generated payload.',
+          meaning: 'A generated exchange of the scale model.',
+          implemented: false,
+        });
+    if (group)
+      relations.push({
+        key: 'link-' + group,
+        from: 'part-' + (group - 1) + '-0',
+        to: 'part-' + group + '-0',
+        kind: 'command',
+        channel: 'generated',
+        label: 'Link',
+        payload: 'A generated payload.',
+        meaning: 'A generated exchange of the scale model.',
+        implemented: false,
+      });
+    nodes.push({
+      key: 'group-' + group,
+      title: 'Group ' + group,
+      summary: 'A generated subsystem of the scale model.',
+      kind: 'subsystem',
+      zone: zones[group % zones.length],
+      rules: [],
+      detail: 'mapped',
+      implemented: false,
+      children,
+    });
+  }
+  return {
+    version: model.version,
+    scope: model.scope,
+    title: 'Scale model',
+    entry: 'part-0-0',
+    nodes,
+    relations,
+  };
+};
 const checkIds = async () => {
   const ids = await b.evaluate(() =>
     [...document.querySelectorAll('[id]')].map((e) => e.id),
@@ -992,6 +1058,109 @@ try {
   assert(deepBox.width > 100 && deepBox.height > 60);
   await load(model);
   await b.capture('consumer-multiple');
+
+  // `responsive-at-scale` budgets 500 parts: laying them out is seconds of work,
+  // so it has to happen off the main thread or the page stops answering.
+  const scale = scaleModel(10, 50, 8);
+  await b.evaluate(() => {
+    const real = window.Worker;
+    window.work = { urls: [], live: 0, stopped: 0 };
+    window.Worker = class extends real {
+      constructor(url, options) {
+        super(url, options);
+        window.work.urls.push(String(url));
+        window.work.live++;
+      }
+      terminate() {
+        window.work.live--;
+        window.work.stopped++;
+        super.terminate();
+      }
+    };
+  });
+  // A self-rescheduling timer is the main thread's own pulse: the longest gap
+  // between two beats is how long the page was unable to answer a user.
+  const beating = () =>
+    b.evaluate(() => {
+      window.beat = { max: 0, beats: 0, last: performance.now() };
+      const step = () => {
+        const now = performance.now();
+        window.beat.max = Math.max(window.beat.max, now - window.beat.last);
+        window.beat.last = now;
+        window.beat.beats++;
+        if (!window.beat.stop) setTimeout(step, 0);
+      };
+      step();
+    });
+  const beaten = () =>
+    b.evaluate(() => {
+      window.beat.stop = true;
+      return { max: Math.round(window.beat.max), beats: window.beat.beats };
+    });
+  await beating();
+  await load(scale);
+  const beat = await beaten();
+  const work = await b.evaluate(() => window.work);
+  assert.equal((await state()).visible.length, scale.nodes.length);
+  assert(
+    work.urls.some((url) => /layout-worker/.test(url)),
+    'no layout worker: ' + JSON.stringify(work.urls),
+  );
+  assert.equal(work.live, 0);
+  assert(beat.max < 250, 'main thread blocked for ' + beat.max + 'ms');
+
+  // A superseded layout never lands: the newest model wins, the withdrawn one
+  // reports itself, and its worker is stopped rather than left running.
+  const spent = work.stopped;
+  const race = await b.evaluate(
+    async (first, second) => {
+      const file = (data) =>
+        new File([JSON.stringify(data)], 'architecture.json', {
+          type: 'application/json',
+        });
+      const started = window.work.urls.length;
+      const withdrawn = window.consumer.first.load(file(first)).then(
+        () => 'resolved',
+        (error) => error.name + ':' + error.message,
+      );
+      // Supersede a layout that is really running: a request replaced before its
+      // worker exists proves nothing about stopping one.
+      const deadline = performance.now() + 10000;
+      while (window.work.urls.length === started) {
+        if (performance.now() > deadline) return { withdrawn: 'never started' };
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+      const winner = window.consumer.first.load(file(second)).then(
+        () => 'resolved',
+        (error) => error.name + ':' + error.message,
+      );
+      return { withdrawn: await withdrawn, winner: await winner };
+    },
+    scaleModel(10, 50, 7),
+    model,
+  );
+  assert.deepEqual(race, {
+    withdrawn: 'AbortError:LOAD_SUPERSEDED',
+    winner: 'resolved',
+  });
+  assert.equal((await state()).visible.length, model.nodes.length);
+  assert.equal(await b.evaluate(() => window.work.live), 0);
+  assert(await b.evaluate((spent) => window.work.stopped > spent, spent));
+
+  // Geometry already computed is kept, so going back to a laid-out model needs no
+  // worker at all and the map is never blank while it returns.
+  const spawned = await b.evaluate(() => window.work.urls.length);
+  await beating();
+  await load(scale);
+  const again = await beaten();
+  assert.equal((await state()).visible.length, scale.nodes.length);
+  assert.equal(await b.evaluate(() => window.work.urls.length), spawned);
+  assert(again.max < 250, 'main thread blocked for ' + again.max + 'ms');
+  await load(model);
+  await b.evaluate(() => {
+    window.Worker = Object.getPrototypeOf(window.Worker);
+  });
+
   await b.call('Emulation.setDeviceMetricsOverride', {
     width: 390,
     height: 844,

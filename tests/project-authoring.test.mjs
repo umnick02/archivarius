@@ -37,6 +37,146 @@ const edit = (m, key, field) =>
   apply(m, {
     put: [{ ...get(m, key), [field]: get(m, key)[field] + ' changed' }],
   });
+// A rejection is only useful if it says where it looked, so each family is read
+// back the way an author reads it: the record, the field, the value and the shape.
+const rejects = (change) => {
+  const m = structuredClone(example);
+  try {
+    applyProjectChanges(m, projectContext(m, [m.root]), change);
+  } catch (error) {
+    return error;
+  }
+  return assert.fail('the change was accepted');
+};
+const only = (error, pick) => {
+  const found = error.diagnostics.filter(pick);
+  assert.equal(found.length, 1, JSON.stringify(found));
+  return found[0];
+};
+
+test('a rejected change names the record, the field, the value read and the accepted shape', () => {
+  const check = get(example, 'export-check');
+  const { method, ...withoutMethod } = check;
+  assert.equal(typeof method, 'string');
+  const missing = rejects({ put: [withoutMethod] });
+  assert.equal(missing.code, 'INVALID_CHANGE');
+  const absent = only(
+    missing,
+    (d) => d.keyword === 'required' && d.field === 'method',
+  );
+  assert.equal(absent.record, 'export-check');
+  assert.equal(absent.value, 'absent');
+  for (const part of ['"check"', '"method"', 'string'])
+    assert(absent.expected.includes(part), absent.expected);
+  // The union reports every branch, so a branch that is not this record's says so.
+  const foreign = only(
+    missing,
+    (d) => d.keyword === 'required' && d.field === 'origin',
+  );
+  assert.equal(foreign.record, 'export-check');
+  assert(foreign.expected.includes('"source"'), foreign.expected);
+  assert(foreign.expected.includes('"check"'), foreign.expected);
+
+  const unknown = only(
+    rejects({ put: [{ ...check, stability: 'surprise' }] }),
+    (d) => d.keyword === 'unevaluatedProperties',
+  );
+  assert.equal(unknown.record, 'export-check');
+  assert.equal(unknown.field, 'stability');
+  assert.equal(unknown.value, 'the string "surprise"');
+  for (const part of ['"check"', 'method'])
+    assert(unknown.expected.includes(part), unknown.expected);
+
+  const typed = only(
+    rejects({ put: [{ ...check, title: 42 }] }),
+    (d) => d.keyword === 'type',
+  );
+  assert.equal(typed.record, 'export-check');
+  assert.equal(typed.field, 'title');
+  assert.equal(typed.value, 'the number 42');
+  for (const part of ['string', 'number'])
+    assert(typed.expected.includes(part), typed.expected);
+
+  const writer = get(example, 'writer');
+  const enums = rejects({
+    put: [{ ...writer, kind: 'gizmo' }],
+  }).diagnostics.filter((d) => d.keyword === 'enum');
+  assert(enums.length > 1, 'the union reported no competing enum');
+  for (const one of enums) {
+    assert.equal(one.record, 'writer');
+    assert.equal(one.field, 'kind');
+    assert.equal(one.value, 'the string "gizmo"');
+  }
+  const own = enums.find((d) => d.expected.includes('subsystem'));
+  for (const part of ['"component"', 'store', 'external'])
+    assert(own.expected.includes(part), own.expected);
+  const other = enums.find((d) => d !== own);
+  assert(other.expected.includes('"interaction"'), other.expected);
+});
+
+test('a diagnostic summarises the value it read instead of carrying it', () => {
+  const writer = get(example, 'writer');
+  const read = (value) => {
+    const found = rejects({
+      put: [{ ...writer, kind: value }],
+    }).diagnostics.filter((d) => d.field === 'kind' && d.keyword === 'enum');
+    assert(found.length, 'the value was accepted');
+    return found[0];
+  };
+  const hostile = 'a\u0000<script>\n'.repeat(500);
+  const long = read(hostile);
+  assert(long.value.length < 200, long.value);
+  assert(
+    [...long.value].every((char) => char.charCodeAt(0) > 31),
+    JSON.stringify(long.value),
+  );
+  assert(long.value.includes(String(hostile.length)), long.value);
+
+  const nested = read(structuredClone(example));
+  assert(nested.value.length < 200, nested.value);
+  assert(!nested.value.includes(example.title), nested.value);
+  assert(nested.value.includes('records'), nested.value);
+});
+
+test('a broken reference and a stale receipt name the record, the field, the value read and what was accepted', () => {
+  const unresolved = structuredClone(example);
+  get(unresolved, 'export-check').covers = ['nope'];
+  const broken = validateProject(unresolved).diagnostics.find(
+    (d) => d.code === 'MISSING_REFERENCE',
+  );
+  assert.equal(broken.record, 'export-check');
+  assert.equal(broken.field, 'covers');
+  assert.equal(broken.value, 'the string "nope"');
+  assert(broken.expected.includes('criterion'), broken.expected);
+
+  const mistyped = structuredClone(example);
+  get(mistyped, 'export-check').covers = ['writer'];
+  const wrong = validateProject(mistyped).diagnostics.find(
+    (d) => d.code === 'REFERENCE_TYPE',
+  );
+  assert.equal(wrong.record, 'export-check');
+  assert.equal(wrong.field, 'covers');
+  assert.equal(wrong.value, 'the string "writer"');
+  assert(wrong.expected.includes('criterion'), wrong.expected);
+
+  const base = structuredClone(example);
+  const context = projectContext(base, [base.root]);
+  const changed = edit(base, 'row-limit', 'rule');
+  let error;
+  try {
+    applyProjectChanges(changed, context, { put: [] });
+  } catch (raised) {
+    error = raised;
+  }
+  assert.equal(error?.code, 'CONTEXT_CHANGED');
+  const stale = error.diagnostics.find((d) => d.record === 'row-limit');
+  assert.equal(stale.field, 'reads');
+  assert.equal(stale.value, 'the string "' + context.reads['row-limit'] + '"');
+  assert(
+    stale.expected.includes(digest(get(changed, 'row-limit'))),
+    stale.expected,
+  );
+});
 
 test('scoped reviews retain guards and owning prose without unrelated or cosmetic invalidation', () => {
   const base = structuredClone(example);

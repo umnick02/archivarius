@@ -2,6 +2,26 @@
 
 One validated JSON file - a snapshot - holds a project's whole description as small linked records: its parts, the rules they must satisfy, the decisions behind them, the work left and the checks that confirm it. A React library draws that file as an architecture map that reveals more detail as it is zoomed.
 
+## Quickstart
+
+```sh
+npm install archivarius
+```
+
+```js
+import { mountArchitectureMap } from 'archivarius';
+import 'archivarius/style.css';
+
+const map = mountArchitectureMap(document.querySelector('#map'), {
+  source: './architecture.json',
+});
+await map.ready;
+```
+
+A rejected model throws with a code: `INVALID_MODEL`.
+
+Every code is in the Failure codes table the `reference` command writes.
+
 An owner understands a system's structure, the grounds for decisions, the remaining work and the effect of changes from one snapshot; an LLM reads and edits the same records.
 
 The snapshot in this repository describes Archivarius itself, so the map below, the tables under it and this page are the project's own records drawn by the library it documents.
@@ -96,7 +116,7 @@ flowchart LR
 | Graph references | Validates typed relations between records and reports reverse links and coverage. |
 | Canonical digest | Computes the SHA-256 basis over a canonical representation of the definitions. |
 | Node API | Reads a model file, verifies evidence artifacts by bytes, applies validated changes, and generates documentation. |
-| CLI | Exposes validate, read, context, apply, reference, readme, documents, graph, verify, run and archive over the model file. |
+| CLI | Exposes validate, read, context, apply, reference, readme, documents, graph, diff, verify, run and archive over the model file. |
 | Evidence verification | Matches declared binding bytes against files and records actual check outcomes. |
 | Map rendering | Mounts an interactive architecture map with semantic zoom and an inspector for records. |
 | Architecture map | Lays out components and interactions and reveals detail as the map is zoomed. |

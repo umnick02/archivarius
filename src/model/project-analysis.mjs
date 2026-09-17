@@ -5,11 +5,8 @@ import {
   recordReferences,
 } from './records.mjs';
 import { assertProject } from './project-contract.mjs';
-import {
-  contractDigest,
-  dependencyDigest,
-  realizationDigest,
-} from './project-digest.mjs';
+import { contractDigest, realizationDigest } from './project-digest.mjs';
+import { basisReason } from './project-diff.mjs';
 
 // Fields that carry an actual prerequisite. Scope and containment links say where a
 // record sits, so they are deliberately absent: they are not proof dependencies.
@@ -44,17 +41,9 @@ export function analyzeProject(model, { verifiedResults = [] } = {}) {
       (r) => r.type === 'result' && r.outcome === 'fail' && !records.has(r.key),
     );
   for (const record of model.records) {
-    const reasons = [];
-    if ('basis' in record) {
-      if (!record.basis)
-        reasons.push({ code: 'BASIS_MISSING', key: record.key });
-      else if (
-        record.type !== 'result' && record.basis.dependencies
-          ? record.basis.dependencies !== dependencyDigest(model, record.key)
-          : record.basis.contract !== contract
-      )
-        reasons.push({ code: 'BASIS_CHANGED', key: record.key });
-    }
+    const reasons = [],
+      basis = basisReason(model, record, contract);
+    if (basis) reasons.push(basis);
     if (record.type === 'result' && record.realization !== realization)
       reasons.push({ code: 'REALIZATION_CHANGED', key: record.key });
     freshness[record.key] = { current: !reasons.length, reasons };

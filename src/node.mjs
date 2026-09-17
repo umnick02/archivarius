@@ -9,6 +9,7 @@ import { analyzeProject } from './model/project-analysis.mjs';
 import { applyProjectChanges } from './model/project-authoring.mjs';
 import { assertProject } from './model/project-contract.mjs';
 import { contractDigest, realizationDigest } from './model/project-digest.mjs';
+import { diffProject } from './model/project-diff.mjs';
 import {
   verifyProjectEvidence,
   relativeArtifactPath,
@@ -74,6 +75,17 @@ export async function verifyProjectFiles(model, directory) {
     readProjectArtifact(directory, name),
   );
   return { ...evidence, analysis: analyzeProject(model, evidence) };
+}
+
+// What moved between two snapshot files, and what lost its basis as a result.
+// Without an earlier file the model is read against its own most recent stored
+// manifest, which is the freshness report over one snapshot.
+export async function diffProjectFiles(file, against = null) {
+  const model = assertProject(await readArchitectureFile(file));
+  return diffProject(
+    model,
+    against ? assertProject(await readArchitectureFile(against)) : null,
+  );
 }
 
 export async function writeAtomic(file, contents) {
