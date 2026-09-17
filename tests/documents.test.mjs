@@ -7,6 +7,7 @@ import { renderDocumentation } from '../src/model/document.mjs';
 import { ArchitectureGraph } from '../src/model/graph.mjs';
 import { architectureDiagram } from '../src/model/project-document.mjs';
 import { files, staleParts } from '../docs/scripts/bind.mjs';
+import { bindingParts } from '../src/model/binding.mjs';
 import documentRecords from './fixtures/documents.json' with { type: 'json' };
 import { clone, get, seal } from './project-fixture.mjs';
 
@@ -249,12 +250,21 @@ test('every described part of this repository is bound to a file that exists', a
     .map((record) => record.key)
     .sort();
   assert.deepEqual(Object.keys(project.bindings).sort(), described);
+  // A part may rest on several files, and on a range within one, so the table is
+  // compared claim for claim rather than path for path.
+  const spelled = (entry) =>
+    typeof entry === 'string' ? [entry] : entry.map((part) => part.path);
   for (const [key, binding] of Object.entries(project.bindings)) {
-    assert.equal(binding.path, files[key], key + ' is bound past the table');
-    assert.ok(
-      await fs.readFile(new URL(binding.path, root)),
-      key + ' names a file this repository does not have',
+    assert.deepEqual(
+      bindingParts(binding).map((part) => part.path),
+      spelled(files[key]),
+      key + ' is bound past the table',
     );
+    for (const part of bindingParts(binding))
+      assert.ok(
+        await fs.readFile(new URL(part.path, root)),
+        key + ' names a file this repository does not have',
+      );
   }
 });
 

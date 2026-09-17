@@ -14,6 +14,7 @@ Archivarius
   archivarius apply <project.json> --context <context.json> --change <change.json>
   archivarius run <project.json> --focus <check-key> --result <new-key> --evidence <relative-path.json>
   archivarius verify <project.json>
+  archivarius reconcile <project.json> [--json]
 
 validate checks both the file schema and all graph invariants.
 init writes the smallest valid snapshot — one scope, source, requirement and criterion — and refuses to write over an existing file.
@@ -32,4 +33,5 @@ diff reports the added, removed and changed records against another snapshot, or
 --against names the earlier snapshot file; --stale keeps only the reading list: every record that lost its basis, with the definition that moved.
 run explicitly executes the check's command and records its actual outcome.
 verify reads bound files and check artifacts; missing confirmation exits with code 1.
+reconcile reads the imports the sources actually have and reports every declared relation the code lost, every dependency no record declares and the edges it could attribute to no described part; a disagreement exits with code 1.
 Exit codes: 0 success, 1 invalid model / stale document / I/O failure, 2 invalid arguments.

@@ -23,6 +23,10 @@ import {
 } from './io/project-storage.mjs';
 import { digest, hashBytes } from './model/digest.mjs';
 import { renderGraph } from './model/export.mjs';
+import { observeImports } from './model/imports.mjs';
+import { reconcileArchitecture } from './model/reconcile.mjs';
+import { readSourceModules } from './io/source-files.mjs';
+import { bindingParts, partDigest } from './model/binding.mjs';
 
 export async function readArchitectureFile(file) {
   file = await fs.realpath(file);
@@ -102,6 +106,20 @@ async function readProjectArtifact(directory, name) {
   if (!actual.startsWith(root + path.sep))
     throw new ArchitectureError('ARTIFACT_PATH');
   return new Uint8Array(await fs.readFile(actual));
+}
+
+// The description read against the code, not against its own digests. A digest
+// proves a file has not moved; only the imports say whether the dependency a
+// record declares is the one the code has. The report names both directions of
+// the disagreement and, so it cannot flatter itself, the edges it could not
+// attribute to any described part.
+export async function reconcileProjectFiles(file, directory, options = {}) {
+  const model = assertProject(await readArchitectureFile(file));
+  const modules = await readSourceModules(directory, options);
+  return {
+    ...reconcileArchitecture(model, observeImports(modules)),
+    observed: modules.length,
+  };
 }
 
 export async function verifyProjectFiles(model, directory) {
@@ -186,13 +204,16 @@ export async function executeProjectCheck(
     throw new ArchitectureError('ARTIFACT_PATH');
   if (!Object.keys(model.bindings).length)
     throw new ArchitectureError('BINDINGS_REQUIRED');
+  // A binding answers for the lines it claims, not for every edit in the file, so
+  // each part is hashed over exactly the text it names.
   const verifyBindings = async () => {
     for (const binding of Object.values(model.bindings))
-      if (
-        hashBytes(await readProjectArtifact(directory, binding.path)) !==
-        binding.digest
-      )
-        throw new ArchitectureError('REALIZATION_CHANGED');
+      for (const part of bindingParts(binding))
+        if (
+          partDigest(await readProjectArtifact(directory, part.path), part) !==
+          part.digest
+        )
+          throw new ArchitectureError('REALIZATION_CHANGED');
   };
   await verifyBindings();
   const contract = contractDigest(model),

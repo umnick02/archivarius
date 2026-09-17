@@ -11,6 +11,7 @@ import {
   generateReadme,
   initProjectFile,
   verifyProjectFiles,
+  reconcileProjectFiles,
   updateProjectFile,
   executeProjectCheck,
   diffProjectFiles,
@@ -20,7 +21,7 @@ import {
 import { analyzeProject } from './model/project-analysis.mjs';
 import { graphFormats } from './model/export.mjs';
 import { projectContext, projectRead } from './model/project-authoring.mjs';
-import { parseJSON } from './core.mjs';
+import { ArchitectureError, parseJSON } from './core.mjs';
 
 async function main() {
   let values, positionals;
@@ -67,6 +68,7 @@ async function main() {
       diff: ['against', 'stale', 'output', 'json'],
       apply: ['context', 'change', 'json'],
       verify: ['json'],
+      reconcile: ['json'],
       run: ['focus', 'result', 'evidence', 'json'],
     };
     if (
@@ -87,6 +89,7 @@ async function main() {
         'diff',
         'apply',
         'verify',
+        'reconcile',
         'run',
       ].includes(command) ||
       (['context', 'read'].includes(command) && !values.focus?.length) ||
@@ -203,6 +206,26 @@ async function main() {
       if (!outcome.implemented) process.exitCode = 1;
       return;
     }
+    // A disagreement between a description and the code is a failure of the
+    // description, so it is raised by name after the whole report is printed: the
+    // edges it could attribute to nothing are reported beside it rather than
+    // counted as agreement, and the exit names what is wrong.
+    if (command === 'reconcile') {
+      const report = await reconcileProjectFiles(
+        input,
+        path.dirname(path.resolve(input)),
+      );
+      const disagreement = [
+        ...report.absent.map(
+          (entry) => entry.relation + ': ' + entry.from + ' -> ' + entry.to,
+        ),
+        ...report.undeclared.map((entry) => entry.from + ' -> ' + entry.to),
+      ];
+      print({ valid: !disagreement.length, ...report });
+      if (disagreement.length)
+        throw new ArchitectureError('DESCRIPTION_CONTRADICTED', disagreement);
+      return;
+    }
     if (command === 'run') {
       const context = projectContext(model, values.focus);
       const record = await executeProjectCheck(model, values.focus[0], {
@@ -255,11 +278,11 @@ async function main() {
     }
     process.stdout.write(output + '\n');
   } catch (error) {
+    // A refusal names itself first and gives its details after, so a reader of the
+    // exit - or of the JSON - learns which failure happened, not only what it saw.
     const result = {
       valid: false,
-      errors: error.issues?.length
-        ? error.issues
-        : [error.code || error.message],
+      errors: [error.code || error.message, ...(error.issues ?? [])],
       diagnostics: error.diagnostics || [],
     };
     if (values.json)

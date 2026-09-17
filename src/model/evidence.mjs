@@ -1,6 +1,8 @@
 import { assertProject } from './project-contract.mjs';
 import { contractDigest, realizationDigest } from './project-digest.mjs';
+import { bindingHolds, bindingParts, partDigest } from './binding.mjs';
 import { hashBytes } from './digest.mjs';
+import { failureCodes } from './errors.mjs';
 import { canonical, digest } from './digest.mjs';
 
 export function relativeArtifactPath(path) {
@@ -156,14 +158,52 @@ export async function verifyProjectEvidence(model, readBytes) {
       );
     return cache.get(key);
   };
+  // A binding is read part by part: only the lines a part claims are hashed, so a
+  // file one claim shares with another is read once and an edit outside every
+  // claimed range changes none of their digests.
+  const files = new Map();
+  const readFile = (path) => {
+    if (!files.has(path))
+      files.set(
+        path,
+        (async () => {
+          if (!relativeArtifactPath(path)) throw new Error('ARTIFACT_PATH');
+          return readBytes(path);
+        })(),
+      );
+    return files.get(path);
+  };
+  // Every part is answered for, not just the first: a part whose lines are gone
+  // states a repair, a part whose bytes moved only states a mismatch, and the
+  // stated one is the reason worth carrying out of a binding that fails both ways.
+  const readBinding = async (binding) => {
+    let moved = false;
+    for (const part of bindingParts(binding))
+      if (partDigest(await readFile(part.path), part) !== part.digest)
+        moved = true;
+    if (moved) throw new Error('ARTIFACT_CHANGED');
+  };
   const bindings = await Promise.allSettled(
-    Object.values(model.bindings).map(read),
+    Object.values(model.bindings).map(readBinding),
   );
-  const bindingsValid =
-    bindings.length > 0 && bindings.every((r) => r.status === 'fulfilled');
+  // Why nothing anchors the results matters to whoever repairs it: a claim whose
+  // lines are gone is rebound, an unreadable file is restored. A raised code
+  // states itself; anything else is only the absence of an anchor.
+  const rejected = bindings.filter((result) => result.status === 'rejected');
+  const refusal =
+    rejected.find((result) =>
+      Object.hasOwn(failureCodes, result.reason?.code),
+    ) ?? rejected[0];
+  const bindingsValid = bindings.length > 0 && !rejected.length;
+  // The named refusal is preferred, and the fallback is written as a literal so a
+  // reader of the source - and the catalogue oracle - can see the code raised here.
+  const unanchored =
+    refusal?.reason?.code && Object.hasOwn(failureCodes, refusal.reason.code)
+      ? new Error(refusal.reason.code)
+      : new Error('REALIZATION_UNAVAILABLE');
   for (const result of model.records.filter((r) => r.type === 'result')) {
     try {
-      if (!bindingsValid) throw new Error('REALIZATION_UNAVAILABLE');
+      if (!bindingsValid) throw unanchored;
       if (
         result.basis?.contract !== contract ||
         result.realization !== realization
@@ -194,8 +234,11 @@ export async function verifyProjectEvidence(model, readBytes) {
   if (verifiedResults.length) {
     const stable = await Promise.allSettled(
       Object.values(model.bindings).map(async (binding) => {
-        if (hashBytes(await readBytes(binding.path)) !== binding.digest)
-          throw new Error('REALIZATION_CHANGED');
+        const now = new Map();
+        for (const part of bindingParts(binding))
+          if (!now.has(part.path))
+            now.set(part.path, await readBytes(part.path));
+        if (!bindingHolds(binding, now)) throw new Error('REALIZATION_CHANGED');
       }),
     );
     if (stable.some((result) => result.status === 'rejected')) {

@@ -61,6 +61,7 @@
         "generateReadme",
         "initProjectFile",
         "readArchitectureFile",
+        "reconcileProjectFiles",
         "updateProjectFile",
         "verifyProjectFiles",
         "writeAtomic"
@@ -141,21 +142,42 @@
           "types": ["null", "object"],
           "closed": true,
           "required": ["contract"],
-          "optional": ["dependencies"]
+          "optional": ["at", "by", "definitions", "dependencies", "life"]
+        },
+        "$defs/basis.at": {
+          "ref": "#/$defs/instant"
+        },
+        "$defs/basis.by": {
+          "ref": "#/$defs/text"
         },
         "$defs/basis.contract": {
           "ref": "#/$defs/digest"
         },
+        "$defs/basis.definitions": {
+          "ref": "#/$defs/definitions"
+        },
         "$defs/basis.dependencies": {
           "ref": "#/$defs/digest"
+        },
+        "$defs/basis.life": {
+          "ref": "#/$defs/days"
         },
         "$defs/binding": {
           "types": ["object"],
           "closed": true,
-          "required": ["digest", "path"]
+          "optional": ["digest", "parts", "path"]
         },
         "$defs/binding.digest": {
           "ref": "#/$defs/digest"
+        },
+        "$defs/binding.parts": {
+          "types": ["array"],
+          "bounds": {
+            "minItems": 1
+          }
+        },
+        "$defs/binding.parts[]": {
+          "ref": "#/$defs/part"
         },
         "$defs/binding.path": {
           "ref": "#/$defs/text"
@@ -276,6 +298,21 @@
         "$defs/block[kind=table].rows[][]": {
           "ref": "#/$defs/line"
         },
+        "$defs/days": {
+          "types": ["integer"],
+          "bounds": {
+            "minimum": 1
+          }
+        },
+        "$defs/definitions": {
+          "types": ["object"]
+        },
+        "$defs/definitions{key}": {
+          "ref": "#/$defs/key"
+        },
+        "$defs/definitions{}": {
+          "ref": "#/$defs/digest"
+        },
         "$defs/digest": {
           "types": ["string"],
           "bounds": {
@@ -301,6 +338,12 @@
         "$defs/inline.record": {
           "ref": "#/$defs/key"
         },
+        "$defs/instant": {
+          "types": ["string"],
+          "bounds": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})$"
+          }
+        },
         "$defs/key": {
           "types": ["string"],
           "bounds": {
@@ -319,8 +362,32 @@
         "$defs/line": {
           "types": ["array"]
         },
+        "$defs/lineNumber": {
+          "types": ["integer"],
+          "bounds": {
+            "minimum": 1
+          }
+        },
         "$defs/line[]": {
           "ref": "#/$defs/inline"
+        },
+        "$defs/part": {
+          "types": ["object"],
+          "closed": true,
+          "required": ["digest", "path"],
+          "optional": ["from", "to"]
+        },
+        "$defs/part.digest": {
+          "ref": "#/$defs/digest"
+        },
+        "$defs/part.from": {
+          "ref": "#/$defs/lineNumber"
+        },
+        "$defs/part.path": {
+          "ref": "#/$defs/text"
+        },
+        "$defs/part.to": {
+          "ref": "#/$defs/lineNumber"
         },
         "$defs/record[type=check]": {
           "types": ["object"],
@@ -960,7 +1027,10 @@
           "types": ["object"],
           "closed": true,
           "required": ["key", "purpose", "title", "type"],
-          "optional": ["label", "parent"]
+          "optional": ["claimLife", "label", "parent"]
+        },
+        "$defs/record[type=scope].claimLife": {
+          "ref": "#/$defs/days"
         },
         "$defs/record[type=scope].key": {
           "ref": "#/$defs/key"
@@ -1451,7 +1521,9 @@
           "types": ["object"],
           "closed": true,
           "optional": [
+            "at",
             "bindings",
+            "by",
             "entry",
             "put",
             "reason",
@@ -1464,8 +1536,14 @@
             "minProperties": 1
           }
         },
+        ".at": {
+          "ref": "model.schema.json#/$defs/instant"
+        },
         ".bindings": {
           "ref": "model.schema.json#/properties/bindings"
+        },
+        ".by": {
+          "ref": "model.schema.json#/$defs/text"
         },
         ".entry": {
           "ref": "model.schema.json#/properties/entry"

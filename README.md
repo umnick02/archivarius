@@ -89,11 +89,14 @@ flowchart LR
     c-map -.->|"Open a record"| c-inspector
     c-cli ==>|"Apply a change"| c-core
     c-cli -->|"Verify evidence"| c-evidence
+    c-evidence ==>|"Hash an artifact"| c-digest
+    c-inspector ==>|"Digest a record"| c-digest
+    c-evidence ==>|"Validate before verifying"| c-core
     style c-model stroke:#558574
     style c-node-api stroke:#b07852
     style c-render stroke:#5779a6
     linkStyle 0,5 stroke:#537e68
-    linkStyle 1,2,4 stroke:#8b6ead
+    linkStyle 1,2,4,6,7,8 stroke:#8b6ead
     linkStyle 3 stroke:#5d8796
     classDef pure stroke:#558574
     classDef infrastructure stroke:#b07852
@@ -116,7 +119,7 @@ flowchart LR
 | Graph references | Validates typed relations between records and reports reverse links and coverage. |
 | Canonical digest | Computes the SHA-256 basis over a canonical representation of the definitions. |
 | Node API | Reads a model file, verifies evidence artifacts by bytes, applies validated changes, and generates documentation. |
-| CLI | Exposes init, validate, read, context, apply, reference, readme, documents, graph, diff, history, verify, run and archive over the model file. |
+| CLI | Exposes init, validate, read, context, apply, reference, readme, documents, graph, diff, history, verify, reconcile, run and archive over the model file. |
 | Evidence verification | Matches declared binding bytes against files and records actual check outcomes. |
 | Map rendering | Mounts an interactive architecture map with semantic zoom and an inspector for records. |
 | Architecture map | Lays out components and interactions and reveals detail as the map is zoomed. |
@@ -130,6 +133,9 @@ flowchart LR
 | Open a record | A selected record with its links and implementation outcome. | A record arrives with its links and outcome already resolved, so what is shown never depends on a second read of the model. |
 | Apply a change | A context receipt and a change with put and remove sets. | The receipt fixes the definitions the change was written against, so a change computed from definitions that have since moved cannot land. |
 | Verify evidence | Relative binding paths and the bytes they resolve to. | A declared path confirms only while its bytes still match, so an artifact that was moved or edited stops confirming on the next read. |
+| Hash an artifact | The canonical definitions and their SHA-256 basis. | Equal definitions yield an equal basis whatever their order or edit history, so a differing basis means a definition really changed. |
+| Digest a record | The canonical definitions and their SHA-256 basis. | Equal definitions yield an equal basis whatever their order or edit history, so a differing basis means a definition really changed. |
+| Validate before verifying | A v4 JSON snapshot as a URL, File, Blob or parsed object. | Any accepted source resolves to one parsed snapshot before anything renders, and a snapshot that fails validation is never partly displayed. |
 
 | Requirement | Rule | Conditions | Exceptions |
 | --- | --- | --- | --- |

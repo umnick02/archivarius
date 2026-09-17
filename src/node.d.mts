@@ -35,6 +35,62 @@ export function verifyProjectFiles(
   diagnostics: Array<{ code: string; key: string }>;
   analysis: ProjectAnalysis;
 }>;
+export function reconcileProjectFiles(
+  file: string,
+  directory: string,
+  options?: { within?: string[]; skip?: string[] },
+): Promise<{
+  confirmed: Array<{
+    relation: string;
+    from: string;
+    to: string;
+    fromPath: string;
+    toPath: string;
+  }>;
+  absent: Array<{
+    relation: string;
+    from: string;
+    to: string;
+    fromPath: string;
+    toPath: string;
+  }>;
+  undeclared: Array<{
+    from: string;
+    to: string;
+    fromPath: string;
+    toPath: string;
+  }>;
+  contained: Array<{
+    from: string;
+    to: string;
+    fromPath: string;
+    toPath: string;
+    reason: 'inside-container' | 'into-contained';
+  }>;
+  undeclarable: Array<{
+    from: string;
+    to: string;
+    fromPath: string;
+    toPath: string;
+    reason: 'source-is-group' | 'target-is-group';
+  }>;
+  unjudged: Array<{
+    relation: string;
+    from: string;
+    to: string;
+    reason:
+      | 'endpoints-unbound'
+      | 'source-unbound'
+      | 'target-unbound'
+      | 'shared-file';
+  }>;
+  unattributed: Array<{
+    from: string;
+    to: string;
+    reason: 'endpoints-unknown' | 'source-unknown' | 'target-unknown';
+  }>;
+  observed: number;
+}>;
 export function updateProjectFile(
   file: string,
   context: ProjectContext,

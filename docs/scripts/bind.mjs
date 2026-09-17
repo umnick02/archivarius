@@ -1,17 +1,30 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { hashBytes } from '../../src/model/digest.mjs';
+import { hashBytes, canonical } from '../../src/model/digest.mjs';
+import { bindingParts, partDigest } from '../../src/model/binding.mjs';
 import { projectContext } from '../../src/model/project-authoring.mjs';
 import { updateProjectFile } from '../../src/node.mjs';
 import { root, input } from './framework.mjs';
 
 // The file that carries each described part of this repository. A binding is a
 // claim about bytes, so the digests are read from disk and never hand-written;
-// this table is the only thing an agent maintains when a part moves.
+// this table is the only thing an agent maintains when a part moves. A string is
+// the whole of one file; a list states the several files - and, with `from`/`to`,
+// the lines - a description actually rests on, so an edit elsewhere does not ask
+// for a reading it does not need.
 export const files = {
   archivarius: 'package.json',
   model: 'assets/model.schema.json',
-  core: 'src/core.mjs',
+  // The core is what it claims: the parse and validation surface, the projection
+  // the map draws and the freshness and completion analysis - republished by
+  // src/core.mjs, carried by these files.
+  core: [
+    { path: 'src/core.mjs' },
+    { path: 'src/model/parse.mjs' },
+    { path: 'src/model/project-contract.mjs' },
+    { path: 'src/model/project-architecture.mjs' },
+    { path: 'src/model/project-analysis.mjs' },
+  ],
   graph: 'src/model/graph.mjs',
   digest: 'src/model/digest.mjs',
   'node-api': 'src/node.mjs',
@@ -21,6 +34,9 @@ export const files = {
   map: 'src/ui/ArchitectureMap.jsx',
   inspector: 'src/ui/ProjectInspector.jsx',
   'model-source': 'src/ui/load.mjs',
+  'hash-evidence': 'src/model/evidence.mjs',
+  'validate-before-verify': 'src/model/evidence.mjs',
+  'hash-record': 'src/ui/ProjectInspector.jsx',
   'change-input': 'src/model/project-authoring.mjs',
   'evidence-artifact': 'src/model/evidence.mjs',
   'reference-set': 'src/model/records.mjs',
@@ -50,17 +66,24 @@ export function boundPaths(model) {
   return Object.fromEntries(described.sort().map((key) => [key, files[key]]));
 }
 
+const bytesOf = async (file) =>
+  new Uint8Array(await readFile(path.join(root, file)));
+
 export async function collectBindings(model) {
   return Object.fromEntries(
     await Promise.all(
-      Object.entries(boundPaths(model)).map(async ([key, file]) => [
+      Object.entries(boundPaths(model)).map(async ([key, entry]) => [
         key,
-        {
-          path: file,
-          digest: hashBytes(
-            new Uint8Array(await readFile(path.join(root, file))),
-          ),
-        },
+        typeof entry === 'string'
+          ? { path: entry, digest: hashBytes(await bytesOf(entry)) }
+          : {
+              parts: await Promise.all(
+                entry.map(async (part) => ({
+                  ...part,
+                  digest: partDigest(await bytesOf(part.path), part),
+                })),
+              ),
+            },
       ]),
     ),
   );
@@ -73,11 +96,9 @@ export function staleParts(model, bindings) {
   return Object.keys(bindings)
     .filter((key) => {
       const released = model.bindings?.[key];
-      return (
-        !released ||
-        released.path !== bindings[key].path ||
-        released.digest !== bindings[key].digest
-      );
+      // The whole claim is compared, not just its digest: a part that gained a
+      // file or narrowed a range is a description to read again.
+      return !released || canonical(released) !== canonical(bindings[key]);
     })
     .sort();
 }
@@ -86,16 +107,21 @@ if (import.meta.url === new URL(process.argv[1], 'file:').href) {
   const model = JSON.parse(await readFile(input, 'utf8'));
   if (process.argv.includes('--check')) {
     const paths = boundPaths(model);
+    const spelled = (entry) =>
+      typeof entry === 'string' ? [entry] : entry.map((part) => part.path);
     const recorded = Object.fromEntries(
       Object.entries(model.bindings ?? {}).map(([key, binding]) => [
         key,
-        binding.path,
+        bindingParts(binding).map((part) => part.path),
       ]),
     );
-    if (JSON.stringify(paths) !== JSON.stringify(recorded))
+    const wanted = Object.fromEntries(
+      Object.entries(paths).map(([key, entry]) => [key, spelled(entry)]),
+    );
+    if (JSON.stringify(wanted) !== JSON.stringify(recorded))
       throw new Error('Bound files are stale: run npm run docs:bind:release');
-    for (const file of Object.values(paths))
-      await readFile(path.join(root, file));
+    for (const entry of Object.values(wanted))
+      for (const file of entry) await readFile(path.join(root, file));
     process.exit(0);
   }
   const bindings = await collectBindings(model);

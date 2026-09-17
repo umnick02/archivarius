@@ -663,6 +663,18 @@ export const failureCodes = {
     remedy:
       'Restore the history archive, or compare against a snapshot whose revisions are still present.',
   },
+  BINDING_RANGE_MISSING: {
+    meaning:
+      'A binding claims a range of lines the bound file no longer reaches.',
+    remedy:
+      'Rebind that part to the lines the claim is about, or restore the file.',
+  },
+  DESCRIPTION_CONTRADICTED: {
+    meaning:
+      'A described relation is not the dependency the code has: a declared edge is absent, or a dependency between described parts is undeclared.',
+    remedy:
+      'Correct the relations or the code, then reconcile again - a binding digest cannot settle this.',
+  },
   REALIZATION_CHANGED: {
     meaning: 'A bound file changed while the check was being verified or run.',
     remedy: 'Rebind the changed files and run the check again.',

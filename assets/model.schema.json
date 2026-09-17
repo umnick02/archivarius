@@ -209,7 +209,11 @@
         }
       }
     },
-    "binding": {
+    "lineNumber": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "part": {
       "type": "object",
       "additionalProperties": false,
       "required": ["path", "digest"],
@@ -219,6 +223,39 @@
         },
         "digest": {
           "$ref": "#/$defs/digest"
+        },
+        "from": {
+          "$ref": "#/$defs/lineNumber"
+        },
+        "to": {
+          "$ref": "#/$defs/lineNumber"
+        }
+      }
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": ["path", "digest"]
+        },
+        {
+          "required": ["parts"]
+        }
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/text"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "parts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/part"
+          }
         }
       }
     },

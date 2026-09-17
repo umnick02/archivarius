@@ -16,6 +16,7 @@ try {
       'history',
       'init',
       'verify',
+      'reconcile',
       'run',
       'archive',
     ].includes(command)
@@ -44,7 +45,7 @@ try {
       });
   } else
     throw new Error(
-      'Expected validate, read, context, apply, reference, readme, documents, graph, diff, history, init, verify, run, archive or serve',
+      'Expected validate, read, context, apply, reference, readme, documents, graph, diff, history, init, verify, reconcile, run, archive or serve',
     );
 } catch (error) {
   process.stdout.write(
