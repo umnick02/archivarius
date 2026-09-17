@@ -26,8 +26,12 @@ assert(
   pack.files.some((file) => file.path === 'dist/assets/model.schema.json'),
 );
 assert(
+  pack.files.some((file) => file.path === 'LICENSE'),
+  'the licence must ship',
+);
+assert(
   pack.files.every((file) =>
-    /^(dist\/|README.md$|package.json$)/.test(file.path),
+    /^(dist\/|README.md$|LICENSE$|package.json$)/.test(file.path),
   ),
 );
 await fs.mkdir(consumer, { recursive: true });
@@ -73,6 +77,18 @@ await fs.rm(path.join(consumer, 'node_modules/archivarius'), {
 });
 await fs.rm(path.join(consumer, 'package-lock.json'), { force: true });
 run('npm', ['install', '--ignore-scripts'], consumer);
+const installed = JSON.parse(
+  await fs.readFile(
+    path.join(consumer, 'node_modules/archivarius/package.json'),
+    'utf8',
+  ),
+);
+assert.match(
+  installed.license ?? '',
+  /^[A-Za-z0-9][A-Za-z0-9.+-]*$/,
+  'the installed package must declare an SPDX licence',
+);
+assert.notEqual(installed.license, 'UNLICENSED');
 run('node', ['node_modules/typescript/bin/tsc'], consumer);
 const cli = path.join(consumer, 'node_modules/.bin/archivarius');
 assert.equal(

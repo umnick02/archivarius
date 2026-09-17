@@ -486,7 +486,8 @@ export const App = forwardRef(function App({ onReady }, ref) {
         className="map-pane"
         ref={pane}
         tabIndex={-1}
-        aria-label={copy.wholeArchitecture}
+        role="region"
+        aria-labelledby={instanceId + '-map-heading'}
         onPointerMoveCapture={(e) => {
           pointer.current = { x: e.clientX, y: e.clientY };
         }}
@@ -498,6 +499,9 @@ export const App = forwardRef(function App({ onReady }, ref) {
           clearClick();
         }}
       >
+        <h2 className="region-heading" id={instanceId + '-map-heading'}>
+          {copy.mapRegionLabel}
+        </h2>
         <ReactFlow
           id={instanceId}
           nodes={nodes}

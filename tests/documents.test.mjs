@@ -5,7 +5,10 @@ import { spawnSync } from 'node:child_process';
 import { generateDocumentation, readArchitectureFile } from '../src/node.mjs';
 import { renderDocumentation } from '../src/model/document.mjs';
 import { ArchitectureGraph } from '../src/model/graph.mjs';
+import { architectureDiagram } from '../src/model/project-document.mjs';
 import { files, staleParts } from '../docs/scripts/bind.mjs';
+import documentRecords from './fixtures/documents.json' with { type: 'json' };
+import { clone, get, seal } from './project-fixture.mjs';
 
 const root = new URL('../', import.meta.url);
 const model = await readArchitectureFile(
@@ -61,6 +64,86 @@ test('documentation preserves boundaries and evidence, escapes markup, and refus
   assert(!doc.includes('\\.'), 'sentence periods must not be escaped');
   data.relations[0].to = 'absent';
   await assert.rejects(generateDocumentation(data), { code: 'INVALID_MODEL' });
+});
+
+// A record field is content, never markup: markup, a link or a script stored in
+// the model must reach every generated document as text a reader sees and a
+// renderer does not run.
+const hostile = [
+  'MARKA [x](https://example.com)',
+  '<script>alert(1)</script>',
+  '<img src=x onerror=alert(1)>',
+  '# MARKB heading',
+  'MARKC | pipe',
+  '```MARKD',
+  'MARKE setext',
+  '===',
+  'MARKZ "q" --> ; end',
+].join('\n');
+const diagramHostile = 'MARKM "q" --> x; y';
+
+const inert = (out, where) => {
+  const why = (reason) => where + ': ' + reason;
+  assert(!out.includes('<script'), why('raw script tag'));
+  assert(!out.includes('<img'), why('raw html tag'));
+  assert(
+    out.includes('&lt;script&gt;alert(1)&lt;/script&gt;'),
+    why('the script must survive as text'),
+  );
+  assert(!out.includes('MARKA [x]('), why('active link syntax'));
+  assert(
+    out.includes('MARKA \\[x\\](https://example.com)'),
+    why('the link must survive as text'),
+  );
+  assert(!/^\s*#+ MARKB/m.test(out), why('heading from content'));
+  assert(!out.includes('MARKC | pipe'), why('table cell from content'));
+  assert(!out.includes('```MARKD'), why('code fence from content'));
+  assert(!/^=+$/m.test(out), why('setext heading from content'));
+  assert(out.includes('--&gt;'), why('the arrow must survive as text'));
+};
+
+test('the documentation renderer draws markup, a link and a script in a record as text', async () => {
+  const data = structuredClone(model);
+  data.nodes[0].title = diagramHostile;
+  data.nodes[0].summary = hostile;
+  data.nodes[0].example = hostile;
+  data.nodes[0].rules[0].text = hostile;
+  data.relations[0].payload = hostile;
+  data.relations[0].meaning = hostile;
+  const out = await generateDocumentation(data);
+  inert(out, 'documentation');
+  assert(out.includes('](#node-' + data.nodes[0].key + ')'), 'links must hold');
+});
+
+test('the reference renderer draws markup, a link and a script in a record as text', async () => {
+  const data = clone();
+  data.records.push(...structuredClone(documentRecords));
+  Object.assign(get(data, 'row-limit'), { rule: hostile });
+  get(data, 'streaming').because = hostile;
+  get(data, 'within-limit').assertion = hostile;
+  const out = await generateDocumentation(seal(data));
+  inert(out, 'reference');
+  const rows = out.split('\n').filter((row) => row.startsWith('| '));
+  assert(
+    rows.some((row) => row.includes('MARKA') && row.includes('MARKZ')),
+    'a hostile cell must stay one table row',
+  );
+});
+
+test('a hostile record title stays one mermaid label', () => {
+  const statements = architectureDiagram(clone()).join('\n').split('\n');
+  const data = clone();
+  get(data, 'screen').title = diagramHostile;
+  get(data, 'request').title = diagramHostile;
+  const drawn = architectureDiagram(seal(data)).join('\n').split('\n');
+  assert.equal(drawn.length, statements.length, 'the diagram gained a line');
+  const labels = drawn.filter((line) => line.includes('MARKM'));
+  assert.equal(labels.length, 2, 'expected a node label and an edge label');
+  for (const label of labels) {
+    assert(!label.includes('"q"'), 'a quote must not close the label');
+    assert(label.includes('#quot;q#quot;'), 'a quote must be escaped');
+    assert.equal(label.split('MARKM').length, 2, 'the label must stay one');
+  }
 });
 
 test('CLI validates whole models, detects documentation drift and preserves files on rejection', async () => {

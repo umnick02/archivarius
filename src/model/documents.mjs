@@ -14,7 +14,9 @@ export const escape = (value) =>
     .replace(/([\\`*_[\]|~])/g, '\\$1')
     // Only a line that opens with Markdown structure can change the shape of the
     // document; punctuation inside a sentence must stay readable.
-    .replace(/^(\s*)([#>+-]|\d+\.)/gm, '$1\\$2');
+    .replace(/^(\s*)([#>+-]|\d+\.)/gm, '$1\\$2')
+    // A line of "=" underlines the line above it into a heading.
+    .replace(/^(\s*)(=+\s*)$/gm, '$1\\$2');
 export const inline = (value) => escape(value).replace(/[\r\n]+/g, ' ');
 
 export function documentReferences(document) {
@@ -114,19 +116,23 @@ export function renderDocument(
   if (document.format === 'json')
     return JSON.stringify(documentData(model, document), null, 2) + '\n';
   const records = new Map(model.records.map((record) => [record.key, record]));
-  const line = (parts) =>
+  // A block is authored presentation; a referenced record field is content, so it
+  // is neutralized here, and flattened where the structure needs one line.
+  const join = (parts, mark) =>
     parts
       .map((part) =>
-        typeof part === 'string' ? part : documentValue(records, part),
+        typeof part === 'string' ? part : mark(documentValue(records, part)),
       )
       .join('');
+  const line = (parts) => join(parts, escape);
+  const flat = (parts) => join(parts, inline);
   const blocks = document.blocks.map((block) => {
     switch (block.kind) {
       case 'heading':
         return (
           '#'.repeat(Math.min(6, block.level + headingOffset)) +
           ' ' +
-          line(block.content)
+          flat(block.content)
         );
       case 'paragraph':
         return block.lines.map(line).join('\n');
@@ -155,7 +161,7 @@ export function renderDocument(
           })
           .join('\n');
       case 'table': {
-        const row = (cells) => '| ' + cells.map(line).join(' | ') + ' |';
+        const row = (cells) => '| ' + cells.map(flat).join(' | ') + ' |';
         return [
           row(block.header),
           row(block.header.map(() => ['---'])),

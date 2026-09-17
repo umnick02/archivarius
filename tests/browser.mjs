@@ -47,6 +47,96 @@ const checkIds = async () => {
   );
   assert.equal(new Set(ids).size, ids.length);
 };
+// WCAG 2.4.7 / 2.4.11 / 1.4.11: focus every element a keyboard can reach and
+// read back the ring the surface draws for it — at least 2px, offset off the edge
+// it shares, and still there under a forced palette.
+const reach =
+  '#first :is(button, input, select, summary, [tabindex]):not(:disabled)';
+// `:focus-visible` only answers for a keyboard, so every sweep starts with a real
+// Tab: after a click the same programmatic focus draws nothing.
+const rings = async () => {
+  await b.call('Input.dispatchKeyEvent', {
+    type: 'rawKeyDown',
+    key: 'Tab',
+    code: 'Tab',
+    windowsVirtualKeyCode: 9,
+    nativeVirtualKeyCode: 9,
+  });
+  return b.evaluate((selector) => {
+    const restore = document.activeElement;
+    const found = [...document.querySelectorAll(selector)]
+      .filter((element) =>
+        element.checkVisibility({ visibilityProperty: true }),
+      )
+      .map((element) => {
+        element.focus({ preventScroll: true });
+        const style = getComputedStyle(element);
+        return {
+          name:
+            element.dataset.control ||
+            (element.dataset.node && 'node:' + element.dataset.node) ||
+            (element.dataset.relation &&
+              'relation:' + element.dataset.relation) ||
+            element.getAttribute('class') ||
+            element.tagName.toLowerCase(),
+          focused: document.activeElement === element,
+          visible: element.matches(':focus-visible'),
+          thickness:
+            style.outlineStyle === 'none' ? 0 : parseFloat(style.outlineWidth),
+          offset: parseFloat(style.outlineOffset),
+          color: style.outlineColor,
+          shadow: style.boxShadow,
+        };
+      });
+    restore?.focus?.({ preventScroll: true });
+    return found;
+  }, reach);
+};
+const audited = new Set();
+const checkRings = (found, scheme) => {
+  assert(found.length >= 8, scheme + ': too few focusable elements');
+  for (const ring of found) {
+    audited.add(ring.name);
+    assert(ring.focused, scheme + ': ' + ring.name + ' cannot take focus');
+    assert(ring.visible, scheme + ': ' + ring.name + ' misses :focus-visible');
+    assert(
+      ring.thickness >= 2 || ring.shadow !== 'none',
+      scheme + ': ' + ring.name + ' has no ring ' + JSON.stringify(ring),
+    );
+    assert(
+      ring.offset !== 0,
+      scheme + ': ' + ring.name + ' draws its ring on a shared edge',
+    );
+  }
+};
+const media = (features) => b.call('Emulation.setEmulatedMedia', { features });
+// Forced colours throw the author palette away, so the ring has to be restated
+// with a system colour: read what `Highlight` resolves to and hold every ring to it.
+const highlight = () =>
+  b.evaluate(() => {
+    const probe = document.createElement('span');
+    probe.style.outline = '3px solid Highlight';
+    document.body.append(probe);
+    const value = getComputedStyle(probe).outlineColor;
+    probe.remove();
+    return value;
+  });
+const auditRings = async (label) => {
+  checkRings(await rings(), label + ' light');
+  await media([{ name: 'prefers-color-scheme', value: 'dark' }]);
+  checkRings(await rings(), label + ' dark');
+  await media([{ name: 'forced-colors', value: 'active' }]);
+  const forced = await rings();
+  checkRings(forced, label + ' forced-colors');
+  const system = await highlight();
+  for (const ring of forced)
+    assert.equal(
+      ring.color,
+      system,
+      label + ': forced colours drop the ring on ' + ring.name,
+    );
+  await media([]);
+};
 const downloads = new URL('../.runtime/downloads/', import.meta.url);
 await fs.mkdir(downloads, { recursive: true });
 const checkDownload = async (data, name = 'first') => {
@@ -208,6 +298,10 @@ try {
   assert((await state()).visible.includes('engine'));
   await focus('engine');
   assert((await state()).visible.includes('ranking'));
+  // A reader who never touches the mouse must see where they are, whatever theme
+  // the system forces on the page. Audit the map first: its chrome and its cards
+  // step out of the keyboard's way once the inspector takes the narrow surface over.
+  await auditRings('map');
   await b.evaluate(() => window.consumer.first.inspect('engine'));
   await until(() => window.consumer.first.snapshot().panel !== null);
   assert.equal(
@@ -240,6 +334,64 @@ try {
       ),
       model.relations.find((edge) => edge.key === key).payload,
     );
+  // Now the reading surface: the inspector, its close control and its disclosures.
+  await auditRings('reading');
+  // Together the two passes have to have covered every control the surface owns,
+  // or the audit above proves nothing about the ones it never focused.
+  assert.deepEqual(
+    [
+      'map-app',
+      'map-pane',
+      'inspector',
+      'node-search',
+      'layer',
+      'contracts',
+      'about',
+      'clear-focus',
+      'minus',
+      'plus',
+      'home',
+      'close',
+      'panel-button',
+      'summary',
+    ].filter((name) => !audited.has(name)),
+    [],
+  );
+  for (const kind of ['node:', 'relation:'])
+    assert(
+      [...audited].some((name) => name.startsWith(kind)),
+      'no ' + kind + ' element was ever focused',
+    );
+  // The keyboard also has to be able to jump between the two named regions the
+  // surface is made of.
+  assert.deepEqual(
+    await b.evaluate(() => {
+      const named = (element) =>
+        element.getAttribute('aria-label') ||
+        document.getElementById(element.getAttribute('aria-labelledby'))
+          ?.textContent;
+      return ['.map-pane', '[data-control=inspector]'].map((selector) => {
+        const region = document.querySelector('#first ' + selector);
+        return {
+          role: region.getAttribute('role'),
+          name: named(region),
+          heading: region.querySelector('h2')?.textContent,
+        };
+      });
+    }),
+    [
+      {
+        role: 'region',
+        name: copy.mapRegionLabel,
+        heading: copy.mapRegionLabel,
+      },
+      {
+        role: 'region',
+        name: copy.inspectorLabel,
+        heading: nodesByKey.get('engine').title,
+      },
+    ],
+  );
   assert.deepEqual((await state()).nodeGeometry, initial.nodeGeometry);
   assert.deepEqual((await state('second')).viewport, other.viewport);
   await focus('ranking');

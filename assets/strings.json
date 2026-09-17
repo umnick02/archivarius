@@ -70,6 +70,7 @@
   "wholeArchitecture": "Whole architecture",
   "positionLabel": "Position in the architecture",
   "minimapLabel": "Architecture overview",
+  "mapRegionLabel": "Architecture map",
   "zoomIn": "Zoom in",
   "zoomOut": "Zoom out",
   "up": "Up one level",

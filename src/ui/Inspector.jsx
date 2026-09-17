@@ -45,6 +45,7 @@ export function Inspector({
     <aside
       data-control="inspector"
       ref={element}
+      role="region"
       aria-label={copy.inspectorLabel}
       tabIndex={-1}
       hidden={hidden}

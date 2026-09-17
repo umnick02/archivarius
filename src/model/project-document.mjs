@@ -7,6 +7,7 @@ import {
 import { analyzeProject } from './project-analysis.mjs';
 import { projectArchitecture } from './project-architecture.mjs';
 import { assertProject } from './project-contract.mjs';
+import { failureCatalogue, failureCodes } from './errors.mjs';
 import { recordReferences } from './records.mjs';
 
 import {
@@ -25,7 +26,18 @@ import {
 export function architectureDiagram(model) {
   const architecture = projectArchitecture(model);
   if (!architecture.nodes.length) return [];
-  const label = (value) => '"' + String(value).replaceAll('"', '#quot;') + '"';
+  // A title is free text, so every character Mermaid reads as syntax becomes an
+  // entity and every newline becomes a space: one label, one statement, no markup.
+  const label = (value) =>
+    '"' +
+    String(value)
+      .replaceAll('#', '#35;')
+      .replaceAll('"', '#quot;')
+      .replaceAll('<', '#60;')
+      .replaceAll('>', '#62;')
+      .replaceAll('`', '#96;')
+      .replace(/\s+/g, ' ') +
+    '"';
   // Record keys are free text, so a key like "graph" or "end" would be read as
   // Mermaid syntax. Identifiers are namespaced to keep every key usable.
   const id = (key) => 'c-' + key;
@@ -100,6 +112,30 @@ export function architectureDiagram(model) {
       (zone) => '    classDef ' + zone + ' stroke:' + zoneTones[zone],
     ),
     '```',
+    '',
+  ];
+}
+
+// A caught failure names a code and nothing else, so the reference prints the
+// table the raising module owns instead of a second copy of it.
+function failureTable() {
+  const row = (cells) => '| ' + cells.join(' | ') + ' |';
+  return [
+    '## ' + failureCatalogue.title,
+    '',
+    failureCatalogue.note,
+    '',
+    row(failureCatalogue.columns),
+    row(failureCatalogue.columns.map(() => '---')),
+    ...Object.keys(failureCodes)
+      .sort()
+      .map((code) =>
+        row([
+          '`' + code + '`',
+          escape(failureCodes[code].meaning),
+          escape(failureCodes[code].remedy),
+        ]),
+      ),
     '',
   ];
 }
@@ -199,5 +235,5 @@ export function renderProjectDocumentation(model, copy) {
         '',
       );
   }
-  return [...lines, generatedNotice, ''].join('\n');
+  return [...lines, ...failureTable(), generatedNotice, ''].join('\n');
 }

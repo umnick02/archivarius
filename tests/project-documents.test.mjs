@@ -15,7 +15,8 @@ import {
 } from '../src/model/project-authoring.mjs';
 import { validateProject } from '../src/model/project-contract.mjs';
 import { generateDocumentation, generateReadme } from '../src/node.mjs';
-import { generatedNotice } from '../src/model/documents.mjs';
+import { escape, generatedNotice } from '../src/model/documents.mjs';
+import { failureCatalogue, failureCodes } from '../src/model/errors.mjs';
 import { clone, get, ready } from './project-fixture.mjs';
 
 test('documentation and history retain records and links without a separate prose source', async () => {
@@ -179,6 +180,23 @@ test('diagram identifiers never collide with Mermaid keywords', async () => {
     );
 });
 
+test('a hostile title stays one inert Mermaid label', async () => {
+  const model = clone();
+  const component = model.records.find((r) => r.type === 'component');
+  component.title = 'A `b` <img onerror="x"> #1\nsecond --> line; end';
+  const diagram = (await generateDocumentation(model)).match(
+    /```mermaid\n([\s\S]*?)\n```/,
+  )[1];
+  const statement = diagram
+    .split('\n')
+    .filter((line) => line.includes('#quot;') || line.includes('#60;'));
+  assert.equal(statement.length, 1, 'the title spread across statements');
+  const [, text] = statement[0].match(/"([^"]*)"/);
+  for (const raw of ['`', '<', '>'])
+    assert(!text.includes(raw), 'the label still carries ' + raw);
+  assert(!/\n/.test(text), 'the label kept a newline');
+});
+
 test('documentation omits fields without a value instead of printing them', async () => {
   const model = clone();
   // The suite creates the empty field itself rather than depending on the
@@ -260,4 +278,71 @@ test('the readme keeps an external part and its edges without a file behind them
     (r) => r.type === 'interaction' && [r.from, r.to].includes(external.key),
   ))
     assert(readme.includes(edge.title), 'an edge to the boundary was dropped');
+});
+
+// The catalogue is only worth publishing if it stays true, so the oracle is the
+// source itself: every code literal handed to a failure constructor anywhere in
+// `src/`, read back out of the files that raise it.
+async function raisedFailureCodes() {
+  const root = new URL('../src/', import.meta.url);
+  const raised = new Map();
+  for (const name of await fs.readdir(root, { recursive: true })) {
+    if (!/\.(mjs|jsx)$/.test(name) || name.startsWith('generated')) continue;
+    const source = await fs.readFile(new URL(name, root), 'utf8');
+    for (const [, code] of source.matchAll(
+      /new (?:ArchitectureError|Error|DOMException)\(\s*'([A-Z][A-Z0-9_]*[A-Z0-9]):?'/g,
+    )) {
+      if (!raised.has(code)) raised.set(code, []);
+      raised.get(code).push('src/' + name);
+    }
+  }
+  return raised;
+}
+
+test('every failure code raised in the source is described once by the module that owns them', async () => {
+  const raised = await raisedFailureCodes();
+  assert(raised.size > 20, 'the scan found no failure constructors');
+  const described = new Set(Object.keys(failureCodes));
+  for (const [code, files] of raised)
+    assert(
+      described.has(code),
+      code + ' is raised in ' + files.join(', ') + ' and described nowhere',
+    );
+  for (const code of described)
+    assert(raised.has(code), code + ' is described but nothing raises it');
+  for (const [code, entry] of Object.entries(failureCodes)) {
+    assert.deepEqual(Object.keys(entry), ['meaning', 'remedy'], code);
+    for (const [field, text] of Object.entries(entry)) {
+      const where = code + '.' + field;
+      assert.equal(typeof text, 'string', where);
+      assert.equal(text.trim(), text, where + ' is padded');
+      assert(text.length > 15, where + ' says nothing');
+      assert(text.endsWith('.'), where + ' is not a sentence');
+      assert.equal(
+        text.split('.').filter((part) => part.trim()).length,
+        1,
+        where + ' is more than one sentence',
+      );
+    }
+  }
+});
+
+test('documentation publishes the failure catalogue held by the module that raises the codes', async () => {
+  const markdown = await generateDocumentation(clone());
+  assert(
+    markdown.includes('## ' + failureCatalogue.title),
+    'the reference has no failure section',
+  );
+  assert(
+    markdown.includes('| ' + failureCatalogue.columns.join(' | ') + ' |'),
+    'the failure table has no header',
+  );
+  for (const [code, { meaning, remedy }] of Object.entries(failureCodes))
+    assert(
+      markdown.includes(
+        '| `' + code + '` | ' + escape(meaning) + ' | ' + escape(remedy) + ' |',
+      ),
+      'the reference does not describe ' + code,
+    );
+  assert.equal(markdown, await generateDocumentation(clone()));
 });

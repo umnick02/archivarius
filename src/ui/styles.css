@@ -8,6 +8,11 @@
   color: #28362e;
   background: #f5f7ef;
   font-synthesis: none;
+  /* One ring tone for the whole surface, dark enough to clear 3:1 against every
+     background here — the panels, the cards and the pane — so it reads the same
+     whichever colour scheme the reader prefers. */
+  --focus-ring: #17513c;
+  --focus-halo: #fffefbdd;
 }
 .archivarius * {
   box-sizing: border-box;
@@ -27,13 +32,46 @@
 .archivarius button {
   cursor: pointer;
 }
+/* WCAG 2.4.7 and 1.4.11: everything a keyboard reaches carries the same ring, at
+   least 2px thick and offset clear of the border it sits against. */
 .archivarius button:focus-visible,
 .archivarius input:focus-visible,
 .archivarius select:focus-visible,
 .archivarius [role='button']:focus-visible,
 .archivarius summary:focus-visible {
-  outline: 3px solid #659984;
+  outline: 3px solid var(--focus-ring);
   outline-offset: 3px;
+}
+/* A card carries an arbitrary accent along its edge, so the ring gets a pale halo
+   outside it and keeps the zone stripe it already draws inside. */
+.archivarius .node-card:focus-visible {
+  box-shadow:
+    inset 0 3px 0 0 var(--zone),
+    0 0 0 6px var(--focus-halo);
+}
+/* The pane and the panels fill their container, so a ring outside them would be
+   clipped by it: draw theirs inside the edge instead (WCAG 2.4.11). */
+.archivarius .map-app:focus-visible,
+.archivarius .map-pane:focus-visible,
+.archivarius [data-control='inspector']:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: -3px;
+}
+/* A forced palette drops author colours and shadows, so the ring restates itself
+   in the reader's own system colours. */
+@media (forced-colors: active) {
+  .archivarius button:focus-visible,
+  .archivarius input:focus-visible,
+  .archivarius select:focus-visible,
+  .archivarius [role='button']:focus-visible,
+  .archivarius summary:focus-visible,
+  .archivarius .map-app:focus-visible,
+  .archivarius .map-pane:focus-visible,
+  .archivarius [data-control='inspector']:focus-visible {
+    outline-style: solid;
+    outline-width: 3px;
+    outline-color: Highlight;
+  }
 }
 .archivarius button:disabled {
   cursor: default;
@@ -798,12 +836,20 @@
 .archivarius .inspector-navigation .quiet {
   font-size: 11px;
 }
-.archivarius [data-control='inspector']:focus {
+/* The panel takes focus programmatically when it opens; only a keyboard gets the
+   ring the focus block draws. */
+.archivarius [data-control='inspector']:focus:not(:focus-visible) {
   outline: none;
 }
-.archivarius [data-control='inspector']:focus-visible {
-  outline: 2px solid #659984;
-  outline-offset: -2px;
+.archivarius .region-heading {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 .archivarius .project-questions .panel-button {
   padding: 14px;
