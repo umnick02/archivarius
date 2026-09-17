@@ -1,0 +1,150 @@
+{
+  "version": 1,
+  "check": "check-render",
+  "contract": "924249f695ce2bec9aa9889d459d17e85eddab34a2903dcf0ed48d27762528b8",
+  "realization": "a292ea4f1dcf062647dd0fa6126e1bdbde514d68303e02d79570d91bfad11720",
+  "bindings": {
+    "apply-change": {
+      "path": "src/node.mjs",
+      "digest": "6580b648771f288c69dc96b38ce74907f3025b68ee0f5847915fda45dcd9ab9b"
+    },
+    "archivarius": {
+      "path": "package.json",
+      "digest": "1ad7ca62fce3d114b097a6cbc2187d418c32800ad3b0c51434f23d85bb7e5aec"
+    },
+    "basis-value": {
+      "path": "src/model/project-digest.mjs",
+      "digest": "d05e6d59649820e57aa97ae93ef168e775b2c47a00a09aa7ac9dd9f5fd1f261f"
+    },
+    "change-input": {
+      "path": "src/model/project-authoring.mjs",
+      "digest": "6167a49396d2e581c35d0b4b75e81574d81c2d58ed337e04fb87c9dd67b9dcde"
+    },
+    "check-references": {
+      "path": "src/model/project-contract.mjs",
+      "digest": "d1906838268d4a57dc4227d7ce8837c16507b47c0d3727b0a7215801b7b9312e"
+    },
+    "cli": {
+      "path": "src/cli.mjs",
+      "digest": "d4d1061d3b882b5d9f65c791e7a611c6482de9b39cc515e1efc70b910c3dc5c1"
+    },
+    "compute-basis": {
+      "path": "src/model/project-digest.mjs",
+      "digest": "d05e6d59649820e57aa97ae93ef168e775b2c47a00a09aa7ac9dd9f5fd1f261f"
+    },
+    "core": {
+      "parts": [
+        {
+          "path": "src/core.mjs",
+          "digest": "e033feca174947767f96039278263379101953ab878ea91696478fc048b0426d"
+        },
+        {
+          "path": "src/model/parse.mjs",
+          "digest": "e31b118e7fffad84529963ba22287ae17798784310496dc4653c56bb9f08e403"
+        },
+        {
+          "path": "src/model/project-contract.mjs",
+          "digest": "d1906838268d4a57dc4227d7ce8837c16507b47c0d3727b0a7215801b7b9312e"
+        },
+        {
+          "path": "src/model/project-architecture.mjs",
+          "digest": "aae94eaedca11b85656aa0c57b21836af89949fd754bd30f085aa885deb37574"
+        },
+        {
+          "path": "src/model/project-analysis.mjs",
+          "digest": "8e650806aee2436e62f119c7c8e40ffd14de2a9ed66b7b295721a735a55a5b16"
+        }
+      ]
+    },
+    "digest": {
+      "path": "src/model/digest.mjs",
+      "digest": "cff43d0d16a94ad4490162347bca9672998b938f594eb0a19413c8afe37fc5f6"
+    },
+    "evidence": {
+      "path": "src/model/evidence.mjs",
+      "digest": "7b150e578951efadf126101f09b3f5a3024a609c02ea3e62dd05657a890a4f87"
+    },
+    "evidence-artifact": {
+      "path": "src/model/evidence.mjs",
+      "digest": "7b150e578951efadf126101f09b3f5a3024a609c02ea3e62dd05657a890a4f87"
+    },
+    "graph": {
+      "path": "src/model/graph.mjs",
+      "digest": "cc7b2e6d0a55869d32467bbd0d51a95f2095301f4ea18cdccb0c4ae3a9c818f9"
+    },
+    "hash-evidence": {
+      "path": "src/model/evidence.mjs",
+      "digest": "7b150e578951efadf126101f09b3f5a3024a609c02ea3e62dd05657a890a4f87"
+    },
+    "hash-record": {
+      "path": "src/ui/ProjectInspector.jsx",
+      "digest": "27d7a4dd1655ddcd1e1cbb8f5bdb81d16c2379fd8d077324d0d1be06a40b92a4"
+    },
+    "inspect-record": {
+      "path": "src/index.jsx",
+      "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+    },
+    "inspector": {
+      "path": "src/ui/ProjectInspector.jsx",
+      "digest": "27d7a4dd1655ddcd1e1cbb8f5bdb81d16c2379fd8d077324d0d1be06a40b92a4"
+    },
+    "load-model": {
+      "path": "src/ui/load.mjs",
+      "digest": "eb199133ab3d950d7b8f184d609f100cf4316c72d47f3c949156a353304b9536"
+    },
+    "map": {
+      "path": "src/ui/ArchitectureMap.jsx",
+      "digest": "c59df23f11b953bdeb9da1df39a5938f36e652c5fba4312225102d06f245cd65"
+    },
+    "model": {
+      "path": "assets/model.schema.json",
+      "digest": "a5338d64aa4b756cdcc1ae829316d5333640ebce52e603a9d4a10a587190006e"
+    },
+    "model-source": {
+      "path": "src/ui/load.mjs",
+      "digest": "eb199133ab3d950d7b8f184d609f100cf4316c72d47f3c949156a353304b9536"
+    },
+    "node-api": {
+      "path": "src/node.mjs",
+      "digest": "6580b648771f288c69dc96b38ce74907f3025b68ee0f5847915fda45dcd9ab9b"
+    },
+    "record-detail": {
+      "path": "src/model/project-view.mjs",
+      "digest": "c5d55cdf4bf062e2bba86eec4a3cd0faea2c591f005462c327312517b337cbf2"
+    },
+    "reference-set": {
+      "path": "src/model/records.mjs",
+      "digest": "169993d9b21260390e6b08cf327c8319c0678a0c5331d632f6d2c7db3ea74eea"
+    },
+    "render": {
+      "path": "src/index.jsx",
+      "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+    },
+    "validate-before-verify": {
+      "path": "src/model/evidence.mjs",
+      "digest": "7b150e578951efadf126101f09b3f5a3024a609c02ea3e62dd05657a890a4f87"
+    },
+    "verify-evidence": {
+      "path": "src/node.mjs",
+      "digest": "6580b648771f288c69dc96b38ce74907f3025b68ee0f5847915fda45dcd9ab9b"
+    }
+  },
+  "command": [
+    "node",
+    "--test",
+    "tests/view.test.mjs",
+    "tests/project-view.test.mjs",
+    "tests/appearance.test.mjs",
+    "tests/layout.test.mjs"
+  ],
+  "startedAt": "2026-09-17T17:28:57.257Z",
+  "finishedAt": "2026-09-17T17:28:57.714Z",
+  "outcome": "pass",
+  "exitCode": 0,
+  "stdout": "✔ every contract value the map can carry has exactly one display token (0.742583ms)\n✔ the two shipped contracts close the same drawn enums (0.073292ms)\n✔ no drawn contract value is carried by its tone alone (0.230667ms)\n✔ every drawn value carries a short colourless token (0.192459ms)\n✔ appearance answers with a tone, a shape and an outline for any allowed node (0.117791ms)\n✔ a store and an external participant do not draw as a plain component (0.058375ms)\n✔ every shape the table names has pixels to be drawn with (0.086ms)\n✔ appearance answers with a tone and a line for any allowed relation (0.05775ms)\n✔ the container sequence never repeats a zone tone (0.070292ms)\n✔ an unknown value is rejected instead of drawn as a default (0.170708ms)\n✔ the browser surface holds no second copy of the shared palette (5.538667ms)\n✔ inspector groups shared exchanges without losing contracts or conflating peers and channels (0.951708ms)\n✔ ELK geometry covers the model without overlapping siblings or escaping parents (0.325625ms)\n✔ rebuilding the same model preserves positions and routes (19.161917ms)\n✔ every semantic zoom uses original relations, visible endpoints, and fixed geometry (1.906833ms)\n✔ descendant connectors stay outside unrelated sibling boxes (0.165208ms)\n✔ an unchanged model reuses its computed geometry and a changed one does not (18.789166ms)\n✔ the reported layout engine version is the installed one (0.325709ms)\n✔ geometry is computed off the main thread and the worker is stopped after it (123.095792ms)\n✔ a platform without a worker, one that refuses it, and one whose worker dies all still lay out (42.668334ms)\n✔ a withdrawn layout stops its worker, rejects with the reason and leaves the last geometry in place (14.842375ms)\n✔ search finds parameter values, methods, nested content and reference titles (0.711875ms)\n✔ search excludes technical receipts and displays the actual matching field (0.109667ms)\n✔ grouping retains all blockers, shared areas and the original conclusion (8.706ms)\n✔ historical failures remain navigable with their archived scope (0.145292ms)\n✔ the whole snapshot fits the overview and stays centred in it (0.410333ms)\n✔ the window says which part of the snapshot the detail is showing (0.071833ms)\n✔ a point in the overview is the position the detail moves to (0.078625ms)\n✔ a card states its text sizes in the reader’s unit (0.192458ms)\nℹ tests 29\nℹ suites 0\nℹ pass 29\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 412.699125\n",
+  "stderr": "",
+  "output": {
+    "bytes": 2567,
+    "digest": "772b1384538930ce9338f5830e53f4a5cd16713517bf0d2262308dbb166c1f7d"
+  }
+}

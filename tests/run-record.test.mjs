@@ -13,6 +13,7 @@ import {
   projectContext,
 } from '../src/model/project-authoring.mjs';
 import { digest, hashBytes } from '../src/model/digest.mjs';
+import { analyzeProject } from '../src/model/project-analysis.mjs';
 import {
   contractDigest,
   realizationDigest,
@@ -203,4 +204,54 @@ test('a result whose outcome no run stands behind is refused by name', () => {
     code: 'INVALID_MODEL',
     issues: ['RESULT_BASIS:claimed'],
   });
+});
+
+// A failure that was fixed has to be answerable by the run that fixed it: the
+// later pass names the earlier failure and says why it no longer stands, or the
+// model keeps reading the old failure as the current state of the check.
+test('a passing run can answer the failure it clears', async (t) => {
+  const directory = await fs.mkdtemp(new URL('.runtime/run-resolve-', root));
+  t.after(() => fs.rm(directory, { recursive: true, force: true }));
+  const checker = await fs.readFile(
+    new URL('fixtures/evidence-check.mjs', import.meta.url),
+  );
+  await fs.writeFile(path.join(directory, 'fixture.mjs'), checker);
+  const model = ready();
+  bind(model, hashBytes(checker));
+  get(model, 'export-check').command = [process.execPath, 'fixture.mjs'];
+  seal(model);
+  // The command and the file stay identical across both runs, so only the world
+  // around them changed - which is exactly the case a resolution describes.
+  process.env.EVIDENCE_CHECK_EXIT = '1';
+  t.after(() => delete process.env.EVIDENCE_CHECK_EXIT);
+  const failed = await executeProjectCheck(model, 'export-check', {
+    directory,
+    resultKey: 'failed-run',
+    evidencePath: 'failed.json',
+  });
+  assert.equal(failed.outcome, 'fail');
+  model.records.push(failed);
+  delete process.env.EVIDENCE_CHECK_EXIT;
+  const passed = await executeProjectCheck(model, 'export-check', {
+    directory,
+    resultKey: 'fixed-run',
+    evidencePath: 'fixed.json',
+    resolves: ['failed-run'],
+    resolution: 'The command was fixed and the same check now passes.',
+  });
+  assert.equal(passed.outcome, 'pass');
+  assert.deepEqual(passed.resolves, ['failed-run']);
+  assert.equal(
+    passed.resolution,
+    'The command was fixed and the same check now passes.',
+  );
+  // The model accepts the pair, so the fixed failure stops standing as the state
+  // of the check.
+  model.records.push(passed);
+  assert.deepEqual(
+    analyzeProject(model).freshness['export-check'].reasons.filter(
+      (reason) => reason.code === 'CHECK_FAILED',
+    ),
+    [],
+  );
 });

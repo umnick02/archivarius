@@ -1,0 +1,150 @@
+{
+  "version": 1,
+  "check": "check-navigation",
+  "contract": "924249f695ce2bec9aa9889d459d17e85eddab34a2903dcf0ed48d27762528b8",
+  "realization": "a292ea4f1dcf062647dd0fa6126e1bdbde514d68303e02d79570d91bfad11720",
+  "bindings": {
+    "apply-change": {
+      "path": "src/node.mjs",
+      "digest": "6580b648771f288c69dc96b38ce74907f3025b68ee0f5847915fda45dcd9ab9b"
+    },
+    "archivarius": {
+      "path": "package.json",
+      "digest": "1ad7ca62fce3d114b097a6cbc2187d418c32800ad3b0c51434f23d85bb7e5aec"
+    },
+    "basis-value": {
+      "path": "src/model/project-digest.mjs",
+      "digest": "d05e6d59649820e57aa97ae93ef168e775b2c47a00a09aa7ac9dd9f5fd1f261f"
+    },
+    "change-input": {
+      "path": "src/model/project-authoring.mjs",
+      "digest": "6167a49396d2e581c35d0b4b75e81574d81c2d58ed337e04fb87c9dd67b9dcde"
+    },
+    "check-references": {
+      "path": "src/model/project-contract.mjs",
+      "digest": "d1906838268d4a57dc4227d7ce8837c16507b47c0d3727b0a7215801b7b9312e"
+    },
+    "cli": {
+      "path": "src/cli.mjs",
+      "digest": "d4d1061d3b882b5d9f65c791e7a611c6482de9b39cc515e1efc70b910c3dc5c1"
+    },
+    "compute-basis": {
+      "path": "src/model/project-digest.mjs",
+      "digest": "d05e6d59649820e57aa97ae93ef168e775b2c47a00a09aa7ac9dd9f5fd1f261f"
+    },
+    "core": {
+      "parts": [
+        {
+          "path": "src/core.mjs",
+          "digest": "e033feca174947767f96039278263379101953ab878ea91696478fc048b0426d"
+        },
+        {
+          "path": "src/model/parse.mjs",
+          "digest": "e31b118e7fffad84529963ba22287ae17798784310496dc4653c56bb9f08e403"
+        },
+        {
+          "path": "src/model/project-contract.mjs",
+          "digest": "d1906838268d4a57dc4227d7ce8837c16507b47c0d3727b0a7215801b7b9312e"
+        },
+        {
+          "path": "src/model/project-architecture.mjs",
+          "digest": "aae94eaedca11b85656aa0c57b21836af89949fd754bd30f085aa885deb37574"
+        },
+        {
+          "path": "src/model/project-analysis.mjs",
+          "digest": "8e650806aee2436e62f119c7c8e40ffd14de2a9ed66b7b295721a735a55a5b16"
+        }
+      ]
+    },
+    "digest": {
+      "path": "src/model/digest.mjs",
+      "digest": "cff43d0d16a94ad4490162347bca9672998b938f594eb0a19413c8afe37fc5f6"
+    },
+    "evidence": {
+      "path": "src/model/evidence.mjs",
+      "digest": "7b150e578951efadf126101f09b3f5a3024a609c02ea3e62dd05657a890a4f87"
+    },
+    "evidence-artifact": {
+      "path": "src/model/evidence.mjs",
+      "digest": "7b150e578951efadf126101f09b3f5a3024a609c02ea3e62dd05657a890a4f87"
+    },
+    "graph": {
+      "path": "src/model/graph.mjs",
+      "digest": "cc7b2e6d0a55869d32467bbd0d51a95f2095301f4ea18cdccb0c4ae3a9c818f9"
+    },
+    "hash-evidence": {
+      "path": "src/model/evidence.mjs",
+      "digest": "7b150e578951efadf126101f09b3f5a3024a609c02ea3e62dd05657a890a4f87"
+    },
+    "hash-record": {
+      "path": "src/ui/ProjectInspector.jsx",
+      "digest": "27d7a4dd1655ddcd1e1cbb8f5bdb81d16c2379fd8d077324d0d1be06a40b92a4"
+    },
+    "inspect-record": {
+      "path": "src/index.jsx",
+      "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+    },
+    "inspector": {
+      "path": "src/ui/ProjectInspector.jsx",
+      "digest": "27d7a4dd1655ddcd1e1cbb8f5bdb81d16c2379fd8d077324d0d1be06a40b92a4"
+    },
+    "load-model": {
+      "path": "src/ui/load.mjs",
+      "digest": "eb199133ab3d950d7b8f184d609f100cf4316c72d47f3c949156a353304b9536"
+    },
+    "map": {
+      "path": "src/ui/ArchitectureMap.jsx",
+      "digest": "c59df23f11b953bdeb9da1df39a5938f36e652c5fba4312225102d06f245cd65"
+    },
+    "model": {
+      "path": "assets/model.schema.json",
+      "digest": "a5338d64aa4b756cdcc1ae829316d5333640ebce52e603a9d4a10a587190006e"
+    },
+    "model-source": {
+      "path": "src/ui/load.mjs",
+      "digest": "eb199133ab3d950d7b8f184d609f100cf4316c72d47f3c949156a353304b9536"
+    },
+    "node-api": {
+      "path": "src/node.mjs",
+      "digest": "6580b648771f288c69dc96b38ce74907f3025b68ee0f5847915fda45dcd9ab9b"
+    },
+    "record-detail": {
+      "path": "src/model/project-view.mjs",
+      "digest": "c5d55cdf4bf062e2bba86eec4a3cd0faea2c591f005462c327312517b337cbf2"
+    },
+    "reference-set": {
+      "path": "src/model/records.mjs",
+      "digest": "169993d9b21260390e6b08cf327c8319c0678a0c5331d632f6d2c7db3ea74eea"
+    },
+    "render": {
+      "path": "src/index.jsx",
+      "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+    },
+    "validate-before-verify": {
+      "path": "src/model/evidence.mjs",
+      "digest": "7b150e578951efadf126101f09b3f5a3024a609c02ea3e62dd05657a890a4f87"
+    },
+    "verify-evidence": {
+      "path": "src/node.mjs",
+      "digest": "6580b648771f288c69dc96b38ce74907f3025b68ee0f5847915fda45dcd9ab9b"
+    }
+  },
+  "command": [
+    "node",
+    "--test",
+    "tests/filters.test.mjs",
+    "tests/address.test.mjs",
+    "tests/export.test.mjs",
+    "tests/history.test.mjs"
+  ],
+  "startedAt": "2026-09-17T17:28:59.188Z",
+  "finishedAt": "2026-09-17T17:29:00.486Z",
+  "outcome": "pass",
+  "exitCode": 0,
+  "stdout": "✔ an absent address is the view the map opens with (0.913417ms)\n✔ every field of the view survives the round trip (0.183542ms)\n✔ a relation panel is addressed by the interaction it opened (0.075792ms)\n✔ two mounts keep separate views in one address (0.126208ms)\n✔ the address keeps what the host page put in it (0.081125ms)\n✔ a mount key is derived from the host element, never invented (0.045375ms)\n✔ a value outside the view vocabulary is dropped, not raised (0.0565ms)\n✔ an address naming a part the snapshot does not hold is rejected (0.605625ms)\n✔ an address naming a level or an interaction that is gone is rejected (0.118875ms)\n✔ an address naming a filter the contract does not hold is rejected (0.213667ms)\n✔ the address never mutates the snapshot or the view it reads (0.099917ms)\n✔ DOT is structurally sound for both shipped models (1.889958ms)\n✔ DOT spends the one appearance vocabulary and no second one (0.226125ms)\n✔ mermaid is byte-identical to the diagram the reference embeds (0.575292ms)\n✔ mermaid covers the v3 architecture the map renders (0.617917ms)\n✔ the table keeps one row per record and a stable column order (0.54325ms)\n✔ the table lists a v3 architecture as components and interactions (0.148209ms)\n✔ a hostile title stays text in DOT (0.258291ms)\n✔ a hostile title stays inert in the table (0.169083ms)\n✔ the node surface renders each format and refuses an unknown one (0.496833ms)\n✔ node.d.mts declares the new export (2.161375ms)\n✔ the CLI writes a graph to --output (239.206041ms)\n✔ the mermaid export is a diagram, not a fenced block (0.260166ms)\n✔ a filter offers exactly the values the contract states (0.688917ms)\n✔ no filter keeps the whole snapshot (0.170667ms)\n✔ a zone filter keeps its parts and the containers that hold them (0.116667ms)\n✔ a kind filter answers for the kind, not the zone (0.078666ms)\n✔ an interaction filter keeps the exchanges of that kind and their ends (0.085875ms)\n✔ filters combine: every one of them has to keep a part (0.070084ms)\n✔ the filter never mutates the model it reads (0.076875ms)\n✔ the neighbours of a part are its exchanges, by direction and end (6.946667ms)\n✔ a part with no exchange in the filtered view has no neighbours (0.135375ms)\n✔ two exchanges with the same end and kind are one neighbour (0.126833ms)\n✔ the history is one version per stored snapshot, newest first (34.581583ms)\n✔ each version names the records it added, removed and changed (13.44525ms)\n✔ a snapshot with no stored manifest is one version and no change (0.357375ms)\n✔ the rendered history reads the versions and nothing else, the same way twice (21.282375ms)\n✔ the history command writes the document and refuses drift (365.947167ms)\n✔ the help text offers history (0.304042ms)\n\n> archivarius@0.4.0 prepare\n> npm run build\n\n\n> archivarius@0.4.0 build\n> node tooling/build.mjs\n\n✔ the MIT licence ships with the package (750.937583ms)\nℹ tests 40\nℹ suites 0\nℹ pass 40\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 1253.130917\n",
+  "stderr": "",
+  "output": {
+    "bytes": 3086,
+    "digest": "33c77f1ba00e8308555d4c39ec78345d57d7117da5d4211d2972a124b14c1191"
+  }
+}

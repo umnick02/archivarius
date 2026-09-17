@@ -42,6 +42,9 @@ async function main() {
         against: { type: 'string' },
         stale: { type: 'boolean' },
         title: { type: 'string' },
+        timeout: { type: 'string' },
+        resolves: { type: 'string', multiple: true },
+        resolution: { type: 'string' },
       },
     }));
     if (values.help && positionals.length === 0) {
@@ -69,7 +72,15 @@ async function main() {
       apply: ['context', 'change', 'json'],
       verify: ['json'],
       reconcile: ['json'],
-      run: ['focus', 'result', 'evidence', 'json'],
+      run: [
+        'focus',
+        'result',
+        'evidence',
+        'json',
+        'timeout',
+        'resolves',
+        'resolution',
+      ],
     };
     if (
       values.help ||
@@ -95,7 +106,14 @@ async function main() {
       (['context', 'read'].includes(command) && !values.focus?.length) ||
       (command === 'apply' && (!values.context || !values.change)) ||
       (command === 'run' &&
-        (values.focus?.length !== 1 || !values.result || !values.evidence)) ||
+        (values.focus?.length !== 1 ||
+          !values.result ||
+          !values.evidence ||
+          // A gate that takes ten minutes is exactly the run worth a receipt, so
+          // the budget is the caller's to state, in seconds; anything that is not
+          // a positive number of them is a bad argument, not a missing budget.
+          (values.timeout !== undefined && !(Number(values.timeout) > 0)) ||
+          (values.resolves?.length && !values.resolution?.trim()))) ||
       (['reference', 'readme', 'history'].includes(command) &&
         (!values.output || values.json)) ||
       (command === 'graph' &&
@@ -232,6 +250,9 @@ async function main() {
         directory: path.dirname(path.resolve(input)),
         resultKey: values.result,
         evidencePath: values.evidence,
+        timeout: Number(values.timeout ?? 60) * 1000,
+        resolves: values.resolves ?? [],
+        ...(values.resolution ? { resolution: values.resolution } : {}),
       });
       await updateProjectFile(input, context, { put: [record] });
       print({ valid: true, result: record.key, outcome: record.outcome });

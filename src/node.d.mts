@@ -128,6 +128,8 @@ export function executeProjectCheck(
     resultKey: string;
     evidencePath: string;
     timeout?: number;
+    resolves?: string[];
+    resolution?: string;
   },
 ): Promise<Extract<ProjectRecord, { type: 'result' }>>;
 

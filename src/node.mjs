@@ -187,7 +187,14 @@ export async function archiveProjectFile(file) {
 export async function executeProjectCheck(
   model,
   key,
-  { directory, resultKey, evidencePath, timeout = 60000 } = {},
+  {
+    directory,
+    resultKey,
+    evidencePath,
+    timeout = 60000,
+    resolves = [],
+    resolution,
+  } = {},
 ) {
   assertProject(model);
   const check = model.records.find((r) => r.key === key && r.type === 'check');
@@ -256,7 +263,12 @@ export async function executeProjectCheck(
     basis: { contract },
     realization,
     evidence: [{ path: evidencePath, digest: hashBytes(bytes) }],
-    resolves: [],
+    // A run that clears an earlier failure answers it: the failure it names stops
+    // standing as the state of the check, and the reason is stated beside it. The
+    // model holds the pair to its own rule, so a resolution of a run that did not
+    // fail, or one with nothing said about it, is refused here rather than stored.
+    resolves,
+    ...(resolution ? { resolution } : {}),
   };
   assertProject({ ...model, records: [...model.records, record] });
   const target = path.resolve(directory, evidencePath);
