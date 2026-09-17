@@ -10,14 +10,24 @@
 // reader who cannot separate two hues — or who printed the page — still reads it.
 // `legend.mjs` reads this table out loud, which is why nothing may be added here
 // without a channel that is not a colour.
+//
+// Nor is a tone picked by eye. Every tone here is drawn as a line, which WCAG 2.2
+// asks for 3:1 against what it sits on, and the card that line sits on follows
+// the reader's scheme - so each tone stays inside the one lightness band both a
+// light and a dark card read, and none of them is very pale or very dark. Inside
+// that band the tones of an enum are kept at least 30 apart in CIE L*a*b*, far
+// enough to be named with no neighbour to compare against; the container
+// sequence, which stands for no contract value and is read beside the
+// container's own name, is only kept far enough apart to tell neighbours apart.
+// `tests/appearance.test.mjs` measures both.
 
 /** @type {Record<string, string>} zone -> the tone that carries it */
 export const zoneTones = {
-  presentation: '#5779a6',
-  application: '#77679c',
-  infrastructure: '#b07852',
-  pure: '#558574',
-  external: '#74747e',
+  presentation: '#438ec9',
+  application: '#9081da',
+  infrastructure: '#a06c2f',
+  pure: '#26826b',
+  external: '#716f80',
 };
 
 /** @type {Record<string, string>} node kind -> the outline it is drawn with */
@@ -67,9 +77,9 @@ export const relationTags = {
 
 /** @type {Record<string, string>} relation kind -> the tone that carries it */
 export const relationTones = {
-  data: '#537e68',
-  command: '#8b6ead',
-  state: '#5d8796',
+  data: '#63836f',
+  command: '#8e6cd4',
+  state: '#2f76a3',
 };
 
 /** @type {Record<string, string>} relation kind -> how its line reads */
@@ -103,13 +113,13 @@ export const drawnEnums = {
 // shares no tone with `zoneTones`: a container edge must never read as a zone
 // the card inside it is not in.
 export const rootTones = [
-  '#3f6f8f',
-  '#8a5b7d',
-  '#a8613f',
-  '#4d7a4a',
-  '#b58b37',
-  '#617b82',
-  '#6f6a5c',
+  '#3595b8',
+  '#8c697e',
+  '#ce6e57',
+  '#518555',
+  '#9e872e',
+  '#5a7577',
+  '#928d6e',
 ];
 
 const held = (table, value, what) => {

@@ -284,7 +284,10 @@
   position: relative;
   width: 100%;
   height: 100%;
-  border-color: color-mix(in srgb, var(--accent) 55%, var(--panel));
+  /* The border is the container tone at full strength: the appearance table
+     guarantees 3:1 for the tone itself, and a border mixed halfway into the panel
+     would draw a line the measurement never covered. */
+  border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 6%, var(--panel));
   /* The zone reads as a tone along the top edge: the root colour says which
      container a card belongs to, the zone says what kind of work it does. The
@@ -301,15 +304,16 @@
 /* A card's accent is model data, chosen once for the whole picture: it identifies
    the container the part sits in. The tone itself reads at about 4.35:1 on a light
    card, which a large title carries and a small one does not, so the text it
-   colours is mixed a step toward ink and clears 4.5:1 at every size the card
-   writes at; the edge keeps the tone itself. On a dark card the same tone would
-   read at about 3.5:1, so there the mix goes the other way. */
+   colours is mixed toward ink until the palest tone of the table clears 4.5:1 at
+   the smallest size the card writes at; the edge keeps the tone itself. On a dark
+   card the same tone reads at about 3.5:1, so there the mix goes toward paper by
+   the amount the darkest tone needs. */
 .archivarius .node-card {
-  --accent-ink: color-mix(in srgb, var(--accent) 88%, #000000);
+  --accent-ink: color-mix(in srgb, var(--accent) 76%, #000000);
 }
 @media (prefers-color-scheme: dark) {
   .archivarius .node-card {
-    --accent-ink: color-mix(in oklab, var(--accent) 45%, #ffffff);
+    --accent-ink: color-mix(in srgb, var(--accent) 74%, #ffffff);
   }
 }
 .archivarius .implementation-mark {

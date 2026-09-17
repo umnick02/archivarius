@@ -18,6 +18,7 @@ import {
 import { architectureDiagram } from '../src/model/project-document.mjs';
 import { generateGraph } from '../src/node.mjs';
 import { projectArchitecture } from '../src/model/project-architecture.mjs';
+import { relationTones, zoneTones } from '../src/model/appearance.mjs';
 import { clone, example, get } from './project-fixture.mjs';
 
 const root = new URL('../', import.meta.url);
@@ -179,9 +180,11 @@ test('DOT spends the one appearance vocabulary and no second one', () => {
   // relation kind carries the tone appearance.mjs owns.
   assert.match(dot, /"archive" \[[^\n]*shape=cylinder/);
   assert.match(dot, /"publisher" \[[^\n]*style="?rounded,dashed/);
-  for (const tone of ['#5779a6', '#77679c', '#b07852', '#558574', '#74747e'])
+  // Read from the table rather than repeated here: a second copy of the palette
+  // is the thing this test exists to forbid.
+  for (const tone of Object.values(zoneTones))
     assert.ok(dot.includes(tone), 'missing zone tone ' + tone);
-  for (const tone of ['#537e68', '#8b6ead', '#5d8796'])
+  for (const tone of Object.values(relationTones))
     assert.ok(dot.includes(tone), 'missing relation tone ' + tone);
   assert.match(dot, /-> "gateway" \[[^\n]*style=bold/);
   assert.match(dot, /-> "publisher" \[[^\n]*style=dotted/);

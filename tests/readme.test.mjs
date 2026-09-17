@@ -62,11 +62,30 @@ test('the readme opens with the scope and writes no heading of its own', () => {
   }
 });
 
-test('the readme states the purpose and the sources from the model', () => {
+test('the readme states the purpose from the model', () => {
   const readme = renderReadme(model, copy);
   assert(readme.includes(record('scope').purpose), 'missing the purpose');
+});
+
+// The landing page is the walk-through, not the report: the grounds, the rules,
+// the decisions, the scenarios and the interface list belong to the reference,
+// which prints them in full. A landing page that reprints them buries the one
+// command a reader came for under a wall no reader reads first.
+test('the readme leaves the reference-only sections to the reference', () => {
+  const readme = renderReadme(model, copy);
+  for (const type of ['source', 'requirement', 'decision', 'scenario']) {
+    if (!copy.types[type]) continue;
+    assert(
+      !readme.includes('## ' + copy.types[type]),
+      'the landing page reprints the ' + type + ' section',
+    );
+  }
+  // The sources are the heaviest of them: not one statement may leak through.
   for (const source of records('source'))
-    assert(readme.includes(source.statement), 'missing ' + source.key);
+    assert(
+      !readme.includes(source.statement),
+      'a source statement leaked onto the landing page: ' + source.key,
+    );
 });
 
 test('the readme carries the diagram the map draws, not a separate picture', () => {
@@ -165,7 +184,7 @@ test('the prose table is derived from the schema, not written by hand', async ()
   }
 });
 
-test('the readme states what every part does and what crosses every edge', () => {
+test('the readme states what every part does', () => {
   const readme = renderReadme(model, copy);
   const architecture = projectArchitecture(model);
   const nodes = [];
@@ -174,19 +193,15 @@ test('the readme states what every part does and what crosses every edge', () =>
     for (const child of node.children || []) walk(child);
   };
   for (const node of architecture.nodes) walk(node);
-  // The line the map shows when a record is collapsed is the floor: no part and
-  // no edge may reach the readme without saying what it is.
+  // The line the map shows when a record is collapsed is the floor: no part may
+  // reach the readme without saying what it is. The edges are drawn in the
+  // diagram and named there; the reference carries their full contract.
   for (const node of nodes) {
     const record = model.records.find((r) => r.key === node.key);
     const summary = recordSummary(record);
     assert(summary, 'nothing summarizes ' + node.key);
     assert(readme.includes(summary), 'missing the summary of ' + node.key);
   }
-  for (const relation of architecture.relations)
-    assert(
-      readme.includes(recordSummary({ ...relation, type: 'interface' })),
-      'missing the summary of ' + relation.key,
-    );
 });
 
 test('the readme states only the parts whose realization the model binds', () => {
@@ -200,15 +215,6 @@ test('the readme states only the parts whose realization the model binds', () =>
     'an unbound part still states what it does',
   );
   assert(!readme.includes('c-inspector'), 'an unbound part is still drawn');
-  assert(
-    !readme.includes(
-      recordSummary({
-        ...model.records.find((r) => r.key === 'record-detail'),
-        type: 'interface',
-      }),
-    ),
-    'an edge into an unbound part survived it',
-  );
 });
 
 // Evidence goes stale on every source edit by design, so a page that reported it
@@ -244,7 +250,7 @@ test('every table states its columns with the labels the map uses', () => {
   const headers = readme
     .split('\n')
     .filter((line, index, lines) => /^\| -+ \|/.test(lines[index + 1] || ''));
-  assert(headers.length >= 2, 'expected a heading row per table');
+  assert(headers.length >= 1, 'expected a heading row per table');
   for (const header of headers)
     for (const heading of header.split('|').map((c) => c.trim()))
       if (heading)

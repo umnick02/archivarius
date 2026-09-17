@@ -191,6 +191,112 @@ test('the container sequence never repeats a zone tone', () => {
   assert.equal(new Set(rootTones).size, rootTones.length);
 });
 
+// A tone is drawn as a line - a card's border, its top edge, a relation - and a
+// line is non-text content, so WCAG 2.2 asks it for 3:1 against what it sits on.
+// The card sits on the reader's scheme, so both sides of `light-dark()` count,
+// and the card tints its own background with the tone, which is the background
+// measured here rather than the bare panel.
+const channel = (c) =>
+  c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+const parse = (hex) =>
+  [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16));
+const luminance = (hex) => {
+  const [r, g, b] = parse(hex).map((v) => channel(v / 255));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const contrast = (a, b) => {
+  const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (high + 0.05) / (low + 0.05);
+};
+// The stylesheet's `color-mix(in srgb, var(--accent) 6%, var(--panel))`.
+const tinted = (tone, panel) => {
+  const [tr, tg, tb] = parse(tone);
+  const [pr, pg, pb] = parse(panel);
+  const mix = (a, b) => Math.round(a * 0.06 + b * 0.94);
+  return (
+    '#' +
+    [mix(tr, pr), mix(tg, pg), mix(tb, pb)]
+      .map((v) => v.toString(16).padStart(2, '0'))
+      .join('')
+  );
+};
+// Perceptual distance in CIE L*a*b*: two tones of one sequence that sit closer
+// than this read as the same tone to a reader who is not comparing them side by
+// side. Kept as the plain 1976 distance - the threshold is coarse on purpose.
+const lab = (hex) => {
+  const [r, g, b] = parse(hex).map((v) => channel(v / 255));
+  const white = [0.95047, 1, 1.08883];
+  const xyz = [
+    0.4124 * r + 0.3576 * g + 0.1805 * b,
+    0.2126 * r + 0.7152 * g + 0.0722 * b,
+    0.0193 * r + 0.1192 * g + 0.9505 * b,
+  ].map((v, at) => v / white[at]);
+  const f = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
+  const [fx, fy, fz] = xyz.map(f);
+  return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
+};
+const distance = (a, b) => Math.hypot(...lab(a).map((v, at) => v - lab(b)[at]));
+// Both sides of the scheme the stylesheet ships.
+const panels = { light: '#fffefb', dark: '#1d221b' };
+const sequences = {
+  zone: Object.entries(zoneTones),
+  relation: Object.entries(relationTones),
+  container: rootTones.map((tone, at) => [String(at), tone]),
+};
+
+test('every tone the table ships reads as a line on either scheme', () => {
+  for (const [group, entries] of Object.entries(sequences))
+    for (const [name, tone] of entries)
+      for (const [scheme, panel] of Object.entries(panels)) {
+        const held = contrast(tone, tinted(tone, panel));
+        assert(
+          held >= 3,
+          group +
+            ' ' +
+            name +
+            ' (' +
+            tone +
+            ') reads at ' +
+            held.toFixed(2) +
+            ':1 on the ' +
+            scheme +
+            ' card',
+        );
+      }
+});
+
+// A tone that stands for a contract value has to be identifiable on its own, so
+// the values of an enum are held far apart. A container tone stands for no value:
+// it is handed out by position, the container's name is on the card beside it,
+// and the sequence has to hold seven tones inside the narrow lightness band both
+// schemes read - so it is held only to telling neighbours apart.
+const floors = { zone: 30, relation: 30, container: 20 };
+
+test('no two tones of one sequence read as the same tone', () => {
+  for (const [group, entries] of Object.entries(sequences))
+    for (const [a, first] of entries)
+      for (const [b, second] of entries) {
+        if (a >= b) continue;
+        const apart = distance(first, second);
+        assert(
+          apart >= floors[group],
+          group +
+            ' ' +
+            a +
+            ' (' +
+            first +
+            ') and ' +
+            b +
+            ' (' +
+            second +
+            ') are ' +
+            apart.toFixed(1) +
+            ' apart, under ' +
+            floors[group],
+        );
+      }
+});
+
 test('an unknown value is rejected instead of drawn as a default', () => {
   assert.throws(() => nodeAppearance({ kind: 'component', zone: 'nowhere' }));
   assert.throws(() => nodeAppearance({ kind: 'widget', zone: 'pure' }));

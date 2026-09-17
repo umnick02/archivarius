@@ -178,43 +178,15 @@ export function renderProjectReadme(whole, copy) {
     // walk-through then comes before every fact the page merely describes.
     ...quickstart(whole, copy),
     ...architectureDiagram(model),
-    // A reader who does not know the vocabulary yet needs one concrete run
-    // through the system before the parts it is made of.
-    ...table(
-      copy,
-      'scenario',
-      records('scenario').map((record) => [record.title, record]),
-    ),
+    // The landing page names the parts and stops: what each one does, in one
+    // row. The rules, decisions, scenarios, interface contracts and the grounds
+    // the design rests on are the reference's to print in full, and reprinting
+    // them here would bury the walk-through under a wall no reader reads first.
     ...table(
       copy,
       'component',
       parts.map((node) => [node.title, find(node.key)]),
     ),
-    ...table(
-      copy,
-      'interface',
-      architecture.relations.map((relation) => [relation.label, relation]),
-    ),
-    ...table(
-      copy,
-      'requirement',
-      records('requirement').map((record) => [record.title, record]),
-    ),
-    ...table(
-      copy,
-      'decision',
-      records('decision').map((record) => [record.title, record]),
-    ),
-    // The grounds - the observations and the published work the design rests on
-    // - are what a reader consults after the map and the tables, not a wall to
-    // wade through before the first command.
-    ...(records('source').length
-      ? [
-          '## ' + copy.types.source,
-          '',
-          ...records('source').flatMap(statements),
-        ]
-      : []),
     generatedNotice,
     '',
   ].join('\n');
