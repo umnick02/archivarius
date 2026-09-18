@@ -15,6 +15,7 @@ import {
   addressFailure,
   checkAddress,
   emptyView,
+  surfaceKinds,
   parseAddress,
   writeAddress,
 } from '../src/model/address.mjs';
@@ -48,13 +49,18 @@ test('every field of the view survives the round trip', () => {
     zoom: 1.25,
     panel: 'node',
     edge: null,
+    open: ['neighbours', 'reading'],
     filters: { zone: 'application', kind: 'component', relation: 'data' },
   };
   const search = writeAddress('', view, { key: 'first' });
   // The address holds what the reader changed and nothing else: a field still at
   // the opening view's value is absent rather than spelled out.
-  const held = (state, field) =>
-    Object.hasOwn(state.filters, field) ? state.filters[field] : state[field];
+  const held = (state, field) => {
+    const value = Object.hasOwn(state.filters, field)
+      ? state.filters[field]
+      : state[field];
+    return Array.isArray(value) ? value.join(',') : value;
+  };
   for (const field of addressFields)
     assert.equal(
       search.includes('first.' + field + '='),
@@ -229,4 +235,46 @@ test('the address never mutates the snapshot or the view it reads', () => {
   addressFailure(view, snapshot);
   writeAddress('', view, { key: 'first' });
   assert.equal(JSON.stringify(view), before);
+});
+
+// A surface the reader opened is part of the view: a link that restores the map
+// without it hands its receiver a different reading than the sender had.
+test('the surfaces a reader opened are carried by the address', () => {
+  assert.deepEqual(emptyView.open, []);
+  assert.deepEqual(surfaceKinds.slice().sort(), surfaceKinds.slice().sort());
+  const view = { ...emptyView, open: ['reading'] };
+  const search = writeAddress('', view, { key: 'first' });
+  assert(search.includes('first.open=reading'));
+  assert.deepEqual(parseAddress(search, { key: 'first' }), view);
+  // Written in one order, read back in one order, so a link is stable.
+  assert.deepEqual(
+    parseAddress(
+      writeAddress(
+        '',
+        { ...emptyView, open: ['neighbours', 'reading'] },
+        {
+          key: 'first',
+        },
+      ),
+      { key: 'first' },
+    ).open,
+    ['neighbours', 'reading'],
+  );
+  // A surface this map has no such thing as is not a surface at all.
+  assert.deepEqual(
+    parseAddress('first.open=reading,ghost', { key: 'first' }).open,
+    ['reading'],
+  );
+  assert.deepEqual(parseAddress('first.open=', { key: 'first' }).open, []);
+  assert.equal(writeAddress('', emptyView, { key: 'first' }), '');
+  for (const name of surfaceKinds)
+    assert.deepEqual(
+      parseAddress(
+        writeAddress('', { ...emptyView, open: [name] }, { key: 'first' }),
+        {
+          key: 'first',
+        },
+      ).open,
+      [name],
+    );
 });

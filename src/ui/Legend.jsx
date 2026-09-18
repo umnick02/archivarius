@@ -1,6 +1,6 @@
 import { mapLegend, useArchitecture } from './context.jsx';
-import { legendGroups } from '../model/legend.mjs';
-import { shapeRadii } from './view.mjs';
+import { legendGroups, aggregateEntry } from '../model/legend.mjs';
+import { shapeRadii, lineDashes } from './view.mjs';
 
 // The key beside the map, read out of the appearance table rather than written
 // down: a value the contract gains appears here without anybody adding a row.
@@ -8,11 +8,10 @@ import { shapeRadii } from './view.mjs';
 // the pixels a sample is drawn with, so the swatch is the same silhouette the
 // card carries and the arrow is the same line the edge draws.
 const sample = { width: 26, height: 15 };
-const lineStyles = {
-  solid: { borderTopWidth: 1, borderTopStyle: 'solid' },
-  thick: { borderTopWidth: 3, borderTopStyle: 'solid' },
-  dotted: { borderTopWidth: 2, borderTopStyle: 'dotted' },
-};
+// A line is drawn with the dashes the edge itself is drawn with, read from the
+// surface's one dash table, so a sample can never claim a line the map does not
+// draw. Only the weight is the sample's own.
+const lineWeights = { thick: 3 };
 
 function Sample({ entry }) {
   const { line, shape, outline } = entry.channels;
@@ -21,10 +20,23 @@ function Sample({ entry }) {
   if (!line && !shape && !outline) return null;
   if (line)
     return (
-      <span
+      <svg
         className="legend-line"
-        style={{ borderTopColor: entry.tone, ...lineStyles[line] }}
-      />
+        width={sample.width}
+        height={sample.height}
+        viewBox={`0 0 ${sample.width} ${sample.height}`}
+        aria-hidden="true"
+      >
+        <line
+          x1="0"
+          y1={sample.height / 2}
+          x2={sample.width}
+          y2={sample.height / 2}
+          stroke={entry.tone}
+          strokeWidth={lineWeights[line] || 1.5}
+          strokeDasharray={lineDashes[line]?.join(' ')}
+        />
+      </svg>
     );
   return (
     <span
@@ -40,16 +52,21 @@ function Sample({ entry }) {
   );
 }
 
-export function Legend() {
+export function Legend({ children, open, onToggle }) {
   const { copy, graph } = useArchitecture();
   const legend = mapLegend(copy);
   // Until the copy carries the words, the map says nothing rather than English
   // this component invented.
   if (!legend || !graph.nodes.size) return null;
   return (
-    <details className="legend" data-control="appearance-legend">
+    <details
+      className="legend"
+      data-control="appearance-legend"
+      open={open}
+      onToggle={onToggle}
+    >
       <summary>{legend.title}</summary>
-      {legendGroups(legend).map((group) => (
+      {[...legendGroups(legend), aggregateEntry(legend)].map((group) => (
         <div className="legend-group" key={group.group}>
           <span className="legend-label">{group.label}</span>
           {group.entries.map((entry) => (
@@ -76,6 +93,9 @@ export function Legend() {
       <span className="legend-note">
         {copy.hints.enter} · {copy.hints.edge}
       </span>
+      {/* What the implementation marks mean is read here too: one thing a reader
+          opens to read the picture, not two strips of it. */}
+      {children}
     </details>
   );
 }

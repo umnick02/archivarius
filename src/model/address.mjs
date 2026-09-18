@@ -23,6 +23,7 @@ export const addressFields = Object.freeze([
   'zoom',
   'panel',
   'edge',
+  'open',
   'zone',
   'kind',
   'relation',
@@ -37,6 +38,13 @@ export const panelKinds = Object.freeze([
   'contracts',
   'about',
 ]);
+
+/**
+ * The surfaces a reader can open beside the drawing. A view carries which of them
+ * were open, so a link restores the same reading its sender had, and a name this
+ * map has no surface for is no surface at all.
+ */
+export const surfaceKinds = Object.freeze(['neighbours', 'reading']);
 
 /**
  * What each filter accepts, read off the contract's own tables so a value is
@@ -58,6 +66,7 @@ export const emptyView = Object.freeze({
   zoom: null,
   panel: null,
   edge: null,
+  open: Object.freeze([]),
   filters: Object.freeze({ zone: 'all', kind: 'all', relation: 'all' }),
 });
 
@@ -108,6 +117,11 @@ export function parseAddress(search, options = {}) {
     zoom: Number.isFinite(zoom) && zoom > 0 ? zoom : null,
     panel: panelKinds.includes(panel) ? panel : null,
     edge: read('edge'),
+    // One order in, one order out: the surfaces are read in the order this module
+    // lists them, so two links to the same reading are the same link.
+    open: surfaceKinds.filter((name) =>
+      (read('open') ?? '').split(',').includes(name),
+    ),
     filters,
   };
 }
@@ -145,6 +159,8 @@ export function writeAddress(search, view, options = {}) {
   );
   set('panel', view?.panel, null);
   set('edge', view?.edge, null);
+  const open = surfaceKinds.filter((name) => view?.open?.includes(name));
+  set('open', open.length ? open.join(',') : null, null);
   const filters = view?.filters ?? emptyView.filters;
   for (const field of filterFields) set(field, filters[field], 'all');
   return held.toString();

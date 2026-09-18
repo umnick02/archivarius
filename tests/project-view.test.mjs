@@ -91,3 +91,58 @@ test('historical failures remain navigable with their archived scope', () => {
   ]);
   assert(group.areas.get(project.root).has('old-run'));
 });
+
+// A panel that shows a field must have a word for it. The schema is the list of
+// fields a record may hold, so a field the contract allows and the copy cannot
+// name would reach a reader as a raw key — the panel raises instead, and this
+// suite keeps that failure out of the shipped copy.
+const schema = JSON.parse(
+  await fs.readFile(
+    new URL('../assets/archivarius-model.schema.json', import.meta.url),
+    'utf8',
+  ),
+);
+// `key`, `type` and `title` are the record's identity and are drawn as the
+// panel's own heading and eyebrow; `blocks` and `data` are a document's declared
+// content, which the document view renders as content, not as a field.
+const IDENTITY = new Set(['key', 'type', 'title', 'blocks', 'data']);
+const recordFields = () => {
+  const found = new Set();
+  const walk = (node) => {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) return node.forEach(walk);
+    if (node.properties)
+      Object.keys(node.properties).forEach((k) => found.add(k));
+    for (const branch of ['allOf', 'anyOf', 'oneOf', 'if', 'then', 'else'])
+      if (node[branch]) walk(node[branch]);
+  };
+  walk(schema.$defs.record);
+  return [...found].filter((field) => !IDENTITY.has(field));
+};
+
+test('every field a record may hold is named by the shipped project copy', () => {
+  const unnamed = recordFields()
+    .filter((field) => !copy.fields[field])
+    .sort();
+  assert.deepEqual(unnamed, []);
+});
+
+test('no panel view prints a serialized record', async () => {
+  const dir = new URL('../src/ui/', import.meta.url);
+  const problems = [];
+  for (const entry of await fs.readdir(dir)) {
+    if (!/\.(jsx|mjs)$/.test(entry)) continue;
+    const source = await fs.readFile(new URL(entry, dir), 'utf8');
+    // A serialized value used as a grouping key never reaches a reader; one
+    // printed as a JSX child or attribute is the panel showing raw data.
+    for (const hit of source.matchAll(/\{\s*JSON\.stringify\(/g))
+      problems.push(
+        'src/ui/' +
+          entry +
+          ':' +
+          source.slice(0, hit.index).split('\n').length +
+          ' prints a serialized record to a reader',
+      );
+  }
+  assert.deepEqual(problems, []);
+});

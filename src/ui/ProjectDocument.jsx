@@ -1,5 +1,5 @@
 import { Fragment } from 'react';
-import { documentValue, documentData } from '../model/documents.mjs';
+import { documentValue, renderDocument } from '../model/documents.mjs';
 import { useArchitecture } from './context.jsx';
 
 export function ProjectDocument({ document, showRecord }) {
@@ -12,7 +12,7 @@ export function ProjectDocument({ document, showRecord }) {
       <details>
         <summary>{copy.documentData}</summary>
         <pre className="record-technical">
-          {JSON.stringify(documentData(project, document), null, 2)}
+          {renderDocument(project, document)}
         </pre>
       </details>
     );

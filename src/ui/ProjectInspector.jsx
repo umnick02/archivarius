@@ -7,6 +7,7 @@ import {
   claimStanding,
   confirmationGroups,
   currentRecord,
+  fieldName,
   primaryFields,
   relatedGroups,
   technicalFields,
@@ -263,6 +264,60 @@ function StructuredValue({ value }) {
   return <>{String(value ?? '')}</>;
 }
 
+// One field of one record, named by the shipped copy: a field that points at
+// other records is drawn as links, an enumerated value as its word, anything else
+// as its structure. Every view that shows a record — the current one, a revision,
+// a snapshot member — draws it the same way, so no view falls back to raw data.
+function RecordField({ record, field, showRecord }) {
+  const { projectCopy: copy } = useArchitecture();
+  const value = record[field];
+  const links = recordReferences(record).filter((ref) => ref.field === field);
+  return (
+    <section className="record-field" data-field={field}>
+      <h3>{fieldName(copy, field)}</h3>
+      {links.length ? (
+        <RecordLinks
+          keys={links.map((ref) => ref.key)}
+          showRecord={showRecord}
+        />
+      ) : typeof value === 'string' &&
+        ['origin', 'kind', 'zone', 'level', 'outcome', 'stage'].includes(
+          field,
+        ) ? (
+        <p>{copy.values[value] || value}</p>
+      ) : (
+        <div className="field-value">
+          <StructuredValue value={value} />
+        </div>
+      )}
+    </section>
+  );
+}
+
+const stated = (record, field) =>
+  record[field] !== undefined &&
+  !(Array.isArray(record[field]) && !record[field].length);
+
+// A record read outside the model it still belongs to — a past revision, a member
+// of a snapshot — is shown by its stated fields, in the order the record states
+// them, and never as the serialized object.
+function RecordFields({ record, showRecord }) {
+  return Object.keys(record)
+    .filter(
+      (field) =>
+        !['key', 'type', 'title', 'blocks', 'data'].includes(field) &&
+        stated(record, field),
+    )
+    .map((field) => (
+      <RecordField
+        key={field}
+        record={record}
+        field={field}
+        showRecord={showRecord}
+      />
+    ));
+}
+
 export function ProjectInspector({
   recordKey,
   showRecord,
@@ -278,43 +333,24 @@ export function ProjectInspector({
         <h2>{history.at(-1)?.record.title}</h2>
         <p>{copy.historical}</p>
         {history.map((h) => (
-          <pre className="record-technical" key={h.digest}>
-            {JSON.stringify(h.record, null, 2)}
-          </pre>
+          <RecordFields
+            key={h.digest}
+            record={h.record}
+            showRecord={showRecord}
+          />
         ))}
       </>
     );
   }
-  const refs = recordReferences(record);
-  const fieldValue = (field, value) => {
-    const links = refs.filter((ref) => ref.field === field);
-    if (links.length)
-      return (
-        <RecordLinks
-          keys={links.map((ref) => ref.key)}
-          showRecord={showRecord}
-        />
-      );
-    if (
-      typeof value === 'string' &&
-      ['origin', 'kind', 'zone', 'level', 'outcome', 'stage'].includes(field)
-    )
-      return <p>{copy.values[value] || value}</p>;
-    return (
-      <div className="field-value">
-        <StructuredValue value={value} />
-      </div>
-    );
-  };
-  const present = (field) =>
-    record[field] !== undefined &&
-    !(Array.isArray(record[field]) && !record[field].length);
+  const present = (field) => stated(record, field);
   const renderField = (field) =>
     present(field) && (
-      <section className="record-field" data-field={field} key={field}>
-        <h3>{copy.fields[field] || field}</h3>
-        {fieldValue(field, record[field])}
-      </section>
+      <RecordField
+        key={field}
+        record={record}
+        field={field}
+        showRecord={showRecord}
+      />
     );
   const primary = primaryFields[record.type] || [];
   const secondary = Object.keys(record).filter(
@@ -346,15 +382,11 @@ export function ProjectInspector({
       ) : (
         <ProjectConfirmation recordKey={record.key} showRecord={showRecord} />
       )}
-      {secondary.length > 0 && (
-        <details className="record-secondary" data-disclosure="secondary">
-          <summary>{copy.more}</summary>
-          {secondary.map(renderField)}
-        </details>
-      )}
-      <ProjectLinks recordKey={record.key} showRecord={showRecord} />
-      <details className="record-provenance" data-disclosure="provenance">
-        <summary>{copy.details}</summary>
+      <details className="record-secondary" data-disclosure="more">
+        <summary>{copy.more}</summary>
+        {secondary.map(renderField)}
+        <ProjectLinks recordKey={record.key} showRecord={showRecord} />
+        <h3>{copy.details}</h3>
         <code className="record-technical">
           {record.key} · {digest(record)}
         </code>
@@ -375,9 +407,12 @@ export function ProjectInspector({
                 return (
                   <details key={key}>
                     <summary>{definition?.title || key}</summary>
-                    <pre className="record-technical">
-                      {JSON.stringify(definition, null, 2)}
-                    </pre>
+                    {definition && (
+                      <RecordFields
+                        record={definition}
+                        showRecord={showRecord}
+                      />
+                    )}
                   </details>
                 );
               })}
@@ -392,9 +427,7 @@ export function ProjectInspector({
                 {h.record.title} · {h.digest.slice(0, 12)}
               </summary>
               <p>{copy.historical}</p>
-              <pre className="record-technical">
-                {JSON.stringify(h.record, null, 2)}
-              </pre>
+              <RecordFields record={h.record} showRecord={showRecord} />
             </details>
           ))}
       </details>

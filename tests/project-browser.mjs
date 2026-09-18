@@ -169,6 +169,9 @@ try {
   assert.deepEqual(after.viewport, before.viewport);
   await b.evaluate(() => window.consumer.first.focus('writer'));
   await settled(() => window.consumer.first.snapshot().viewport);
+  // The related records are one level down now, so the way to them is the panel's
+  // single disclosure and then the group.
+  await click('#first [data-disclosure=more] > summary');
   await click('#first [data-disclosure=links-decision] > summary');
   await click('#first .project-links [data-record-link=streaming]');
   assert.equal(
@@ -179,6 +182,43 @@ try {
     ),
     'streaming',
   );
+  // Two levels in a record panel: the first screen answers what the record is and
+  // what needs attention, and the rest of it — the remaining fields, the related
+  // records, the basis and every past revision — is one disclosure away. Nothing
+  // anywhere in the panel is a serialized record.
+  const panelReading = await b.evaluate(() => {
+    const panel = document.querySelector('#first [data-control=inspector]');
+    const deferred = (selector) =>
+      [...panel.querySelectorAll(selector)].length > 0 &&
+      [...panel.querySelectorAll(selector)].every((element) =>
+        element.closest('[data-disclosure=more]'),
+      );
+    return {
+      title: panel.querySelector('[data-record-title]')?.dataset.recordTitle,
+      answered: panel.querySelectorAll('.record-primary .record-field').length,
+      disclosures: panel.querySelectorAll('[data-disclosure=more]').length,
+      basisDeferred: deferred('.record-technical'),
+      linksDeferred: deferred('.project-links'),
+      historyDeferred: deferred(
+        '[data-field=realization], .record-secondary h3',
+      ),
+      unnamed: [...panel.querySelectorAll('.record-field > h3')].filter((h) =>
+        /^[a-z][A-Za-z]*$/.test(h.textContent.trim()),
+      ).length,
+      serialized: [...panel.querySelectorAll('pre')].filter((pre) =>
+        /^\s*[[{]/.test(pre.textContent),
+      ).length,
+    };
+  });
+  assert.equal(panelReading.title, 'streaming');
+  assert(panelReading.answered > 0, 'the first screen answers nothing');
+  assert.equal(panelReading.disclosures, 1, 'the panel defers past one level');
+  assert(panelReading.basisDeferred, 'the basis sits on the first screen');
+  assert(panelReading.linksDeferred, 'related records sit on the first screen');
+  assert(panelReading.historyDeferred, 'the history sits on the first screen');
+  assert.equal(panelReading.unnamed, 0, 'a field reached the reader as a key');
+  assert.equal(panelReading.serialized, 0, 'the panel printed a record');
+
   await b.call('Emulation.setDeviceMetricsOverride', {
     width: 390,
     height: 900,

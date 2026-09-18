@@ -5,7 +5,7 @@
 // without anyone writing a row. No English lives here — the caller passes the
 // words its own copy owns, and a value nobody has named stops the legend instead
 // of being drawn as a colour and left for the reader to guess.
-import { drawnEnums } from './appearance.mjs';
+import { drawnEnums, aggregateRelation } from './appearance.mjs';
 import { inline } from './documents.mjs';
 
 /** The drawn enums, in the order a legend reads them. */
@@ -70,6 +70,36 @@ export function legendGroups(copy) {
 }
 
 /**
+ * The row that decodes an arrow standing for several interactions. It is stated
+ * beside the enum roll call, never inside it: the reader has to be able to read
+ * the aggregate line, and the contract has no such value to read it as.
+ *
+ * @param {LegendCopy & {aggregate?: {label: string, word: string}}} copy
+ */
+export function aggregateEntry(copy) {
+  const words = held(copy, 'aggregate', 'aggregate copy');
+  return {
+    group: 'aggregate',
+    label: words.label,
+    entries: [
+      {
+        value: 'aggregate',
+        word: words.word,
+        tone: aggregateRelation.tone,
+        channels: { tag: aggregateRelation.tag, line: aggregateRelation.line },
+        drawn: [
+          held(
+            held(copy.channels, 'line', 'channel'),
+            aggregateRelation.line,
+            'channel word',
+          ),
+        ],
+      },
+    ],
+  };
+}
+
+/**
  * What a panel prints for one value: the word, and the token the legend and the
  * card print beside it, so the panel never leaves a colour as the only carrier.
  *
@@ -105,7 +135,7 @@ export function legendTable(copy) {
     '',
     row(copy.columns.map(inline)),
     row(copy.columns.map(() => '---')),
-    ...legendGroups(copy).flatMap((group) =>
+    ...[...legendGroups(copy), aggregateEntry(copy)].flatMap((group) =>
       group.entries.map((entry) =>
         row([
           inline(group.label),

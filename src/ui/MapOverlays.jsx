@@ -2,7 +2,7 @@ import { useArchitecture } from './context.jsx';
 import { ImplementationMark } from './ImplementationMark.jsx';
 import { Legend } from './Legend.jsx';
 import { Overview } from './Overview.jsx';
-import { relationTones } from '../model/appearance.mjs';
+import { relationTones, aggregateRelation } from '../model/appearance.mjs';
 
 // Drawn inside the pane: the constant overview a reader keeps their place in, the
 // key that reads the drawing itself, the legend that reads the implementation
@@ -17,15 +17,24 @@ import { relationTones } from '../model/appearance.mjs';
 // drawn.
 const sides = ['incoming', 'outgoing'];
 
-export function MapOverlays({ zoom, neighbours, follow, empty }) {
+export function MapOverlays({
+  zoom,
+  neighbours,
+  follow,
+  empty,
+  open,
+  toggleSurface,
+}) {
   const { graph, copy, instanceId } = useArchitecture();
   return (
     <>
       {!!graph.nodes.size && <Overview />}
       {/* The key draws itself from the appearance table, so a value the contract
           gains appears beside the map without anybody writing a row. */}
-      <Legend />
-      {!!graph.nodes.size && (
+      <Legend
+        open={open.includes('reading')}
+        onToggle={(event) => toggleSurface('reading', event.currentTarget.open)}
+      >
         <details
           className="implementation-legend"
           data-control="implementation-legend"
@@ -39,18 +48,25 @@ export function MapOverlays({ zoom, neighbours, follow, empty }) {
             </span>
           ))}
         </details>
-      )}
+      </Legend>
       {empty && (
         <p className="map-empty" data-control="filter-empty" role="status">
           {copy.filters.empty}
         </p>
       )}
       {!!neighbours?.total && (
-        <nav
+        <details
           className="map-neighbours"
           data-control="neighbours"
           aria-label={copy.neighbours.label}
+          open={open.includes('neighbours')}
+          onToggle={(event) =>
+            toggleSurface('neighbours', event.currentTarget.open)
+          }
         >
+          <summary>
+            {copy.neighbours.label} · {neighbours.total}
+          </summary>
           {sides
             .filter((side) => neighbours[side].length > 0)
             .map((side) => (
@@ -72,11 +88,14 @@ export function MapOverlays({ zoom, neighbours, follow, empty }) {
                 ))}
               </div>
             ))}
-        </nav>
+        </details>
       )}
       <svg width="0" height="0" className="marker-definitions">
         <defs>
-          {Object.entries(relationTones).map(([kind, color]) => (
+          {Object.entries({
+            ...relationTones,
+            aggregate: aggregateRelation.tone,
+          }).map(([kind, color]) => (
             <marker
               key={kind}
               id={instanceId + '-head-' + kind}

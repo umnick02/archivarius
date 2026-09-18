@@ -11,8 +11,10 @@ export function RelationPanel({ panel, fitNode, showRecord }) {
   return (
     <>
       <div className="eyebrow" data-control="panel-kind">
-        {panelWords(mapLegend(copy), 'relation', panel.bundle.kind)} ·{' '}
-        {relationCount(copy, panel.bundle.relations.length)}
+        {panel.bundle.kinds
+          .map((kind) => panelWords(mapLegend(copy), 'relation', kind))
+          .join(copy.kindSeparator)}{' '}
+        · {relationCount(copy, panel.bundle.relations.length)}
       </div>
       <h2>
         {graph.nodes.get(panel.bundle.from).title} →{' '}

@@ -33,17 +33,20 @@ const read = (mount) =>
         height: rect.height,
       };
     };
+    // A box inside a closed disclosure is laid out but never painted, so it is not
+    // chrome standing on the drawing: what a reader cannot see is not measured.
+    const shown = (element) =>
+      element.getClientRects().length &&
+      !element.parentElement?.closest('details:not([open])');
     const named = (selector, label) =>
-      [...root.querySelectorAll(selector)]
-        .filter((element) => element.getClientRects().length)
-        .map((element) => ({
-          label:
-            label ||
-            element.dataset.control ||
-            element.className ||
-            element.tagName.toLowerCase(),
-          ...box(element),
-        }));
+      [...root.querySelectorAll(selector)].filter(shown).map((element) => ({
+        label:
+          label ||
+          element.dataset.control ||
+          element.className ||
+          element.tagName.toLowerCase(),
+        ...box(element),
+      }));
     const pane = root.querySelector('.map-pane');
     const identity = root.querySelector('.identity');
     const controls = root.querySelector('.header-right');

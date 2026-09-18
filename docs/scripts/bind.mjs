@@ -73,6 +73,8 @@ export const files = {
   'inspect-record': 'src/index.jsx',
   'node-index': 'src/model/graph.mjs',
   'index-nodes': 'src/ui/useMapProjection.jsx',
+  'single-relation-bundle': 'src/model/graph.mjs',
+  'single-relation-facts': 'src/ui/Interactions.jsx',
   'apply-change': 'src/node.mjs',
   'verify-evidence': 'src/node.mjs',
 };

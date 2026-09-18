@@ -4,11 +4,12 @@ import { ArchitectureGraph } from '../model/graph.mjs';
 import {
   projectLayer,
   drawsPart,
-  drawsBundle,
+  drawnRelations,
   mountedParts,
 } from '../model/projection.mjs';
 import { namedLevel } from '../model/zoom.mjs';
 import { isVisible, projectedEdges, placeEdgeLabels } from './view.mjs';
+import { bundleSummary } from './context.jsx';
 
 // Projects the validated model into what React Flow draws. Everything here is
 // derived: the map holds the zoom, focus and selection, and this turns them into
@@ -26,7 +27,7 @@ export function useMapProjection({
   panel,
   showRelation,
 }) {
-  const { model, graph, layout, completion } = useArchitecture();
+  const { model, graph, layout, completion, copy } = useArchitecture();
   // A layer is a view of the snapshot: the parts outside it are absent, and what
   // it cut is stated as a boundary instead of being drawn faded.
   const projection = useMemo(
@@ -48,12 +49,22 @@ export function useMapProjection({
     () => projectedEdges(model, graph, layout, expanded, completion.relations),
     [model, graph, layout, expanded, completion],
   );
-  // The exchanges this view contains. An arrow the layer cut is gone, not faded:
-  // a view that keeps drawing what it excluded is not a view of anything.
-  const drawn = useMemo(
-    () => bundles.filter((edge) => drawsBundle(projection, edge.bundle)),
-    [bundles, projection],
-  );
+  // The exchanges this view contains. A layer narrows an arrow to the exchanges
+  // it admits and drops the arrow only when it admits none: a view that keeps
+  // drawing what it excluded is not a view of anything.
+  const drawn = useMemo(() => {
+    const admitted = drawnRelations(projection);
+    return admitted
+      ? projectedEdges(
+          model,
+          graph,
+          layout,
+          expanded,
+          completion.relations,
+          admitted,
+        )
+      : bundles;
+  }, [model, graph, layout, expanded, completion, bundles, projection]);
   const inside = useCallback(
     (key, container) => {
       while (key) {
@@ -235,7 +246,9 @@ export function useMapProjection({
   );
   const edges = useMemo(
     () =>
-      placeEdgeLabels(near, nodes, viewport, size).map((edge) => ({
+      placeEdgeLabels(near, nodes, viewport, size, (bundle) =>
+        bundleSummary(copy, bundle),
+      ).map((edge) => ({
         id: edge.id,
         type: 'architecture',
         source: edge.bundle.from,
@@ -266,7 +279,7 @@ export function useMapProjection({
             ),
         },
       })),
-    [near, nodes, viewport, size, panel, showRelation, activeKey, inside],
+    [near, nodes, viewport, size, panel, showRelation, activeKey, inside, copy],
   );
   // Connections that leave the focused subtree, so a reader sees what it touches
   // without the map having to draw the whole neighbourhood.

@@ -818,6 +818,64 @@ try {
   );
   await press('Escape');
   await until(() => window.consumer.first.snapshot().panel === null);
+
+  // Two levels of detail, checked on the drawing: nothing informational is open
+  // until a reader opens it, opening one writes it into the address so a link
+  // restores the same reading, and Escape gives back what the reader opened —
+  // the panel first, the surfaces after it.
+  const chrome = () =>
+    b.evaluate(() =>
+      [...document.querySelectorAll('#first details[data-control]')]
+        .filter((d) => d.open)
+        .map((d) => d.dataset.control),
+    );
+  const opened = (control) =>
+    b.evaluate(
+      (control) =>
+        document.querySelector('#first [data-control=' + control + ']').open,
+      control,
+    );
+  assert.deepEqual(await chrome(), [], 'the first screen opens a surface');
+  await click('#first [data-control=appearance-legend] > summary');
+  await until(
+    () =>
+      document.querySelector('#first [data-control=appearance-legend]').open,
+  );
+  assert.deepEqual(await chrome(), ['appearance-legend']);
+  await until(() => location.search.includes('open=reading'));
+  await press('Escape');
+  await until(
+    () =>
+      !document.querySelector('#first [data-control=appearance-legend]').open,
+  );
+  await until(() => !location.search.includes('open='));
+
+  // A part's exchanges are a surface like any other: it waits to be opened, and
+  // the panel over the drawing is given back before it is.
+  await b.evaluate(() => window.consumer.first.inspect('engine'));
+  await until(() => window.consumer.first.snapshot().panel === 'node');
+  assert.deepEqual(await chrome(), [], 'selecting a part opens a surface');
+  await press('Escape');
+  await until(() => window.consumer.first.snapshot().panel === null);
+  await click('#first [data-control=neighbours] > summary');
+  await until(
+    () => document.querySelector('#first [data-control=neighbours]').open,
+  );
+  await b.evaluate(() => window.consumer.first.inspect('engine'));
+  await until(() => window.consumer.first.snapshot().panel === 'node');
+  await press('Escape');
+  await until(() => window.consumer.first.snapshot().panel === null);
+  assert.equal(
+    await opened('neighbours'),
+    true,
+    'one Escape took the panel and the surface at once',
+  );
+  await press('Escape');
+  await until(
+    () => !document.querySelector('#first [data-control=neighbours]').open,
+  );
+  assert.deepEqual(await chrome(), []);
+
   await b.evaluate(() => window.consumer.first.home());
   await settled(camera);
   await checkIds();

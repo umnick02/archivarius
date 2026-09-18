@@ -28,6 +28,21 @@ export const viewTypes = {
   confirmation: ['check', 'result'],
   documents: ['document'],
 };
+/**
+ * The word a reader sees above a field. A field the shipped copy cannot name
+ * would reach the reader as a raw contract key, so this raises instead: the copy
+ * is the interface, and an unnamed field is a gap in it, not a heading.
+ *
+ * @param {any} copy
+ * @param {string} field
+ * @returns {string}
+ */
+export function fieldName(copy, field) {
+  const word = copy.fields[field] ?? (field === 'title' ? copy.title : null);
+  if (!word) throw new Error('No field name for ' + field);
+  return word;
+}
+
 export const currentRecord = (project, key) =>
   project.records.find((r) => r.key === key) ||
   project.history.findLast((h) => h.record.key === key)?.record;
@@ -132,6 +147,8 @@ function searchEntries(project, record, copy) {
             )
           ? copy.values[value] || value
           : value;
+    // Search names the field a match sits in, including the record's identity,
+    // so it reads the copy directly; a panel heading raises instead (fieldName).
     return flatten(content, [
       copy.fields[field] || (field === 'title' ? copy.title : field),
     ]);

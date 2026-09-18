@@ -6,7 +6,12 @@ import { expansionAt } from '../model/zoom.mjs';
 // The palette is the model's display vocabulary; this surface only decides the
 // pixels it is drawn with. Dash lengths belong here, tones never do.
 export const colors = rootTones;
-export const lineDashes = { solid: null, thick: [7, 5], dotted: [2, 4] };
+export const lineDashes = {
+  solid: null,
+  thick: [7, 5],
+  dotted: [2, 4],
+  bundled: [11, 4, 3, 4],
+};
 // The silhouette of a shape in this surface's pixels: a barrel for a store, a
 // pill for an outside participant, a softly rounded card for everything else.
 export const shapeRadii = {
@@ -145,12 +150,20 @@ function commonParent(a, b, graph) {
   return null;
 }
 
-export function projectedEdges(model, graph, layout, expanded, completion) {
+export function projectedEdges(
+  model,
+  graph,
+  layout,
+  expanded,
+  completion,
+  drawn,
+) {
   const projected = ArchitectureGraph.project(
     model,
     graph,
     expanded,
     completion,
+    drawn,
   );
   return projected.map((bundle) => {
     const owner = commonParent(bundle.from, bundle.to, graph);
@@ -234,7 +247,7 @@ export function projectedEdges(model, graph, layout, expanded, completion) {
 // Labels are placed for the arrows the view actually draws. A layer is a
 // projection now, not a tint, so an off-layer arrow never reaches this far and
 // there is nothing here to hide.
-export function placeEdgeLabels(edges, nodes, viewport, size) {
+export function placeEdgeLabels(edges, nodes, viewport, size, label) {
   const { x, y, zoom } = viewport;
   const obstacles = nodes
     .filter((n) => !n.hidden)
@@ -260,10 +273,9 @@ export function placeEdgeLabels(edges, nodes, viewport, size) {
     a.y < b.y + b.height &&
     a.y + a.height > b.y;
   return edges.map((edge) => {
-    const width =
-        edge.bundle.label.length * 5.7 +
-        18 +
-        (edge.bundle.relations.length > 1 ? 20 : 0),
+    // The box is reserved for the words the arrow actually draws, so a label is
+    // never placed where its own text will not fit.
+    const width = label(edge.bundle).length * 5.7 + 18,
       height = 25;
     for (const candidate of edge.labelCandidates) {
       if (candidate.span * zoom < 65) continue;

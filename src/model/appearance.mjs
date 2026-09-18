@@ -153,3 +153,41 @@ export function relationAppearance(relation) {
     tag: held(relationTags, relation.kind, 'relation kind'),
   };
 }
+
+/**
+ * How an arrow that stands for several interactions is drawn. It is not a fourth
+ * relation kind: it is the state of standing for more than one, so it spends a
+ * line of its own, and a tone and token no kind owns for the case where its
+ * members do not agree on a kind.
+ */
+export const aggregateRelation = {
+  tone: '#6b6a75',
+  line: 'bundled',
+  tag: 'MANY',
+};
+
+/**
+ * The appearance of a drawn arrow. One interaction is drawn as itself. Several
+ * are drawn as an aggregate, keeping the kind's tone while the members agree on
+ * one and falling back to the aggregate's own tone when they do not — the count
+ * and the kinds are words the arrow prints, never a colour to be guessed.
+ *
+ * @param {{kinds: string[], count: number}} bundle
+ * @returns {{tone: string, line: string, tag: string}}
+ */
+export function bundleAppearance(bundle) {
+  const uniform = bundle.kinds.length === 1;
+  const kind = bundle.kinds[0];
+  return {
+    tone: uniform
+      ? held(relationTones, kind, 'relation kind')
+      : aggregateRelation.tone,
+    line:
+      bundle.count === 1
+        ? held(relationLines, kind, 'relation kind')
+        : aggregateRelation.line,
+    tag: uniform
+      ? held(relationTags, kind, 'relation kind')
+      : aggregateRelation.tag,
+  };
+}

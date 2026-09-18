@@ -19,6 +19,11 @@ export function MapChrome({
   const { graph, copy, projectCopy } = useArchitecture();
   return (
     <>
+      {/* Where the reader stands, in one line: the containers that are open, and
+          the level they opened — the abstraction being read, named the same way
+          the live region names it, so zoom is a step between levels rather than a
+          percentage. At home the level repeats the first crumb and is left out
+          rather than spending a second surface on the same words. */}
       <nav data-control="breadcrumbs" aria-label={copy.positionLabel}>
         <button onClick={home}>{copy.wholeSystem}</button>
         {path.map((key) => (
@@ -29,20 +34,15 @@ export function MapChrome({
             </button>
           </Fragment>
         ))}
+        {levelName(copy, namedLevel(graph, path)).toLowerCase() !==
+        copy.wholeSystem.toLowerCase() ? (
+          <span className="map-level" data-control="level">
+            {format(copy.announcements.level, {
+              level: levelName(copy, namedLevel(graph, path)),
+            })}
+          </span>
+        ) : null}
       </nav>
-      {/* The breadcrumbs say which containers are open; this says what the level
-          they opened is — the abstraction the reader is reading, named the same
-          way the live region names it, so zoom is a step between levels rather
-          than a percentage. At home the two say the same words, and the line is
-          left out rather than repeating the crumb beside it. */}
-      {levelName(copy, namedLevel(graph, path)).toLowerCase() !==
-      copy.wholeSystem.toLowerCase() ? (
-        <p className="map-level" data-control="level">
-          {format(copy.announcements.level, {
-            level: levelName(copy, namedLevel(graph, path)),
-          })}
-        </p>
-      ) : null}
       {activeKey && (
         <div className="map-context">
           <button

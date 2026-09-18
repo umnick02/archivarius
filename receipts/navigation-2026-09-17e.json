@@ -1,0 +1,243 @@
+{
+  "version": 1,
+  "check": "check-navigation",
+  "contract": "54ceb24291efa3b4139582c5c8c3d6377daf67de3441294adbd2fdb05654247c",
+  "realization": "7de6355b2b8d6b59805f7a06a38d157ed88d7b3fe73b5d37c19820f8e02f3b83",
+  "bindings": {
+    "apply-change": {
+      "path": "src/node.mjs",
+      "digest": "e040f925e31c62ff51374731472d685eb2ecc0c98cfc2305225b44eae4808c81"
+    },
+    "archivarius": {
+      "path": "package.json",
+      "digest": "9d6635fa8d1fe93bb5bb78084c53b12c102eae0539d7aef89f246a6bd5b8e467"
+    },
+    "basis-value": {
+      "path": "src/model/project-digest.mjs",
+      "digest": "d05e6d59649820e57aa97ae93ef168e775b2c47a00a09aa7ac9dd9f5fd1f261f"
+    },
+    "change-input": {
+      "path": "src/model/project-authoring.mjs",
+      "digest": "6167a49396d2e581c35d0b4b75e81574d81c2d58ed337e04fb87c9dd67b9dcde"
+    },
+    "check-references": {
+      "path": "src/model/project-contract.mjs",
+      "digest": "d1906838268d4a57dc4227d7ce8837c16507b47c0d3727b0a7215801b7b9312e"
+    },
+    "cli": {
+      "path": "src/cli.mjs",
+      "digest": "dd97c53150e684a09757cee0f2797b24347695bf2024ca235dddd9d2c388c701"
+    },
+    "compute-basis": {
+      "path": "src/model/project-digest.mjs",
+      "digest": "d05e6d59649820e57aa97ae93ef168e775b2c47a00a09aa7ac9dd9f5fd1f261f"
+    },
+    "core": {
+      "parts": [
+        {
+          "path": "src/core.mjs",
+          "digest": "e033feca174947767f96039278263379101953ab878ea91696478fc048b0426d"
+        },
+        {
+          "path": "src/model/parse.mjs",
+          "digest": "e31b118e7fffad84529963ba22287ae17798784310496dc4653c56bb9f08e403"
+        },
+        {
+          "path": "src/model/project-contract.mjs",
+          "digest": "d1906838268d4a57dc4227d7ce8837c16507b47c0d3727b0a7215801b7b9312e"
+        },
+        {
+          "path": "src/model/project-architecture.mjs",
+          "digest": "aae94eaedca11b85656aa0c57b21836af89949fd754bd30f085aa885deb37574"
+        },
+        {
+          "path": "src/model/project-analysis.mjs",
+          "digest": "caeffe1982b28ef43d23804797e2daeeac6c15c822e63acaf0a46295ff8447f2"
+        }
+      ]
+    },
+    "digest": {
+      "path": "src/model/digest.mjs",
+      "digest": "cff43d0d16a94ad4490162347bca9672998b938f594eb0a19413c8afe37fc5f6"
+    },
+    "evidence": {
+      "path": "src/model/evidence.mjs",
+      "digest": "37662fc84d17d9446aac809fc108af42ddbbbb367c7dddee6b8c22a66793d4f9"
+    },
+    "evidence-artifact": {
+      "path": "src/model/evidence.mjs",
+      "digest": "37662fc84d17d9446aac809fc108af42ddbbbb367c7dddee6b8c22a66793d4f9"
+    },
+    "graph": {
+      "path": "src/model/graph.mjs",
+      "digest": "56f22e3f8f37ab422a1c89aa3d8767b96457924c96b356bf5544adb6b13d3437"
+    },
+    "hash-evidence": {
+      "path": "src/model/evidence.mjs",
+      "digest": "37662fc84d17d9446aac809fc108af42ddbbbb367c7dddee6b8c22a66793d4f9"
+    },
+    "hash-record": {
+      "path": "src/ui/ProjectInspector.jsx",
+      "digest": "3ad11812615295fcc5cf97a3a776fb3f00537a6098c7e7de4d22e756ace29825"
+    },
+    "index-nodes": {
+      "path": "src/ui/useMapProjection.jsx",
+      "digest": "a90e1ff10d651e85bf9b54e3837f4978275daac7473b53eef76b2a0408c909ac"
+    },
+    "inspect-record": {
+      "path": "src/index.jsx",
+      "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+    },
+    "inspector": {
+      "parts": [
+        {
+          "path": "src/ui/ProjectInspector.jsx",
+          "digest": "3ad11812615295fcc5cf97a3a776fb3f00537a6098c7e7de4d22e756ace29825"
+        },
+        {
+          "path": "src/ui/Inspector.jsx",
+          "digest": "779d62ce7dc73c78e7f5675837875699b7147c4422d34b5a5f17f24071727c43"
+        },
+        {
+          "path": "src/ui/NodePanel.jsx",
+          "digest": "c05ce9d823acefb9e67bbb315f2399844f94903f99326585d5320421ede729a9"
+        },
+        {
+          "path": "src/ui/RelationPanel.jsx",
+          "digest": "63f2aefebcf8d972e1727053eb3e86ea13767b3e6ecf4a0327a9b600c7116a4c"
+        },
+        {
+          "path": "src/ui/Reach.jsx",
+          "digest": "19f9638ef48276891145208929ff02190b5d20903c291b0b556cfe7f864bf192"
+        },
+        {
+          "path": "src/ui/Interactions.jsx",
+          "digest": "3e84864c75f344ab98aec8c7768d61e4cc7a3b48db72b15ea9b6c2ba80a79cc4"
+        },
+        {
+          "path": "src/ui/ProjectOverview.jsx",
+          "digest": "65d3ff8e056faa2a9606240b71b4044b79cb86fb1f54e663255d30b89ad2cc75"
+        },
+        {
+          "path": "src/ui/ProjectDocument.jsx",
+          "digest": "dfbd8767dd617a3aa3d7b22087221918e1568a4274b74f6f646e7727abbc63eb"
+        },
+        {
+          "path": "src/ui/usePanelNavigation.jsx",
+          "digest": "7a626e89deffc4ccf9dd07ec47ff6359fc90e885757bef8c1fc2683d55afb425"
+        }
+      ]
+    },
+    "load-model": {
+      "path": "src/ui/load.mjs",
+      "digest": "2a49d0d47803ec30d4dd78e15ba48e25f145e9ee7089067bc1c209f63a3df0f7"
+    },
+    "map": {
+      "parts": [
+        {
+          "path": "src/ui/ArchitectureMap.jsx",
+          "digest": "c59df23f11b953bdeb9da1df39a5938f36e652c5fba4312225102d06f245cd65"
+        },
+        {
+          "path": "src/ui/App.jsx",
+          "digest": "cccaeb0975ccfbf39ee8e3f0b6e8539fff709a59820464c2d54b42ebe71d8b94"
+        },
+        {
+          "path": "src/ui/ArchitectureNode.jsx",
+          "digest": "0dd3280c1d68402514f8ff4ee53a6d939b97f3929b5987016f75d16af2a6229a"
+        },
+        {
+          "path": "src/ui/ArchitectureEdge.jsx",
+          "digest": "0a925d20609940ffc0631ce6528689172a983277ec40b842e56d53375ed5139b"
+        },
+        {
+          "path": "src/ui/MapChrome.jsx",
+          "digest": "8fb71f12b4d8af7d8d51533ac14b8cc7b709fdb47a18f2a3038b3d98643a05b1"
+        },
+        {
+          "path": "src/ui/MapHeader.jsx",
+          "digest": "b58e11540705f87d457b617b08b56a64b267e7675321f60cc315d58035170155"
+        },
+        {
+          "path": "src/ui/MapOverlays.jsx",
+          "digest": "d4ee1af307880db5e21ff333af15d124dfdc05868a6e3a1047df4758c6ea5fcb"
+        },
+        {
+          "path": "src/ui/Overview.jsx",
+          "digest": "3424c65204922b6102d0cda022a3b9cb28b2aeff9e7b5324711c4c4ffca1c75c"
+        },
+        {
+          "path": "src/ui/Filters.jsx",
+          "digest": "fe1eef67f353c963392ba411288858bb74f60e5ea2e37357357199c4f65b8b53"
+        },
+        {
+          "path": "src/ui/useMapProjection.jsx",
+          "digest": "a90e1ff10d651e85bf9b54e3837f4978275daac7473b53eef76b2a0408c909ac"
+        }
+      ]
+    },
+    "model": {
+      "path": "assets/archivarius-model.schema.json",
+      "digest": "a5338d64aa4b756cdcc1ae829316d5333640ebce52e603a9d4a10a587190006e"
+    },
+    "model-source": {
+      "path": "src/ui/load.mjs",
+      "digest": "2a49d0d47803ec30d4dd78e15ba48e25f145e9ee7089067bc1c209f63a3df0f7"
+    },
+    "node-api": {
+      "path": "src/node.mjs",
+      "digest": "e040f925e31c62ff51374731472d685eb2ecc0c98cfc2305225b44eae4808c81"
+    },
+    "node-index": {
+      "path": "src/model/graph.mjs",
+      "digest": "56f22e3f8f37ab422a1c89aa3d8767b96457924c96b356bf5544adb6b13d3437"
+    },
+    "record-detail": {
+      "path": "src/model/project-view.mjs",
+      "digest": "b8e4f7e291cfe3cf5cb3ca8703296decf2e4b152b925dee04fe3f37b768eefd5"
+    },
+    "reference-set": {
+      "path": "src/model/records.mjs",
+      "digest": "169993d9b21260390e6b08cf327c8319c0678a0c5331d632f6d2c7db3ea74eea"
+    },
+    "render": {
+      "path": "src/index.jsx",
+      "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+    },
+    "single-relation-bundle": {
+      "path": "src/model/graph.mjs",
+      "digest": "56f22e3f8f37ab422a1c89aa3d8767b96457924c96b356bf5544adb6b13d3437"
+    },
+    "single-relation-facts": {
+      "path": "src/ui/Interactions.jsx",
+      "digest": "3e84864c75f344ab98aec8c7768d61e4cc7a3b48db72b15ea9b6c2ba80a79cc4"
+    },
+    "validate-before-verify": {
+      "path": "src/model/evidence.mjs",
+      "digest": "37662fc84d17d9446aac809fc108af42ddbbbb367c7dddee6b8c22a66793d4f9"
+    },
+    "verify-evidence": {
+      "path": "src/node.mjs",
+      "digest": "e040f925e31c62ff51374731472d685eb2ecc0c98cfc2305225b44eae4808c81"
+    }
+  },
+  "command": [
+    "node",
+    "--test",
+    "tests/filters.test.mjs",
+    "tests/address.test.mjs",
+    "tests/export.test.mjs",
+    "tests/history.test.mjs",
+    "tests/reach.test.mjs"
+  ],
+  "startedAt": "2026-09-18T03:11:17.414Z",
+  "finishedAt": "2026-09-18T03:11:18.337Z",
+  "outcome": "pass",
+  "exitCode": 0,
+  "stdout": "✔ an absent address is the view the map opens with (0.913875ms)\n✔ every field of the view survives the round trip (0.185333ms)\n✔ a relation panel is addressed by the interaction it opened (0.078125ms)\n✔ two mounts keep separate views in one address (0.138958ms)\n✔ the address keeps what the host page put in it (0.083125ms)\n✔ a mount key is derived from the host element, never invented (0.049292ms)\n✔ a value outside the view vocabulary is dropped, not raised (0.055375ms)\n✔ an address naming a part the snapshot does not hold is rejected (0.615916ms)\n✔ an address naming a level or an interaction that is gone is rejected (0.11525ms)\n✔ an address naming a filter the contract does not hold is rejected (0.199375ms)\n✔ the address never mutates the snapshot or the view it reads (0.093625ms)\n✔ the surfaces a reader opened are carried by the address (0.128625ms)\n✔ DOT is structurally sound for both shipped models (1.8945ms)\n✔ DOT spends the one appearance vocabulary and no second one (0.235542ms)\n✔ mermaid is byte-identical to the diagram the reference embeds (0.960416ms)\n✔ mermaid covers the v3 architecture the map renders (0.221792ms)\n✔ the table keeps one row per record and a stable column order (0.478666ms)\n✔ the table lists a v3 architecture as components and interactions (0.138125ms)\n✔ a hostile title stays text in DOT (0.23875ms)\n✔ a hostile title stays inert in the table (0.1685ms)\n✔ the node surface renders each format and refuses an unknown one (0.43775ms)\n✔ node.d.mts declares the new export (1.961959ms)\n✔ the CLI writes a graph to --output (231.472291ms)\n✔ the mermaid export is a diagram, not a fenced block (0.229375ms)\n✔ a filter offers exactly the values the contract states (0.705667ms)\n✔ no filter keeps the whole snapshot (0.173167ms)\n✔ a zone filter keeps its parts and the containers that hold them (0.117708ms)\n✔ a kind filter answers for the kind, not the zone (0.081166ms)\n✔ an interaction filter keeps the exchanges of that kind and their ends (0.082375ms)\n✔ filters combine: every one of them has to keep a part (0.064125ms)\n✔ the filter never mutates the model it reads (0.071333ms)\n✔ the neighbours of a part are its exchanges, by direction and end (6.871375ms)\n✔ a part with no exchange in the filtered view has no neighbours (0.208667ms)\n✔ two exchanges with the same end and kind are one neighbour (0.149333ms)\n✔ the history is one version per stored snapshot, newest first (33.232875ms)\n✔ each version names the records it added, removed and changed (12.467084ms)\n✔ a snapshot with no stored manifest is one version and no change (0.347083ms)\n✔ the rendered history reads the versions and nothing else, the same way twice (20.608792ms)\n✔ the history command writes the document and refuses drift (354.306792ms)\n✔ the help text offers history (0.318375ms)\n✔ the package grants no licence and carries no licence file (395.615584ms)\n✔ reach follows the arrows past the first hop (7.770042ms)\n✔ what reaches a part is read against the arrows (0.1515ms)\n✔ a part the relations never mention is unknown, not unconnected (0.085417ms)\n✔ the parts that reach each other are named as one loop (0.14075ms)\n✔ a loop is one loop whichever member is asked (0.134792ms)\n✔ a part inside a loop reaches itself (0.075ms)\n✔ a part that only relates to itself is its own loop (0.066166ms)\n✔ a loop nobody in the reach touches is not reported (0.093625ms)\n✔ a block reaches what its members reach outside it (0.085625ms)\n✔ a block whose members touch nothing is unknown (0.085625ms)\n✔ the path between two parts is the shortest way there (0.143584ms)\n✔ a path out of a block starts at the member that gets there first (0.747292ms)\n✔ a path runs the way the arrows point and no other way (0.079042ms)\n✔ a part is no path to itself (0.065917ms)\n✔ the reported answer does not depend on the order the relations arrive (0.092125ms)\nℹ tests 56\nℹ suites 0\nℹ pass 56\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 882.384375\n",
+  "stderr": "",
+  "output": {
+    "bytes": 4082,
+    "digest": "0c3b855cdca9d03f5764423e151e827881452ce50043f00a146139047a4c6134"
+  }
+}

@@ -120,7 +120,50 @@ function describe(model, graph, key) {
   return { incoming, outgoing, internal };
 }
 
-function project(model, graph, expanded, completion) {
+const RELATION_KINDS = ['data', 'command', 'state'];
+
+// What an arrow states about the interactions it stands for. Every surface that
+// hands a bundle to a panel builds it here, so a bundle of one from a card's list
+// and a bundle of one on the map are the same object with the same fields.
+function bundleFacts(from, to, relations, completion) {
+  const kinds = RELATION_KINDS.filter((kind) =>
+    relations.some((relation) => relation.kind === kind),
+  );
+  return {
+    key: JSON.stringify([from, to]),
+    from,
+    to,
+    relations,
+    count: relations.length,
+    kinds,
+    kind: kinds.length === 1 ? kinds[0] : null,
+    channels: [
+      ...new Set(relations.map((relation) => relation.channel)),
+    ].sort(),
+    label: relations.length === 1 ? relations[0].label : null,
+    implemented: relations.every((relation) => relation.implemented),
+    state: aggregateImplementation(
+      relations.map(
+        (edge) =>
+          completion?.[edge.key]?.state ||
+          (edge.implemented ? 'confirmed' : 'unconfirmed'),
+      ),
+    ),
+  };
+}
+
+/**
+ * One interaction as an arrow of its own, for a panel opened from a list rather
+ * than from the map. The reader asked about one exchange and is answered about
+ * that exchange, in the shape every other arrow answers in.
+ *
+ * @param {any} relation
+ * @param {Record<string, {state: string}>} [completion]
+ */
+export const relationBundle = (relation, completion) =>
+  bundleFacts(relation.from, relation.to, [relation], completion);
+
+function project(model, graph, expanded, completion, drawn) {
   if (graph.errors.length) throw new Error(graph.errors.join('\n'));
   const representative = (key) => {
     const chain = [];
@@ -133,39 +176,17 @@ function project(model, graph, expanded, completion) {
   };
   const bundles = new Map();
   for (const relation of model.relations) {
+    if (drawn && !drawn.has(relation.key)) continue;
     const from = representative(relation.from),
       to = representative(relation.to);
     if (from === to) continue;
-    const key = JSON.stringify([
-      from,
-      to,
-      relation.kind,
-      relation.channel,
-      relation.label,
-    ]);
-    if (!bundles.has(key))
-      bundles.set(key, {
-        key,
-        from,
-        to,
-        kind: relation.kind,
-        label: relation.label,
-        implemented: true,
-        relations: [],
-      });
+    const key = JSON.stringify([from, to]);
+    if (!bundles.has(key)) bundles.set(key, { from, to, relations: [] });
     bundles.get(key).relations.push(relation);
-    bundles.get(key).implemented &&= relation.implemented;
   }
-  return [...bundles.values()].map((bundle) => ({
-    ...bundle,
-    state: aggregateImplementation(
-      bundle.relations.map(
-        (edge) =>
-          completion?.[edge.key]?.state ||
-          (edge.implemented ? 'confirmed' : 'unconfirmed'),
-      ),
-    ),
-  }));
+  return [...bundles.values()].map((bundle) =>
+    bundleFacts(bundle.from, bundle.to, bundle.relations, completion),
+  );
 }
 
 export const ArchitectureGraph = { validate, describe, project };

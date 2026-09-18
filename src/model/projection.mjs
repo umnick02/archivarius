@@ -139,18 +139,15 @@ export const drawsPart = (projection, key) =>
   projection.axis === 'all' || projection.parts.has(key);
 
 /**
- * Whether a projection draws a relation. Every member of a bundled arrow has to
- * belong to the view, or the arrow would claim an exchange the view excluded.
+ * The interactions a projection admits, or null for a view that admits all of
+ * them. An arrow is bundled from this set, so a view narrows an arrow to the
+ * exchanges it contains instead of dropping the whole arrow.
  *
  * @param {Projection} projection
- * @param {{ relations: { key: string }[] }} bundle
- * @returns {boolean}
+ * @returns {Set<string> | null}
  */
-export function drawsBundle(projection, bundle) {
-  if (projection.axis === 'all') return true;
-  const drawn = new Set(projection.relations);
-  return bundle.relations.every((relation) => drawn.has(relation.key));
-}
+export const drawnRelations = (projection) =>
+  projection.axis === 'all' ? null : new Set(projection.relations);
 
 /**
  * The parts worth mounting at the current camera: the ones the viewport reaches,

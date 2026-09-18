@@ -12,10 +12,12 @@ import {
   relationTags,
   relationTones,
   relationLines,
+  bundleAppearance,
+  aggregateRelation,
   rootTones,
   drawnEnums,
 } from '../src/model/appearance.mjs';
-import { shapeRadii } from '../src/ui/view.mjs';
+import { shapeRadii, lineDashes } from '../src/ui/view.mjs';
 
 const read = async (name) =>
   JSON.parse(
@@ -320,4 +322,45 @@ test('the browser surface holds no second copy of the shared palette', async () 
         'src/ui/' + name + ' repeats the shared tone ' + tone,
       );
   }
+});
+
+// An arrow that stands for several interactions has to be tellable from an arrow
+// that stands for one, and the aggregate is not a fourth kind: it spends its own
+// line and falls back to a tone no kind owns only when the members disagree.
+test('an arrow for several interactions reads differently from a single one', () => {
+  assert.deepEqual(
+    bundleAppearance({ kinds: ['data'], count: 1 }),
+    relationAppearance({ kind: 'data' }),
+  );
+  const many = bundleAppearance({ kinds: ['data'], count: 4 });
+  assert.equal(many.tone, relationTones.data, 'one kind keeps its tone');
+  assert.equal(many.tag, relationTags.data);
+  assert.equal(many.line, aggregateRelation.line);
+  assert.notEqual(
+    many.line,
+    relationLines.data,
+    'the aggregate is not drawn as one',
+  );
+  const mixed = bundleAppearance({ kinds: ['data', 'command'], count: 2 });
+  assert.equal(mixed.tone, aggregateRelation.tone);
+  assert.equal(mixed.tag, aggregateRelation.tag);
+  assert.equal(mixed.line, aggregateRelation.line);
+  assert.match(aggregateRelation.tone, /^#[0-9a-f]{6}$/);
+  assert(
+    !Object.values(relationTones).includes(aggregateRelation.tone),
+    'the aggregate tone must not read as a kind',
+  );
+  assert(
+    !Object.values(relationLines).includes(aggregateRelation.line),
+    'the aggregate line must not read as a kind',
+  );
+  assert(
+    !Object.values(relationTags).includes(aggregateRelation.tag),
+    'the aggregate token must not read as a kind',
+  );
+  assert(
+    Object.hasOwn(lineDashes, aggregateRelation.line),
+    'the surface cannot draw the aggregate line',
+  );
+  assert.throws(() => bundleAppearance({ kinds: ['ping'], count: 1 }));
 });

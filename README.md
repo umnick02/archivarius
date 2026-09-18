@@ -47,10 +47,11 @@ flowchart LR
     c-inspector ==>|"Digest a record"| c-digest
     c-evidence ==>|"Validate before verifying"| c-core
     c-map -->|"Index the parts"| c-graph
+    c-inspector -->|"Ask for one interaction as an arrow"| c-graph
     style c-model stroke:#26826b
     style c-node-api stroke:#a06c2f
     style c-render stroke:#438ec9
-    linkStyle 0,5,9 stroke:#63836f
+    linkStyle 0,5,9,10 stroke:#63836f
     linkStyle 1,2,4,6,7,8 stroke:#8e6cd4
     linkStyle 3 stroke:#2f76a3
     classDef pure stroke:#26826b

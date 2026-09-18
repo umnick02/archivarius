@@ -1,6 +1,6 @@
 import { BaseEdge, EdgeLabelRenderer, useViewport } from '@xyflow/react';
-import { relationCount, useArchitecture } from './context.jsx';
-import { relationAppearance } from '../model/appearance.mjs';
+import { bundleSummary, relationCount, useArchitecture } from './context.jsx';
+import { bundleAppearance } from '../model/appearance.mjs';
 import { edgeImplementationPoint, lineDashes } from './view.mjs';
 import { ImplementationMark } from './ImplementationMark.jsx';
 
@@ -14,7 +14,14 @@ export function ArchitectureEdge({ id, data }) {
     copy.mapImplementation[data.bundle.state];
   // The kind's tone and how its line reads come from the shared appearance
   // table; only the active and muted states are this surface's own.
-  const look = relationAppearance(data.bundle);
+  const look = bundleAppearance(data.bundle);
+  // An arrow states what it stands for: the kinds it carries, and either the one
+  // interaction's own words or how many it holds. It never prints the members —
+  // the panel does, once the reader asks for them.
+  const kinds = data.bundle.kinds
+    .map((kind) => copy.kinds[kind])
+    .join(copy.kindSeparator);
+  const stands = bundleSummary(copy, data.bundle);
   const dash = lineDashes[look.line];
   const color = data.active ? '#1f7758' : data.muted ? '#b7bdb1' : look.tone;
   // Focusable from the first paint; which item of the level carries the map's one
@@ -28,7 +35,7 @@ export function ArchitectureEdge({ id, data }) {
       role="button"
       tabIndex={-1}
       aria-label={
-        copy.kinds[data.bundle.kind] +
+        kinds +
         ': ' +
         graph.nodes.get(data.bundle.from).title +
         ' → ' +
@@ -38,9 +45,9 @@ export function ArchitectureEdge({ id, data }) {
       }
     >
       <title>
-        {copy.kinds[data.bundle.kind] +
+        {kinds +
           ': ' +
-          data.bundle.label +
+          stands +
           ' · ' +
           relationCount(copy, data.bundle.relations.length) +
           ' · ' +
@@ -54,7 +61,11 @@ export function ArchitectureEdge({ id, data }) {
           interactionWidth={14 / zoom}
           markerEnd={
             i === data.paths.length - 1
-              ? 'url(#' + instanceId + '-head-' + data.bundle.kind + ')'
+              ? 'url(#' +
+                instanceId +
+                '-head-' +
+                (data.bundle.kind || 'aggregate') +
+                ')'
               : undefined
           }
           style={{
@@ -85,17 +96,14 @@ export function ArchitectureEdge({ id, data }) {
             className="edge-label nodrag nopan"
             data-edge-label={id}
             tabIndex={-1}
-            aria-label={data.bundle.label + ' · ' + confirmation}
+            aria-label={stands + ' · ' + confirmation}
             style={{
               color,
               transform: `translate(${data.label.x}px,${data.label.y}px) scale(${1 / zoom}) translate(-50%,-50%)`,
             }}
             onClick={() => data.onOpen(data.bundle)}
           >
-            {data.bundle.label}
-            {data.bundle.relations.length > 1
-              ? ' · ' + data.bundle.relations.length
-              : ''}
+            {stands}
           </button>
         </EdgeLabelRenderer>
       )}

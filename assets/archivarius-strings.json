@@ -132,6 +132,11 @@
     "one": "{count} source interaction",
     "other": "{count} source interactions"
   },
+  "relationSummaries": {
+    "one": "{count} interaction",
+    "other": "{count} interactions"
+  },
+  "kindSeparator": ", ",
   "hints": {
     "zoom": "Scroll to zoom and reveal parts",
     "pan": "Drag to move",
@@ -217,8 +222,13 @@
       "line": {
         "solid": "Thin arrow",
         "thick": "Thick arrow",
-        "dotted": "Dotted arrow"
+        "dotted": "Dotted arrow",
+        "bundled": "Dash-dot arrow"
       }
+    },
+    "aggregate": {
+      "label": "Aggregate",
+      "word": "Several interactions in one arrow"
     }
   }
 }

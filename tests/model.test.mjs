@@ -457,3 +457,108 @@ test('a query that matches nothing returns an empty list instead of throwing', (
     for (const query of ['no-such-part', '', '   ', 'zzz'])
       assert.deepEqual(searchArchitecture(m, query), [], JSON.stringify(query));
 });
+
+const mixedModel = () => {
+  const copy = structuredClone(model);
+  copy.relations.push({
+    key: 'score-cache',
+    from: 'ranking',
+    to: 'archive',
+    kind: 'state',
+    channel: 'score-cache',
+    label: 'Score cache state',
+    payload: 'The scores the component keeps for the records it ordered.',
+    meaning: 'The component reports the state of its cached scores.',
+    implemented: false,
+  });
+  return copy;
+};
+
+test('two visible parts are joined by one arrow that states what it stands for', () => {
+  const copy = mixedModel();
+  const graph = Graph.validate(copy);
+  assert.deepEqual(graph.errors, []);
+  const containers = [...graph.nodes.values()]
+    .filter((n) => n.children)
+    .map((n) => n.key);
+  for (let mask = 0; mask < 2 ** containers.length; mask++) {
+    const expanded = new Set(containers.filter((_, i) => mask & (1 << i)));
+    const edges = Graph.project(copy, graph, expanded);
+    const pairs = edges.map((edge) => edge.from + '\u0000' + edge.to);
+    assert.equal(
+      new Set(pairs).size,
+      edges.length,
+      'one arrow per ordered pair: ' + JSON.stringify(pairs),
+    );
+    const drawn = new Set(edges.flatMap((e) => e.relations.map((r) => r.key)));
+    for (const relation of copy.relations) {
+      const inside =
+        edges.every((e) => !e.relations.includes(relation)) &&
+        !drawn.has(relation.key);
+      if (inside) continue;
+      assert.equal(
+        edges.filter((e) => e.relations.includes(relation)).length,
+        1,
+        relation.key + ' belongs to exactly one arrow',
+      );
+    }
+    for (const edge of edges) {
+      assert.equal(edge.count, edge.relations.length);
+      assert.deepEqual(
+        edge.kinds,
+        ['data', 'command', 'state'].filter((kind) =>
+          edge.relations.some((r) => r.kind === kind),
+        ),
+      );
+      assert.equal(edge.kind, edge.kinds.length === 1 ? edge.kinds[0] : null);
+      assert.equal(
+        edge.label,
+        edge.count === 1 ? edge.relations[0].label : null,
+      );
+      assert.deepEqual(
+        edge.channels,
+        [...new Set(edge.relations.map((r) => r.channel))].sort(),
+      );
+    }
+  }
+});
+
+test('an arrow of several kinds names them all and keeps every member', () => {
+  const copy = mixedModel();
+  const graph = Graph.validate(copy);
+  const edge = Graph.project(copy, graph, new Set()).find(
+    (e) => e.from === 'search' && e.to === 'archive',
+  );
+  assert.deepEqual(edge.kinds, ['command', 'state']);
+  assert.equal(edge.kind, null);
+  assert.equal(edge.label, null);
+  assert.equal(edge.count, 2);
+  assert.deepEqual(edge.relations.map((r) => r.key).sort(), [
+    'lookup',
+    'score-cache',
+  ]);
+  const single = Graph.project(copy, graph, new Set(['search', 'engine'])).find(
+    (e) => e.from === 'query' && e.to === 'archive',
+  );
+  assert.equal(single.kind, 'command');
+  assert.deepEqual(single.kinds, ['command']);
+  assert.equal(single.label, 'Record selection');
+  assert.equal(single.count, 1);
+});
+
+test('a view of one kind narrows an arrow instead of erasing it', () => {
+  const copy = mixedModel();
+  const graph = Graph.validate(copy);
+  const drawn = new Set(
+    copy.relations.filter((r) => r.kind === 'command').map((r) => r.key),
+  );
+  const edges = Graph.project(copy, graph, new Set(), undefined, drawn);
+  const edge = edges.find((e) => e.from === 'search' && e.to === 'archive');
+  assert.deepEqual(edge.kinds, ['command']);
+  assert.equal(edge.count, 1);
+  assert.equal(edge.label, 'Record selection');
+  assert(
+    edges.every((e) => e.relations.every((r) => drawn.has(r.key))),
+    'a view draws only the interactions it admits',
+  );
+});

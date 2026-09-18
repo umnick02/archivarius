@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { drawnEnums } from '../src/model/appearance.mjs';
+import { drawnEnums, aggregateRelation } from '../src/model/appearance.mjs';
 import {
   legendGroups,
   legendOrder,
@@ -9,6 +9,7 @@ import {
   legendCopy,
   panelWords,
   valueWords,
+  aggregateEntry,
 } from '../src/model/legend.mjs';
 import { renderProjectDocumentation } from '../src/model/project-document.mjs';
 import { clone } from './project-fixture.mjs';
@@ -39,7 +40,16 @@ const legendFixture = (over = {}) => ({
   channels: {
     shape: { box: 'Rectangle', cylinder: 'Barrel', stadium: 'Pill' },
     outline: { solid: 'Unbroken border', dashed: 'Broken border' },
-    line: { solid: 'Thin arrow', thick: 'Thick arrow', dotted: 'Dotted arrow' },
+    line: {
+      solid: 'Thin arrow',
+      thick: 'Thick arrow',
+      dotted: 'Dotted arrow',
+      bundled: 'Dash-dot arrow',
+    },
+  },
+  aggregate: {
+    label: 'Aggregate',
+    word: 'Several interactions in one arrow',
   },
   words: {
     kind: project.values,
@@ -143,13 +153,14 @@ test('the legend table states every value in a row of its own', () => {
         'no row for ' + group + ' ' + value,
       );
     }
-  // A table is a table: the header, its rule and one row per value.
+  // A table is a table: the header, its rule, one row per value and the one row
+  // that decodes an arrow standing for several of them.
   const rows = lines.filter((line) => line.startsWith('|'));
   const values = legendOrder.reduce(
     (total, group) => total + contractValues[group].length,
     0,
   );
-  assert.equal(rows.length, values + 2);
+  assert.equal(rows.length, values + 3);
 });
 
 test('the generated reference carries the legend read from the appearance table', () => {
@@ -252,4 +263,31 @@ test('a panel names the value in words, never a tone alone', async () => {
   assert.throws(() => panelWords(legend, 'kind', 'widget'), /widget/);
   assert.throws(() => panelWords(legend, 'nowhere', 'store'), /nowhere/);
   assert.throws(() => panelWords(null, 'kind', 'store'), /kind/);
+});
+
+// An arrow that stands for several interactions is a distinction the picture
+// draws, so the legend has to decode it — and it is not a contract value, so it
+// is stated beside the enum roll call rather than inside it.
+test('the legend decodes an arrow that stands for several interactions', () => {
+  const copy = legendFixture();
+  const row = aggregateEntry(copy);
+  assert.equal(row.entries.length, 1);
+  const [entry] = row.entries;
+  assert.equal(entry.channels.tag, aggregateRelation.tag);
+  assert.equal(entry.channels.line, aggregateRelation.line);
+  assert.equal(entry.tone, aggregateRelation.tone);
+  assert(entry.word.length, 'the aggregate row has no word');
+  assert.deepEqual(entry.drawn, [copy.channels.line[aggregateRelation.line]]);
+  for (const group of legendGroups(copy))
+    assert.notEqual(group.group, 'aggregate', 'the roll call gained a value');
+  assert(
+    legendTable(copy).join('\n').includes(entry.word),
+    'the generated table drops the aggregate row',
+  );
+  const bare = legendFixture();
+  delete bare.aggregate;
+  assert.throws(() => aggregateEntry(bare), /aggregate/);
+  const unnamed = legendFixture();
+  delete unnamed.channels.line.bundled;
+  assert.throws(() => aggregateEntry(unnamed), /bundled/);
 });

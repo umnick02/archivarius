@@ -71,6 +71,9 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
   // The reader's filters and the last stated failure are presentation state: the
   // model never changes, only how much of it the surface is willing to draw.
   const [filters, setFilters] = useState(emptyView.filters);
+  // Which surfaces beside the drawing the reader has opened. The map opens with
+  // none of them: a surface stands on the canvas because somebody asked for it.
+  const [surfaces, setSurfaces] = useState(emptyView.open);
   const [failure, setFailure] = useState(null);
   const selectedRef = useRef(selected);
   selectedRef.current = selected;
@@ -232,6 +235,17 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
       setSelected(null);
     },
     [clearClick, openPanel],
+  );
+  const toggleSurface = useCallback(
+    (name, open) =>
+      setSurfaces((held) =>
+        open
+          ? held.includes(name)
+            ? held
+            : [...held, name]
+          : held.filter((entry) => entry !== name),
+      ),
+    [],
   );
   const showRecord = useCallback(
     (key) => {
@@ -492,11 +506,15 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         );
       if (e.key === 'Escape') {
         e.preventDefault();
+        // Escape closes what is open, topmost first: the panel, then the surfaces
+        // the reader opened beside the drawing, and only then does it step out of
+        // the container the reader is standing in.
         if (panel) {
           closePanel();
           // The panel took the focus, so closing it has to give it back.
           if (anchor) seek(anchor.type, anchor.id);
-        } else here ? leave() : up();
+        } else if (surfaces.length) setSurfaces(emptyView.open);
+        else here ? leave() : up();
       } else if (e.key === 'F6') {
         e.preventDefault();
         const inspector = root.current.querySelector(
@@ -545,6 +563,7 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     flow,
     home,
     panel,
+    surfaces,
     up,
     closePanel,
     changeZoom,
@@ -600,6 +619,8 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
       from: e.bundle.from,
       to: e.bundle.to,
       kind: e.bundle.kind,
+      kinds: e.bundle.kinds,
+      count: e.bundle.count,
       implemented: e.bundle.implemented,
       state: e.bundle.state,
       members: e.bundle.relations.map((r) => r.key),
@@ -621,9 +642,10 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         panel?.type === 'relation'
           ? (panel.bundle.relations[0]?.key ?? null)
           : null,
+      open: surfaces,
       filters,
     }),
-    [selected, level, viewport.zoom, panel, filters],
+    [selected, level, viewport.zoom, panel, filters, surfaces],
   );
   const restore = useRef(null);
   restore.current = async () => {
@@ -644,6 +666,7 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
       return;
     }
     setFilters(view.filters);
+    setSurfaces(view.open);
     const stand = view.at ?? view.level;
     if (stand) await fitNode(stand, view.panel !== 'node');
     if (view.zoom) flow.zoomTo(view.zoom, { duration: 0 });
@@ -823,6 +846,8 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
           neighbours={neighbours}
           follow={fitNode}
           empty={scope.filtered && scope.parts.size === 0}
+          open={surfaces}
+          toggleSurface={toggleSurface}
         />
         <Failure report={failure} dismiss={() => setFailure(null)} />
       </div>

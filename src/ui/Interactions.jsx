@@ -1,11 +1,12 @@
 import { relationCount, useArchitecture } from './context.jsx';
+import { relationBundle } from '../model/graph.mjs';
 import { groupInteractions } from './view.mjs';
 
 // One direction of a component's interactions, grouped by peer. The wrapper
 // attributes are the caller's, so the project panel and the node panel keep the
 // disclosure and class names their history restore and their styles expect.
 export function Interactions({ edges, incoming, showRelation }) {
-  const { graph, copy } = useArchitecture();
+  const { graph, copy, completion } = useArchitecture();
   if (!edges.length) return null;
   return (
     <section
@@ -52,13 +53,7 @@ export function Interactions({ edges, incoming, showRelation }) {
               <button
                 className="panel-button"
                 onClick={() =>
-                  showRelation({
-                    from: edge.from,
-                    to: edge.to,
-                    kind: edge.kind,
-                    label: edge.label,
-                    relations: [edge],
-                  })
+                  showRelation(relationBundle(edge, completion.relations))
                 }
               >
                 {copy.inspectInteraction}
@@ -72,7 +67,7 @@ export function Interactions({ edges, incoming, showRelation }) {
 }
 
 export function InternalRelations({ edges, showRelation, ...wrapper }) {
-  const { graph, copy } = useArchitecture();
+  const { graph, copy, completion } = useArchitecture();
   if (!edges.length) return null;
   return (
     <details {...wrapper}>
@@ -84,13 +79,7 @@ export function InternalRelations({ edges, showRelation, ...wrapper }) {
           className="panel-button"
           key={edge.key}
           onClick={() =>
-            showRelation({
-              from: edge.from,
-              to: edge.to,
-              kind: edge.kind,
-              label: edge.label,
-              relations: [edge],
-            })
+            showRelation(relationBundle(edge, completion.relations))
           }
         >
           {graph.nodes.get(edge.from).title} → {graph.nodes.get(edge.to).title}:{' '}
