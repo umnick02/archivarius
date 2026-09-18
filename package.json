@@ -87,8 +87,8 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
     "@eslint/js": "10.0.1",
-    "@types/react": "19.2.14",
-    "@types/react-dom": "19.2.3",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
     "ajv": "8.20.0",
     "axe-core": "4.13.0",
     "esbuild": "0.28.2",
@@ -100,8 +100,8 @@
     "postcss": "8.5.28",
     "prettier": "3.8.1",
     "publint": "0.3.24",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "typescript": "5.9.3",
     "vite": "8.2.2"
   }
