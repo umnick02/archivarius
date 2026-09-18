@@ -18,6 +18,15 @@ Both are annotations no validator implements, so compile the schemas with ajv
 | `history`       | Former records with a verifiable content hash                                       |
 | `snapshots`     | The exact composition of used revisions and bindings of a former snapshot           |
 
+An optional `archive` selects history storage. Version 1 names a SHA-256 `head`
+in adjacent `<model>.history/` segments. Version 2 names a full Git `commit` and
+a normalized repository-relative `path` to a committed model. That model supplies
+prior revisions and manifests, including any archived history it referenced in
+that commit. Inline `history` and `snapshots` then contain only pending revisions
+not yet available from that Git base. The Node file API and CLI hydrate either
+form before validation; browser/core consumers need the hydrated model. Missing
+Git history is an error, never permission to forget earlier results or bases.
+
 `scope` groups a product area; `component.parent` defines architectural
 nesting. `interaction` connects terminal components through an `interface`.
 Shared exchange contracts are defined once. All components are connected to the entry,

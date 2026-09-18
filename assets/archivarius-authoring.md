@@ -70,3 +70,15 @@ History and the manifests of prior snapshots are preserved on `apply`; they cann
 for the sake of restoring currency. Changing any definition still conservatively
 re-reviews the bases of the entire project. Prior v3 maps are supported for viewing,
 their manual marks are not v4 confirmations.
+
+In a Git repository, `archivarius git-history project.json` moves history storage
+to committed versions of the model. Commit the complete model and any existing
+`.history/` segments first. The command validates that migration is lossless;
+it does not commit, stage or delete files. After it succeeds, remove the old
+segments from the working tree and commit that removal with the updated model.
+Normal reads and edits then resolve prior versions through Git. Keep the
+referenced commits available: a shallow clone or a standalone JSON copy is not
+sufficient. Multiple uncommitted edits retain their intermediate revisions in
+the JSON; the next apply after committing absorbs that pending history into
+Git. Use `git log -- project.json` and `git show <commit>:project.json` to inspect
+committed changes.

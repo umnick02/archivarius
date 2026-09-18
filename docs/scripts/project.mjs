@@ -19,6 +19,7 @@ try {
       'reconcile',
       'run',
       'archive',
+      'git-history',
     ].includes(command)
   ) {
     try {
@@ -45,7 +46,7 @@ try {
       });
   } else
     throw new Error(
-      'Expected validate, read, context, apply, reference, readme, documents, graph, diff, history, init, verify, reconcile, run, archive or serve',
+      'Expected validate, read, context, apply, reference, readme, documents, graph, diff, history, init, verify, reconcile, run, archive, git-history or serve',
     );
 } catch (error) {
   process.stdout.write(

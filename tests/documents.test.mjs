@@ -228,7 +228,7 @@ test('the help text and the documented CLI record name the same commands', async
   const summary = project.records.find(
     (record) => record.key === 'cli',
   ).summary;
-  const named = [...summary.matchAll(/\b([a-z]+)\b/g)]
+  const named = [...summary.matchAll(/\b([a-z][a-z-]*)\b/g)]
     .map((match) => match[1])
     .filter((word) => commands.includes(word));
   assert.deepEqual(

@@ -63,6 +63,7 @@
         "readArchitectureFile",
         "reconcileProjectFiles",
         "updateProjectFile",
+        "useGitProjectHistory",
         "verifyProjectFiles",
         "writeAtomic"
       ]
@@ -1161,13 +1162,26 @@
         ".archive": {
           "types": ["object"],
           "closed": true,
-          "required": ["head", "version"]
+          "required": ["version"],
+          "optional": ["commit", "head", "path"]
+        },
+        ".archive.commit": {
+          "types": ["string"],
+          "bounds": {
+            "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+          }
         },
         ".archive.head": {
           "ref": "#/$defs/digest"
         },
+        ".archive.path": {
+          "types": ["string"],
+          "bounds": {
+            "minLength": 1
+          }
+        },
         ".archive.version": {
-          "values": ["1"]
+          "values": ["1", "2"]
         },
         ".bindings": {
           "types": ["object"]

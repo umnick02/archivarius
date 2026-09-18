@@ -17,6 +17,7 @@ import {
   diffProjectFiles,
   writeAtomic,
   archiveProjectFile,
+  useGitProjectHistory,
 } from './node.mjs';
 import { analyzeProject } from './model/project-analysis.mjs';
 import { graphFormats } from './model/export.mjs';
@@ -68,6 +69,7 @@ async function main() {
       context: ['focus', 'json', 'output'],
       read: ['focus', 'json'],
       archive: ['json'],
+      'git-history': ['json'],
       diff: ['against', 'stale', 'output', 'json'],
       apply: ['context', 'change', 'json'],
       verify: ['json'],
@@ -97,6 +99,7 @@ async function main() {
         'context',
         'read',
         'archive',
+        'git-history',
         'diff',
         'apply',
         'verify',
@@ -157,6 +160,11 @@ async function main() {
     if (command === 'archive') {
       await archiveProjectFile(input);
       print({ valid: true, archived: true });
+      return;
+    }
+    if (command === 'git-history') {
+      await useGitProjectHistory(input);
+      print({ valid: true, history: 'git' });
       return;
     }
     if (command === 'read') {

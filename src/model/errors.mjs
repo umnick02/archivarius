@@ -439,8 +439,8 @@ export function staleContextDiagnostics(context, current) {
 /** @type {Record<string, Failure>} */
 export const failureCodes = {
   ARCHIVE_CYCLE: {
-    meaning: 'The history archive links back to a segment already read.',
-    remedy: 'Restore the archive directory from a backup or drop the history.',
+    meaning: 'The history archive links back to a source already read.',
+    remedy: 'Restore the referenced Git history or archive segments.',
   },
   ARCHIVE_DIGEST: {
     meaning: 'An archive segment does not hash to the name it is stored under.',
@@ -458,9 +458,27 @@ export const failureCodes = {
   },
   ARCHIVE_STRUCTURE: {
     meaning:
-      'A model with an external archive carries inline history, or a segment has the wrong fields.',
+      'An archive descriptor or segment has the wrong fields, or a segment-backed model carries inline history.',
     remedy:
-      'Keep history in the archive segments only and give each segment version, previous, history and snapshots.',
+      'Use the versioned archive descriptor; only Git-backed models may retain pending inline history.',
+  },
+  GIT_HISTORY_REFERENCE: {
+    meaning:
+      'A Git history reference has an invalid commit or repository-relative path.',
+    remedy:
+      'Use a full commit hash and a normalized path within the repository.',
+  },
+  GIT_HISTORY_UNAVAILABLE: {
+    meaning:
+      'Git could not read the repository, referenced commit or model history.',
+    remedy:
+      'Install Git and restore the referenced commits and files, including history omitted by a shallow clone.',
+  },
+  GIT_HISTORY_UNCOMMITTED: {
+    meaning:
+      'The model or its archive differs from the version retained in HEAD.',
+    remedy:
+      'Commit the complete model and archive before migrating their history to Git.',
   },
   ARTIFACT_CHANGED: {
     meaning: 'A bound artifact no longer hashes to the digest recorded for it.',

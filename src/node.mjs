@@ -180,7 +180,7 @@ async function mutateProjectFile(file, transform, archive = false) {
     if (digest(await readArchitectureFile(file)) !== digest(model))
       throw new ArchitectureError('CONTEXT_CHANGED');
     await storeProjectStorage(file, next, model, archive, writeAtomic);
-    return next;
+    return await readArchitectureFile(file);
   } finally {
     await handle.close();
     await fs.rm(lock, { force: true });
@@ -195,6 +195,12 @@ export async function updateProjectFile(file, context, change) {
 
 export async function archiveProjectFile(file) {
   return mutateProjectFile(file, (model) => model, true);
+}
+
+// Opt into Git-backed history only from a fully committed model and archive.
+// The previous files remain in Git; callers can then remove the old sidecars.
+export async function useGitProjectHistory(file) {
+  return mutateProjectFile(file, (model) => model, 'git');
 }
 
 export async function executeProjectCheck(

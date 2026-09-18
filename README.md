@@ -63,12 +63,12 @@ flowchart LR
 
 | Component | Responsibility |
 | --- | --- |
-| Model and contract | Owns the v4 JSON schema, record types, graph references, history, snapshots and the validated-change contract. |
+| Model and contract | Owns the v4 JSON schema, record types, graph references, revision provenance, snapshots and the validated-change contract; storage may be inline, adjacent archive segments or committed Git versions. |
 | Core | Parses and validates a model, projects a v4 project to an architecture, and analyzes freshness and completion. |
 | Graph references | Validates typed relations between records and reports reverse links and coverage. |
 | Canonical digest | Computes the SHA-256 basis over a canonical representation of the definitions. |
-| Node API | Reads a model file, verifies evidence artifacts by bytes, applies validated changes, and generates documentation. |
-| CLI | Exposes init, validate, read, context, apply, reference, readme, documents, graph, diff, history, verify, reconcile, run and archive over the model file. |
+| Node API | Reads and hydrates model files, verifies evidence artifacts by bytes, applies validated changes, and generates documentation. Git history migration requires a committed complete model; subsequent edits retain only pending revisions in the JSON and resolve older records and manifests from referenced commits. |
+| CLI | Exposes init, validate, read, context, apply, reference, readme, documents, graph, diff, history, verify, reconcile, run, archive and git-history over the model file. git-history migrates committed history without changing Git commits or the index; normal file commands read it through the Node API. |
 | Evidence verification | Matches declared binding bytes against files and records actual check outcomes. |
 | Map rendering | Mounts an interactive architecture map with semantic zoom and an inspector for records. |
 | Architecture map | Lays out components and interactions and reveals detail as the map is zoomed. |

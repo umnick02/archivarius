@@ -27,7 +27,11 @@ export const files = {
   ],
   graph: 'src/model/graph.mjs',
   digest: 'src/model/digest.mjs',
-  'node-api': 'src/node.mjs',
+  'node-api': [
+    { path: 'src/node.mjs' },
+    { path: 'src/io/project-storage.mjs' },
+    { path: 'src/io/project-git.mjs' },
+  ],
   cli: 'src/cli.mjs',
   evidence: 'src/model/evidence.mjs',
   render: 'src/index.jsx',

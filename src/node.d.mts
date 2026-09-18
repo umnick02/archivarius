@@ -140,3 +140,4 @@ export function exportProjectDocuments(
 ): Promise<{ files: string[]; changed: string[] }>;
 
 export function archiveProjectFile(file: string): Promise<ProjectModel>;
+export function useGitProjectHistory(file: string): Promise<ProjectModel>;

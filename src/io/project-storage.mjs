@@ -1,4 +1,4 @@
-// Disk storage is an immutable hash-linked archive plus one editable current model.
+// History can live in adjacent segments or in the model's committed Git versions.
 // Core APIs and the viewer always receive the fully hydrated v4 model.
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -7,6 +7,9 @@ import { ArchitectureError } from '../model/errors.mjs';
 import { parseJSON } from '../model/parse.mjs';
 import { checkStructure } from '../model/structure.mjs';
 import { digest } from '../model/digest.mjs';
+import { snapshotManifest } from '../model/project-digest.mjs';
+import { assertProject } from '../model/project-contract.mjs';
+import { projectGitSource, readGitProjectJSON } from './project-git.mjs';
 
 const filename = (file) => (file instanceof URL ? fileURLToPath(file) : file);
 const archiveDirectory = (file) => filename(file) + '.history';
@@ -26,10 +29,50 @@ async function archivePath(file, hash, create = false) {
   if (stat && !stat.isFile()) throw new ArchitectureError('ARCHIVE_PATH');
   return target;
 }
-export async function loadProjectStorage(file, raw) {
+const revisions = (model) => [
+  ...model.history,
+  ...model.records.map((record) => ({ digest: digest(record), record })),
+];
+const manifests = (model) => [...model.snapshots, snapshotManifest(model)];
+const unique = (values, key) => [
+  ...new Map(values.map((value) => [key(value), value])).values(),
+];
+
+export async function loadProjectStorage(
+  file,
+  raw,
+  source = null,
+  ancestry = new Set(),
+) {
   if (!raw.archive) return raw;
   const errors = checkStructure(raw);
-  if (errors.length || raw.history.length || raw.snapshots.length)
+  if (errors.length) throw new ArchitectureError('ARCHIVE_STRUCTURE');
+  if (raw.archive.version === 2) {
+    const location = source ?? (await projectGitSource(file));
+    const parent = {
+      ...location,
+      commit: raw.archive.commit,
+      path: raw.archive.path,
+    };
+    const key = parent.commit + ':' + parent.path;
+    if (ancestry.has(key)) throw new ArchitectureError('ARCHIVE_CYCLE');
+    ancestry.add(key);
+    const base = await loadProjectStorage(
+      file,
+      await readGitProjectJSON(parent),
+      parent,
+      ancestry,
+    );
+    ancestry.delete(key);
+    const { archive, ...model } = raw;
+    model.history = unique(
+      [...revisions(base), ...model.history],
+      (item) => item.digest,
+    );
+    model.snapshots = unique([...manifests(base), ...model.snapshots], digest);
+    return model;
+  }
+  if (raw.history.length || raw.snapshots.length)
     throw new ArchitectureError('ARCHIVE_STRUCTURE');
   const segments = [],
     seen = new Set();
@@ -37,9 +80,12 @@ export async function loadProjectStorage(file, raw) {
   while (head) {
     if (seen.has(head)) throw new ArchitectureError('ARCHIVE_CYCLE');
     seen.add(head);
-    const segment = parseJSON(
-      await fs.readFile(await archivePath(file, head), 'utf8'),
-    );
+    const segment = source
+      ? await readGitProjectJSON({
+          ...source,
+          path: source.path + '.history/' + head + '.json',
+        })
+      : parseJSON(await fs.readFile(await archivePath(file, head), 'utf8'));
     if (digest(segment) !== head) throw new ArchitectureError('ARCHIVE_DIGEST');
     if (
       Object.keys(segment).sort().join() !==
@@ -69,6 +115,34 @@ export async function storeProjectStorage(
   writeAtomic,
 ) {
   const raw = parseJSON(await fs.readFile(file, 'utf8'));
+  if (archive === 'git' || raw.archive?.version === 2) {
+    const source = await projectGitSource(file);
+    const base = assertProject(
+      await loadProjectStorage(file, await readGitProjectJSON(source), source),
+    );
+    // A migration may discard sidecars only after their complete contents are
+    // recoverable from the named commit. It never commits or changes the index.
+    if (
+      archive === 'git' &&
+      raw.archive?.version !== 2 &&
+      digest(previous) !== digest(base)
+    )
+      throw new ArchitectureError('GIT_HISTORY_UNCOMMITTED');
+    const savedRecords = new Set(revisions(base).map((item) => item.digest));
+    const savedManifests = new Set(manifests(base).map(digest));
+    const stored = {
+      ...model,
+      // Only edits not yet represented by the Git base stay in the working
+      // model. The next apply after a commit removes this pending delta.
+      history: model.history.filter((item) => !savedRecords.has(item.digest)),
+      snapshots: model.snapshots.filter(
+        (item) => !savedManifests.has(digest(item)),
+      ),
+      archive: { version: 2, commit: source.commit, path: source.path },
+    };
+    assertProject(await loadProjectStorage(file, stored));
+    return writeAtomic(file, JSON.stringify(stored, null, 2) + '\n');
+  }
   if (!archive && !raw.archive)
     return writeAtomic(file, JSON.stringify(model, null, 2) + '\n');
   const history = raw.archive
