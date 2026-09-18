@@ -29,7 +29,6 @@ import {
   addressKey,
   addressSnapshot,
   emptyView,
-  filterView,
   neighbourhood,
   parseAddress,
   writeAddress,
@@ -284,44 +283,19 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     ring,
     anchor,
     named,
+    scope,
   } = useMapProjection({
     expanded,
     viewport,
     size,
     layer,
+    filters,
     selected,
     activeKey,
     cursor,
     panel,
     showRelation,
   });
-  // A filter never rewrites the drawing: it decides which of the parts the
-  // projection already placed are worth showing, so an unfiltered map is the
-  // very same node and edge arrays it was before.
-  const scope = useMemo(
-    () => filterView(model, graph, filters),
-    [model, graph, filters],
-  );
-  const shownNodes = useMemo(
-    () =>
-      scope.filtered
-        ? nodes.map((node) =>
-            scope.parts.has(node.id) ? node : { ...node, hidden: true },
-          )
-        : nodes,
-    [nodes, scope],
-  );
-  const shownEdges = useMemo(
-    () =>
-      scope.filtered
-        ? edges.filter((edge) =>
-            edge.data.bundle.relations.some((relation) =>
-              scope.relations.has(relation.key),
-            ),
-          )
-        : edges,
-    [edges, scope],
-  );
   const neighbours = useMemo(
     () =>
       selected && interfaces.has(selected)
@@ -608,7 +582,7 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
   snapshot.current = () => ({
     viewport: flow.getViewport(),
     expanded: [...expanded],
-    visible: shownNodes.filter((n) => !n.hidden).map((n) => n.id),
+    visible: nodes.filter((n) => !n.hidden).map((n) => n.id),
     nodeGeometry: nodes.map((n) => ({
       id: n.id,
       position: n.position,
@@ -638,6 +612,7 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
       level,
       zoom: viewport.zoom,
       panel: panel?.type ?? null,
+      record: panel?.type === 'record' ? panel.key : null,
       edge:
         panel?.type === 'relation'
           ? (panel.bundle.relations[0]?.key ?? null)
@@ -660,7 +635,7 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     if (!writeAddress('', parseAddress(location.search, { key }), { key }))
       return;
     const view = parseAddress(location.search, { key });
-    const raised = addressFailure(view, addressSnapshot(model, graph));
+    const raised = addressFailure(view, addressSnapshot(model, graph, project));
     if (raised) {
       setFailure(failureReport(raised));
       return;
@@ -675,7 +650,8 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         entry.bundle.relations.some((relation) => relation.key === view.edge),
       );
       if (held) showRelation(held.bundle);
-    } else if (view.panel === 'record' && view.at) showRecord(view.at);
+    } else if (view.panel === 'record' && (view.record || view.at))
+      showRecord(view.record || view.at);
     else if (
       view.panel === 'project' ||
       view.panel === 'contracts' ||
@@ -799,8 +775,8 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         </h2>
         <ReactFlow
           id={instanceId}
-          nodes={shownNodes}
-          edges={shownEdges}
+          nodes={nodes}
+          edges={edges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           minZoom={Math.min(0.025, overviewZoom)}

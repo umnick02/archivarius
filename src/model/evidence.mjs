@@ -1,13 +1,10 @@
 import { assertProject } from './project-contract.mjs';
-import {
-  contractDigest,
-  movedDefinitions,
-  realizationDigest,
-} from './project-digest.mjs';
+import { contractDigest, realizationDigest } from './project-digest.mjs';
 import { bindingHolds, bindingParts, partDigest } from './binding.mjs';
 import { hashBytes } from './digest.mjs';
 import { failureCodes } from './errors.mjs';
 import { canonical, digest } from './digest.mjs';
+import { basisReason } from './project-diff.mjs';
 
 export function relativeArtifactPath(path) {
   return (
@@ -214,9 +211,8 @@ export async function verifyProjectEvidence(model, readBytes) {
       // The same proportionate rule the analysis reads: a receipt stands while the
       // definitions it names hold and the bytes it ran against are the bytes now.
       // A receipt that names no definitions falls back to the whole contract.
-      const moved = movedDefinitions(model, result);
       if (
-        (moved ? moved.length > 0 : result.basis?.contract !== contract) ||
+        basisReason(model, result, contract) ||
         result.realization !== realization
       )
         throw new Error('BASIS_CHANGED');

@@ -4,11 +4,13 @@ import { createConnectors } from './connectors.mjs';
 
 // ELK lays out each containment level. Child layouts are scaled into stable
 // parent rectangles; viewport changes never trigger another layout calculation.
-export async function layoutModel(model, signal) {
+export async function layoutModel(model, signal, { cached = true } = {}) {
   const graph = ArchitectureGraph.validate(model);
   if (graph.errors.length) throw new Error(graph.errors.join('\n'));
   const elk = new ELK();
   const local = new Map();
+  const shapes = new Map();
+  let layoutPasses = 0;
   const owners = [
     { key: null, children: model.nodes },
     ...[...graph.nodes.values()].filter((n) => n.children),
@@ -26,8 +28,13 @@ export async function layoutModel(model, signal) {
       (e) => children.has(e.from) && children.has(e.to),
     );
     const connected = bundles.length > 0;
-    const result = await elk.layout({
-      id: owner.key || 'architecture',
+    // ELK reads only sizes, options and topology. Use local identities so equal
+    // sibling graphs share one calculation even when their model keys differ.
+    const ids = new Map(
+      owner.children.map((node, i) => [node.key, 'node-' + i]),
+    );
+    const request = {
+      id: 'architecture',
       layoutOptions: {
         'elk.algorithm': connected ? 'layered' : 'rectpacking',
         'elk.direction': 'RIGHT',
@@ -40,17 +47,32 @@ export async function layoutModel(model, signal) {
         'elk.randomSeed': '42',
       },
       children: owner.children.map((n) => ({
-        id: n.key,
+        id: ids.get(n.key),
         width: 440,
         height: 280,
       })),
       edges: bundles.map((bundle, i) => ({
         id: 'route-' + i,
-        sources: [bundle.from],
-        targets: [bundle.to],
+        sources: [ids.get(bundle.from)],
+        targets: [ids.get(bundle.to)],
       })),
-    });
+    };
+    const shape = JSON.stringify(request);
+    let geometry = cached && shapes.get(shape);
+    if (!geometry) {
+      geometry = await elk.layout(request);
+      layoutPasses++;
+      if (cached) shapes.set(shape, geometry);
+    }
     signal?.throwIfAborted();
+    const keys = new Map([...ids].map(([key, id]) => [id, key]));
+    const result = {
+      ...geometry,
+      children: geometry.children.map((node) => ({
+        ...node,
+        id: keys.get(node.id),
+      })),
+    };
     local.set(owner.key, { result, bundles });
   }
   const nodes = {},
@@ -124,6 +146,6 @@ export async function layoutModel(model, signal) {
     nodes,
     routes,
     connectors,
-    layoutPasses: local.size,
+    layoutPasses,
   };
 }

@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { Worker as NodeWorker } from 'node:worker_threads';
 import { buildLayout, checkLayout } from '../src/layout/layout.mjs';
 import { ArchitectureGraph as Graph } from '../src/model/graph.mjs';
+import { generateArchitecture } from './model-generator.mjs';
 import {
   expandedAt,
   groupInteractions,
@@ -161,6 +162,23 @@ test('an unchanged model reuses its computed geometry and a changed one does not
   const other = await buildLayout(changed);
   assert.notEqual(other, layout);
   assert.deepEqual(checkLayout(changed, other), []);
+});
+
+test('repeated topology reuses geometry without conflating model identities or changed edges', async () => {
+  const repeated = generateArchitecture(24, { groups: 4, fanOut: 2 });
+  // One group differs while the other three still have the same local graph.
+  repeated.relations = repeated.relations.filter(
+    (edge) => edge.key !== 'call-1-0-1',
+  );
+  const reused = await buildLayout(repeated);
+  const uncached = await buildLayout(repeated, { cached: false });
+  assert.equal(reused.layoutPasses, 3);
+  assert.equal(uncached.layoutPasses, 5);
+  const { layoutPasses: reusedPasses, ...reusedGeometry } = reused;
+  const { layoutPasses: uncachedPasses, ...uncachedGeometry } = uncached;
+  assert(reusedPasses < uncachedPasses);
+  assert.deepEqual(reusedGeometry, uncachedGeometry);
+  assert.deepEqual(checkLayout(repeated, reused), []);
 });
 
 test('the reported layout engine version is the installed one', () => {

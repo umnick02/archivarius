@@ -9,7 +9,10 @@ globalThis.document ??= {};
 // exception for a model the graph refuses, so the page can report it.
 self.addEventListener('message', async ({ data }) => {
   try {
-    self.postMessage({ ok: true, layout: await layoutModel(data.model) });
+    self.postMessage({
+      ok: true,
+      layout: await layoutModel(data.model, undefined, { cached: data.cached }),
+    });
   } catch (error) {
     self.postMessage({ ok: false, message: error.message });
   }

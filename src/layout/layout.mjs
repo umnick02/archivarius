@@ -12,7 +12,7 @@ const retained = 4;
 // them, gets the same geometry on the main thread instead of no map.
 export async function buildLayout(model, { signal, cached = true } = {}) {
   signal?.throwIfAborted();
-  if (!cached) return computeLayout(model, signal);
+  if (!cached) return computeLayout(model, signal, false);
   const key = digest({ nodes: model.nodes, relations: model.relations });
   const previous = computed.get(key);
   if (previous) return previous;
@@ -26,15 +26,15 @@ export async function buildLayout(model, { signal, cached = true } = {}) {
   return layout;
 }
 
-async function computeLayout(model, signal) {
-  const offThread = await inWorker(model, signal);
-  return offThread ?? layoutModel(model, signal);
+async function computeLayout(model, signal, cached = true) {
+  const offThread = await inWorker(model, signal, cached);
+  return offThread ?? layoutModel(model, signal, { cached });
 }
 
 // Resolves with the geometry, or with null when this host cannot use a worker at
 // all — the caller then lays the same model out itself. A worker that answers
 // with a failure is reporting the model, not the platform, so that one throws.
-async function inWorker(model, signal) {
+async function inWorker(model, signal, cached) {
   if (typeof Worker !== 'function') return null;
   let worker;
   try {
@@ -56,7 +56,7 @@ async function inWorker(model, signal) {
       // thread, not a lost map.
       worker.addEventListener('error', () => resolve(null));
       worker.addEventListener('messageerror', () => resolve(null));
-      worker.postMessage({ model });
+      worker.postMessage({ model, cached });
     });
   } finally {
     worker.terminate();
@@ -88,9 +88,9 @@ export function checkLayout(model, layout) {
         errors.push('OUTSIDE_PARENT:' + key);
     }
   }
+  const routed = new Set(layout.routes.flatMap((route) => route.members));
   for (const edge of model.relations)
-    if (!layout.routes.some((r) => r.members.includes(edge.key)))
-      errors.push('UNROUTED_RELATION:' + edge.key);
+    if (!routed.has(edge.key)) errors.push('UNROUTED_RELATION:' + edge.key);
   for (const route of layout.routes) {
     if (
       route.points.some((p) => !Number.isFinite(p.x) || !Number.isFinite(p.y))

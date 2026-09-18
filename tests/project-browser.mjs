@@ -295,6 +295,58 @@ try {
     ),
     0,
   );
+  // A shared record link must keep both the map selection and the independent
+  // inspector record. Restore under a fresh mount name, as a receiver would.
+  await b.evaluate((model) => window.consumer.first.load(model), project);
+  for (const key of ['exclude-private', 'implement-export', 'streaming']) {
+    await b.evaluate((key) => {
+      window.consumer.first.inspect('writer');
+      window.consumer.first.inspect(key);
+    }, key);
+    await until(
+      (key) => new URLSearchParams(location.search).get('first.record') === key,
+      key,
+    );
+    const restored = await b.evaluate(
+      async (model, key) => {
+        const name = 'linked-' + key;
+        const search = new URLSearchParams(location.search);
+        for (const [field, value] of [...search])
+          if (field.startsWith('first.'))
+            search.set(name + field.slice(5), value);
+        history.replaceState(
+          history.state,
+          '',
+          location.pathname + '?' + search,
+        );
+        const container = document.createElement('div');
+        container.id = name;
+        container.style.cssText = 'width:1200px;height:900px';
+        document.body.append(container);
+        const map = window.consumer.mountArchitectureMap(container, {
+          source: model,
+        });
+        try {
+          await map.ready;
+          return {
+            record: container.querySelector('[data-record-title]')?.dataset
+              .recordTitle,
+            selected: search.get(name + '.at'),
+            errors: container.querySelector('[role=alert]')?.textContent,
+          };
+        } finally {
+          map.destroy();
+          container.remove();
+        }
+      },
+      project,
+      key,
+    );
+    assert.equal(restored.record, key, JSON.stringify(restored));
+    assert.equal(restored.selected, 'writer');
+    assert.equal(restored.errors, undefined);
+  }
+
   assert.deepEqual(b.errors, []);
   // Use the full host width to exercise docking independently of the small
   // embedded-container presentation used above.

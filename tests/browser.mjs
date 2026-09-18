@@ -923,6 +923,99 @@ try {
   await click('#first .contract-list summary');
   await b.capture('consumer-contract');
 
+  // Filters narrow the interactions inside a bundle before its label, count,
+  // handles and keyboard ring are built.
+  const filteredModel = structuredClone(model);
+  filteredModel.relations.unshift({
+    ...filteredModel.relations.find((edge) => edge.key === 'publish'),
+    key: 'publish-command',
+    kind: 'command',
+    channel: 'publish-command',
+    label: 'Start publication',
+  });
+  await load(filteredModel);
+  await b.evaluate(() => {
+    const select = document.querySelector(
+      '#first [data-control=filter-relation]',
+    );
+    select.value = 'data';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await until(() =>
+    Boolean(
+      document.querySelector(
+        '#first [data-relation="publish--publisher--archive"]',
+      ),
+    ),
+  );
+  const filteredEdges = await b.evaluate(() =>
+    [...document.querySelectorAll('#first [data-relation]')].map(
+      (edge) => edge.querySelector('title').textContent,
+    ),
+  );
+  assert(
+    filteredEdges.every((text) => !text.includes('Command')),
+    filteredEdges.join('\n'),
+  );
+  assert(filteredEdges.some((text) => text.includes('1 source interaction')));
+  await b.evaluate(() =>
+    document
+      .querySelector('#first [data-relation="publish--publisher--archive"]')
+      .focus(),
+  );
+  await press('Enter');
+  assert.equal(
+    await b.evaluate(() =>
+      document
+        .querySelector('#first [data-control=inspector]')
+        .textContent.includes('Start publication'),
+    ),
+    false,
+  );
+  await press('Escape');
+  await b.evaluate(() => {
+    const relation = document.querySelector(
+      '#first [data-control=filter-relation]',
+    );
+    relation.value = 'all';
+    relation.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await until(
+    () =>
+      document.querySelector('#first [data-control=filter-relation]').value ===
+      'all',
+  );
+  await b.evaluate(() => {
+    const select = document.querySelector('#first [data-control=filter-kind]');
+    select.value = 'store';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await until(
+    () => document.querySelector('#first [data-node=archive]')?.tabIndex === 0,
+  );
+  assert.deepEqual((await state()).visible, ['archive']);
+  assert.deepEqual(await tabStops(), ['archive']);
+  await b.evaluate(() =>
+    document.querySelector('#first [data-control=about]').focus(),
+  );
+  await tab();
+  assert.equal(await spot(), 'node:archive');
+  await press(' ');
+  assert.equal((await state()).panel, 'node');
+  await press('Escape');
+  await b.evaluate(() => {
+    const select = document.querySelector('#first [data-control=filter-kind]');
+    select.value = 'subsystem';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await until(
+    () =>
+      document.querySelector('#first [data-control=filter-kind]').value ===
+      'subsystem',
+  );
+  await focus('engine');
+  assert.deepEqual(await tabStops(), ['engine']);
+
   const verified = structuredClone(model);
   for (const item of [
     verified.nodes[0],

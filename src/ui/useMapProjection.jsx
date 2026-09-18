@@ -10,6 +10,7 @@ import {
 import { namedLevel } from '../model/zoom.mjs';
 import { isVisible, projectedEdges, placeEdgeLabels } from './view.mjs';
 import { bundleSummary } from './context.jsx';
+import { filterView } from '../model/address.mjs';
 
 // Projects the validated model into what React Flow draws. Everything here is
 // derived: the map holds the zoom, focus and selection, and this turns them into
@@ -21,6 +22,7 @@ export function useMapProjection({
   viewport,
   size,
   layer,
+  filters,
   selected,
   activeKey,
   cursor,
@@ -33,6 +35,10 @@ export function useMapProjection({
   const projection = useMemo(
     () => projectLayer(model, graph, layer),
     [model, graph, layer],
+  );
+  const scope = useMemo(
+    () => filterView(model, graph, filters),
+    [model, graph, filters],
   );
   const interfaces = useMemo(
     () =>
@@ -53,7 +59,14 @@ export function useMapProjection({
   // it admits and drops the arrow only when it admits none: a view that keeps
   // drawing what it excluded is not a view of anything.
   const drawn = useMemo(() => {
-    const admitted = drawnRelations(projection);
+    const layerRelations = drawnRelations(projection);
+    const admitted = scope.filtered
+      ? new Set(
+          [...scope.relations].filter(
+            (key) => !layerRelations || layerRelations.has(key),
+          ),
+        )
+      : layerRelations;
     return admitted
       ? projectedEdges(
           model,
@@ -64,7 +77,7 @@ export function useMapProjection({
           admitted,
         )
       : bundles;
-  }, [model, graph, layout, expanded, completion, bundles, projection]);
+  }, [model, graph, layout, expanded, completion, bundles, projection, scope]);
   const inside = useCallback(
     (key, container) => {
       while (key) {
@@ -95,10 +108,12 @@ export function useMapProjection({
       new Set(
         Object.keys(layout.nodes).filter(
           (key) =>
-            isVisible(key, graph, expanded) && drawsPart(projection, key),
+            isVisible(key, graph, expanded) &&
+            drawsPart(projection, key) &&
+            scope.parts.has(key),
         ),
       ),
-    [layout, graph, expanded, projection],
+    [layout, graph, expanded, projection, scope],
   );
   // Of those, the ones near enough the camera to be worth building in full. A
   // snapshot small enough to keep whole is kept whole, so nothing about a normal
@@ -124,9 +139,11 @@ export function useMapProjection({
   // ring the keyboard walks. One item of that ring carries the map's tab stop.
   const level = useMemo(() => {
     let deepest = null;
+    const parents = new Set([...shown].map((key) => layout.nodes[key].parent));
     for (const key of expanded)
       if (
         shown.has(key) &&
+        parents.has(key) &&
         (!deepest || layout.nodes[key].depth > layout.nodes[deepest].depth)
       )
         deepest = key;
@@ -181,7 +198,7 @@ export function useMapProjection({
     () =>
       Object.values(layout.nodes).map((box) => {
         const handles = [];
-        for (const edge of bundles) {
+        for (const edge of drawn) {
           if (edge.bundle.from === box.key)
             handles.push({
               ...edge.source,
@@ -234,7 +251,7 @@ export function useMapProjection({
       layout,
       graph,
       interfaces,
-      bundles,
+      drawn,
       shown,
       mounted,
       expanded,
@@ -303,5 +320,6 @@ export function useMapProjection({
     mounted,
     ring,
     anchor,
+    scope,
   };
 }

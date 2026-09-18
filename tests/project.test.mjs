@@ -8,15 +8,20 @@ import {
   projectContext,
 } from '../src/model/project-authoring.mjs';
 import { validateProject } from '../src/model/project-contract.mjs';
-import { contractDigest } from '../src/model/project-digest.mjs';
+import {
+  contractDigest,
+  definitionBasis,
+} from '../src/model/project-digest.mjs';
 import { readArchitecture, prepareArchitecture } from '../src/ui/load.mjs';
 import {
   clone,
+  edit,
   example,
   get,
   ready,
   receipt,
   seal,
+  scoped,
 } from './project-fixture.mjs';
 
 test('requirements can be explored before architecture exists without inventing participants', async () => {
@@ -160,6 +165,33 @@ test('confirmation needs current external evidence, complete coverage and integr
     analyzeProject(model, {
       verifiedResults: ['run'],
     }).completion.project.reasons.some((r) => r.code === 'CHECK_FAILED'),
+  );
+});
+
+test('an unrelated edit cannot hide a current or archived failed run', () => {
+  const model = scoped();
+  const failed = { ...receipt(model), key: 'failed', outcome: 'fail' };
+  const passed = receipt(model);
+  model.records.push(failed, passed);
+  for (const record of [failed, passed])
+    record.basis.definitions = definitionBasis(model, record.key);
+  edit(model, 'implement-export', { change: 'An unrelated wording change.' });
+  const failure = () =>
+    analyzeProject(model, { verifiedResults: ['run'] }).completion[
+      'export-check'
+    ].reasons.filter((r) => r.code === 'CHECK_FAILED');
+  assert.deepEqual(failure(), [{ code: 'CHECK_FAILED', key: 'failed' }]);
+  model.records = model.records.filter((r) => r !== failed);
+  model.history.push({ digest: digest(failed), record: failed });
+  assert.deepEqual(failure(), [{ code: 'CHECK_FAILED', key: 'failed' }]);
+  passed.resolves = ['failed'];
+  passed.resolution = 'The later run clears the observed failure.';
+  assert.deepEqual(failure(), []);
+  assert.equal(
+    analyzeProject(model, { verifiedResults: ['run'] }).completion[
+      'export-check'
+    ].implemented,
+    true,
   );
 });
 

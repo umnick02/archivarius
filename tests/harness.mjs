@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { once } from 'node:events';
 import fs from 'node:fs/promises';
 import http from 'node:http';
 import os from 'node:os';
@@ -115,8 +116,12 @@ const launch = async () => {
   return {
     port,
     close: async () => {
-      chrome.kill('SIGKILL');
-      await fs.rm(profile, { recursive: true, force: true });
+      if (chrome.exitCode === null && chrome.signalCode === null) {
+        const stopped = once(chrome, 'exit');
+        chrome.kill('SIGKILL');
+        await stopped;
+      }
+      await fs.rm(profile, { recursive: true, force: true, maxRetries: 5 });
     },
   };
 };

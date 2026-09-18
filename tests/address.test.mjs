@@ -48,6 +48,7 @@ test('every field of the view survives the round trip', () => {
     level: 'engine',
     zoom: 1.25,
     panel: 'node',
+    record: null,
     edge: null,
     open: ['neighbours', 'reading'],
     filters: { zone: 'application', kind: 'component', relation: 'data' },
@@ -78,6 +79,20 @@ test('a relation panel is addressed by the interaction it opened', () => {
   };
   const search = writeAddress('', view, { key: 'first' });
   assert.deepEqual(parseAddress(search, { key: 'first' }), view);
+});
+
+test('a record panel carries its own key independently of the map selection', () => {
+  const view = { ...emptyView, at: 'portal', panel: 'record', record: 'rule' };
+  assert.deepEqual(parseAddress(writeAddress('', view)), view);
+  const project = { records: [{ key: 'rule' }] };
+  assert.deepEqual(
+    checkAddress(view, addressSnapshot(model, graph, project)),
+    [],
+  );
+  assert.deepEqual(
+    checkAddress(view, snapshot).map(({ code, field }) => ({ code, field })),
+    [{ code: 'UNKNOWN_RECORD', field: 'record' }],
+  );
 });
 
 // Two maps on one page are two views. The address holds both, and neither mount

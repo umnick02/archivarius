@@ -84,7 +84,12 @@ export function definitionBasis(model, key) {
 export function movedDefinitions(model, record) {
   const recorded = record?.basis?.definitions;
   if (!recorded || typeof recorded !== 'object') return null;
-  const now = definitionBasis(model, record.key);
+  // A removed run still answers for a failure in history. Read its check against
+  // today's definitions without requiring the receipt to be a current record.
+  const current = model.records.some((r) => r.key === record.key)
+    ? model
+    : { ...model, records: [...model.records, record] };
+  const now = definitionBasis(current, record.key);
   return [...new Set([...Object.keys(recorded), ...Object.keys(now)])]
     .filter((key) => recorded[key] !== now[key])
     .sort();

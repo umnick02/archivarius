@@ -31,12 +31,15 @@ import { observeImports } from './model/imports.mjs';
 import { reconcileArchitecture } from './model/reconcile.mjs';
 import { readSourceModules } from './io/source-files.mjs';
 import { bindingParts, partDigest } from './model/binding.mjs';
+import { assertArchitectureLimits } from './model/parse.mjs';
 
 export async function readArchitectureFile(file) {
   file = await fs.realpath(file);
   const raw = parseJSON(await readFile(file, 'utf8'));
   if (raw?.version === 4)
-    return assertProject(await loadProjectStorage(file, raw));
+    return assertProject(
+      assertArchitectureLimits(await loadProjectStorage(file, raw)),
+    );
   return parseArchitecture(JSON.stringify(raw));
 }
 

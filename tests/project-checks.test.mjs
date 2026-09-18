@@ -15,7 +15,9 @@ import {
   executeProjectCheck,
   verifyProjectFiles,
   updateProjectFile,
+  readArchitectureFile,
 } from '../src/node.mjs';
+import { architectureLimits, parseArchitecture } from '../src/model/parse.mjs';
 import { digest, hashBytes } from '../src/model/digest.mjs';
 import {
   contractDigest,
@@ -23,6 +25,25 @@ import {
   snapshotManifest,
 } from '../src/model/project-digest.mjs';
 import { bind, get, ready, seal } from './project-fixture.mjs';
+
+test('file input and text input enforce the same project record limit', async (t) => {
+  const directory = await fs.mkdtemp(
+    new URL('../.runtime/project-limit-', import.meta.url),
+  );
+  t.after(() => fs.rm(directory, { recursive: true, force: true }));
+  const model = ready();
+  while (model.records.length <= architectureLimits.maxRecords)
+    model.records.push({
+      ...get(model, 'owner-intent'),
+      key: 'source-' + model.records.length,
+    });
+  const text = JSON.stringify(model);
+  const file = path.join(directory, 'project.json');
+  await fs.writeFile(file, text);
+  const expected = { code: 'MODEL_TOO_MANY_RECORDS' };
+  assert.throws(() => parseArchitecture(text), expected);
+  await assert.rejects(readArchitectureFile(file), expected);
+});
 
 test('actual check records bind command, source bytes and outcome; stale and missing evidence cannot confirm', async (t) => {
   const directory = await fs.mkdtemp(

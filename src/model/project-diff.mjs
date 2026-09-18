@@ -4,6 +4,7 @@ import { reviewSelection } from './project-selection.mjs';
 import {
   contractDigest,
   dependencyDigest,
+  movedDefinitions,
   realizationDigest,
   snapshotManifest,
 } from './project-digest.mjs';
@@ -39,6 +40,11 @@ import {
 export function basisReason(model, record, contract = contractDigest(model)) {
   if (!('basis' in record)) return null;
   if (!record.basis) return { code: 'BASIS_MISSING', key: record.key };
+  const definitions = movedDefinitions(model, record);
+  if (definitions)
+    return definitions.length
+      ? { code: 'BASIS_CHANGED', key: record.key, moved: definitions }
+      : null;
   const moved =
     record.type !== 'result' && record.basis.dependencies
       ? record.basis.dependencies !== dependencyDigest(model, record.key)

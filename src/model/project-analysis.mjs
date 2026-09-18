@@ -5,11 +5,7 @@ import {
   recordReferences,
 } from './records.mjs';
 import { assertProject } from './project-contract.mjs';
-import {
-  contractDigest,
-  movedDefinitions,
-  realizationDigest,
-} from './project-digest.mjs';
+import { contractDigest, realizationDigest } from './project-digest.mjs';
 import { claimStanding } from './project-view.mjs';
 import { basisReason } from './project-diff.mjs';
 
@@ -26,30 +22,6 @@ const prerequisiteFields = [
   'then',
   'constraints',
 ];
-
-/**
- * Whether a record still holds its basis, asked as narrowly as the receipt lets
- * it be asked. A receipt that names the definitions it rested on is answered per
- * definition, and it says which ones moved; anything else falls back to the one
- * question the whole snapshot shares.
- *
- * @param {any} model
- * @param {any} record
- * @param {string} contract
- * @returns {{ code: string, key: string, moved?: string[] } | null}
- */
-function scopedBasisReason(model, record, contract) {
-  if (!('basis' in record)) return null;
-  if (!record.basis) return { code: 'BASIS_MISSING', key: record.key };
-  // A result stands on the bytes it ran against and on the definitions it names,
-  // so it is withdrawn by the same proportionate rule as every other record. A
-  // receipt that names no definitions still falls back to the whole contract.
-  const moved = movedDefinitions(model, record);
-  if (!moved) return basisReason(model, record, contract);
-  return moved.length
-    ? { code: 'BASIS_CHANGED', key: record.key, moved }
-    : null;
-}
 
 /**
  * @param {any} model
@@ -76,7 +48,7 @@ export function analyzeProject(model, { verifiedResults = [], now } = {}) {
     );
   for (const record of model.records) {
     const reasons = [],
-      basis = scopedBasisReason(model, record, contract);
+      basis = basisReason(model, record, contract);
     if (basis) reasons.push(basis);
     if (record.type === 'result' && record.realization !== realization)
       reasons.push({ code: 'REALIZATION_CHANGED', key: record.key });
@@ -112,7 +84,7 @@ export function analyzeProject(model, { verifiedResults = [], now } = {}) {
     const current = [...results, ...historicalFailures].filter(
       (r) =>
         r.check === check.key &&
-        r.basis?.contract === contract &&
+        (freshness[r.key]?.current ?? !basisReason(model, r, contract)) &&
         r.realization === realization,
     );
     const resolved = new Set(

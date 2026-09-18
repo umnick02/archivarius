@@ -22,6 +22,7 @@ export const addressFields = Object.freeze([
   'level',
   'zoom',
   'panel',
+  'record',
   'edge',
   'open',
   'zone',
@@ -65,6 +66,7 @@ export const emptyView = Object.freeze({
   level: null,
   zoom: null,
   panel: null,
+  record: null,
   edge: null,
   open: Object.freeze([]),
   filters: Object.freeze({ zone: 'all', kind: 'all', relation: 'all' }),
@@ -116,6 +118,7 @@ export function parseAddress(search, options = {}) {
     level: read('level'),
     zoom: Number.isFinite(zoom) && zoom > 0 ? zoom : null,
     panel: panelKinds.includes(panel) ? panel : null,
+    record: read('record'),
     edge: read('edge'),
     // One order in, one order out: the surfaces are read in the order this module
     // lists them, so two links to the same reading are the same link.
@@ -158,6 +161,7 @@ export function writeAddress(search, view, options = {}) {
     null,
   );
   set('panel', view?.panel, null);
+  set('record', view?.record, null);
   set('edge', view?.edge, null);
   const open = surfaceKinds.filter((name) => view?.open?.includes(name));
   set('open', open.length ? open.join(',') : null, null);
@@ -172,13 +176,15 @@ export function writeAddress(search, view, options = {}) {
  * this module's reading independent of how a model is shaped.
  * @param {{ relations?: { key: string }[] }} model
  * @param {{ nodes: Map<string, unknown> }} graph
+ * @param {{ records: { key: string }[] } | null} [project]
  */
-export function addressSnapshot(model, graph) {
+export function addressSnapshot(model, graph, project = null) {
   return {
     parts: new Set(graph?.nodes?.keys() ?? []),
     relations: new Set(
       (model?.relations ?? []).map((relation) => relation.key),
     ),
+    records: new Set((project?.records ?? []).map((record) => record.key)),
   };
 }
 
@@ -212,6 +218,14 @@ export function checkAddress(view, snapshot) {
       field: 'edge',
       record: view.edge,
       expected: 'The key of an interaction the model declares.',
+    });
+  if (view?.record && !snapshot?.records?.has(view.record))
+    raw.push({
+      code: 'UNKNOWN_RECORD',
+      path: '/record',
+      field: 'record',
+      record: view.record,
+      expected: 'The key of a record the project declares.',
     });
   for (const field of filterFields) {
     const value = view?.filters?.[field] ?? 'all';

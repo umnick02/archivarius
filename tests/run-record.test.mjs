@@ -14,6 +14,7 @@ import {
 } from '../src/model/project-authoring.mjs';
 import { digest, hashBytes } from '../src/model/digest.mjs';
 import { analyzeProject } from '../src/model/project-analysis.mjs';
+import { diffProject } from '../src/model/project-diff.mjs';
 import {
   contractDigest,
   realizationDigest,
@@ -369,4 +370,8 @@ test('verification confirms a receipt an unrelated edit left standing', async (t
   edit(model, unrelated.key, { change: unrelated.change + ' Rewritten.' });
   const after = await verifyProjectEvidence(model, read);
   assert.deepEqual(after.verifiedResults, ['run'], JSON.stringify(after));
+  const analysis = analyzeProject(model, after);
+  assert.equal(analysis.completion['export-check'].implemented, true);
+  assert.equal(analysis.completion['within-limit'].implemented, true);
+  assert(!diffProject(model).readingList.some((item) => item.key === 'run'));
 });
