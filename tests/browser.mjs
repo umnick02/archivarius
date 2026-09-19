@@ -34,6 +34,16 @@ const state = (name = 'first') =>
 const until = waiter(b);
 const settled = settler(b);
 const camera = () => window.consumer.first.snapshot().viewport;
+const centeredCamera = () =>
+  b.evaluate(() => {
+    const viewport = window.consumer.first.snapshot().viewport;
+    const pane = document.querySelector('#first .map-pane');
+    return {
+      x: +(viewport.x - pane.clientWidth / 2).toFixed(6),
+      y: +(viewport.y - pane.clientHeight / 2).toFixed(6),
+      zoom: +viewport.zoom.toFixed(6),
+    };
+  });
 const focus = async (key) => {
   await b.evaluate((key) => window.consumer.first.focus(key), key);
   await settled(camera);
@@ -713,7 +723,7 @@ try {
   await press('Home');
   assert.equal(await spot(), 'node:' + overview[0]);
 
-  // Enter on a container is the keyboard's double-click: it enters the block and
+  // Enter on a container is the keyboard's entry action: it enters the block and
   // leaves the reader standing inside it, on the level that is now current.
   const container = overview.find((key) => nodesByKey.get(key).children);
   for (let i = 0; i < overview.length; i++) {
@@ -784,6 +794,7 @@ try {
     (key) => !window.consumer.first.snapshot().expanded.includes(key),
     container,
   );
+  await until((key) => document.activeElement?.dataset.node === key, container);
   assert.equal(await spot(), 'node:' + container);
   await untilAnnounced(
     format(copy.announcements.level, { level: copy.wholeSystem }),
@@ -811,7 +822,7 @@ try {
   await press('Escape');
   await until(() => window.consumer.first.snapshot().panel === null);
   assert.equal(await spot(), 'relation:' + edge);
-  // Space is the other half of a single click: details without entering.
+  // Space opens details without entering the container.
   await press('Home');
   assert.equal(await spot(), 'node:' + overview[0]);
   await press(' ');
@@ -892,7 +903,82 @@ try {
       });
     await settled(camera);
   };
-  const overviewCamera = (await state()).viewport;
+  // A click is a map destination. Back traverses the same path across the
+  // drawing, a leaf inspector and wheel navigation, including the first entry.
+  const beforeClicks = await state();
+  const browserHistory = await b.evaluate(() => history.length);
+  const back = async () => {
+    await click('#first [data-control=navigation-back]');
+    await settled(camera);
+  };
+  await click('#first [data-node=search]');
+  await settled(camera);
+  const clickedSearch = await state();
+  assert(clickedSearch.viewport.zoom > beforeClicks.viewport.zoom);
+  assert(clickedSearch.expanded.includes('search'));
+  assert.equal(clickedSearch.panel, null);
+  await wheelAt('engine', -40);
+  assert((await state()).expanded.includes('engine'), 'wheel after click');
+  await back();
+  assert.deepEqual((await state()).viewport, clickedSearch.viewport);
+  await click('#first [data-node=engine]');
+  await settled(camera);
+  const clickedEngine = await state();
+  await click('#first [data-node=query]');
+  await settled(camera);
+  const clickedLeaf = await state();
+  assert.equal(clickedLeaf.panel, 'node');
+  assert(clickedLeaf.viewport.zoom > clickedEngine.viewport.zoom);
+  await click('#first [data-node=query]');
+  await settled(camera);
+  await back();
+  assert.deepEqual((await state()).viewport, clickedEngine.viewport);
+  assert.equal((await state()).panel, null, 'repeat click adds no history');
+  await back();
+  assert.deepEqual((await state()).viewport, clickedSearch.viewport);
+  await back();
+  assert.deepEqual((await state()).viewport, beforeClicks.viewport);
+  assert.deepEqual((await state()).expanded, beforeClicks.expanded);
+  assert.equal(await b.evaluate(() => history.length), browserHistory);
+  assert.equal(
+    await b.evaluate(
+      () => !!document.querySelector('#first [data-control=navigation-back]'),
+    ),
+    false,
+    'the initial drawing has no previous destination',
+  );
+  // Cancel a wheel animation with Back. The cancelled camera promise must not
+  // lock all later gestures. Outward input also changes gesture direction.
+  await click('#first [data-node=search]');
+  await settled(camera);
+  const startZoom = (await state()).viewport.zoom;
+  const enginePoint = await b.evaluate(() => {
+    const r = document
+      .querySelector('#first [data-node=engine]')
+      .getBoundingClientRect();
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+  });
+  await b.call('Input.dispatchMouseEvent', {
+    type: 'mouseWheel',
+    ...enginePoint,
+    deltaX: 0,
+    deltaY: -40,
+  });
+  await until(
+    (zoom) => window.consumer.first.snapshot().viewport.zoom > zoom,
+    startZoom,
+  );
+  await back();
+  assert.deepEqual((await state()).viewport, clickedSearch.viewport);
+  await wheelAt('engine', 40);
+  assert.equal(
+    (await state()).viewport.zoom,
+    beforeClicks.viewport.zoom,
+    'zoom survives an interrupted transition',
+  );
+  await b.evaluate(() => window.consumer.first.home());
+  await settled(camera);
+  const overviewCamera = await centeredCamera();
   await wheelAt('search', -40, 8);
   assert(
     (await state()).visible.includes('gateway'),
@@ -912,12 +998,12 @@ try {
   await b.evaluate(() => document.querySelector('#first .map-pane').focus());
   await press('-');
   await settled(camera);
-  assert.deepEqual((await state()).viewport, overviewCamera);
+  assert.deepEqual(await centeredCamera(), overviewCamera);
   await b.evaluate(() => document.querySelector('#first .map-pane').focus());
   await press('-');
   await settled(camera);
   assert.deepEqual(
-    (await state()).viewport,
+    await centeredCamera(),
     overviewCamera,
     'outward zoom stops at home',
   );
@@ -972,7 +1058,7 @@ try {
   assert.deepEqual((await state()).viewport, searchCamera);
   await b.evaluate(() => window.consumer.first.home());
   await settled(camera);
-  await click('#first [data-node=search]', 2);
+  await click('#first [data-node=search]');
   await until(() =>
     window.consumer.first.snapshot().visible.includes('engine'),
   );

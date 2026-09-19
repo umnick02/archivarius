@@ -81,31 +81,102 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     readyCallback = useRef(onReady),
     pane = useRef(null),
     pointer = useRef(null),
-    pendingClick = useRef(null),
     previousExpanded = useRef(new Set()),
     explicitFocus = useRef(null),
     framed = useRef(null),
     atHome = useRef(true),
     fitting = useRef(0);
+  const moving = useRef(null);
+  const settlePane = useCallback(
+    () =>
+      new Promise((resolve) => {
+        let previous,
+          quiet = 0;
+        const measure = () => {
+          const rect = pane.current?.getBoundingClientRect();
+          const next =
+            rect && [rect.x, rect.y, rect.width, rect.height].join(',');
+          quiet = next === previous ? quiet + 1 : 0;
+          previous = next;
+          if (!rect || quiet >= 2) resolve();
+          else requestAnimationFrame(measure);
+        };
+        requestAnimationFrame(measure);
+      }),
+    [],
+  );
+  const cancelCamera = useCallback(() => {
+    moving.current?.resolve(false);
+    moving.current = null;
+  }, []);
+  // React Flow resolves an animated viewport only on its end event. A resize,
+  // pan or newer destination can interrupt it, so cancellation belongs here.
+  const moveCamera = useCallback(
+    (destination, options) => {
+      cancelCamera();
+      return new Promise((resolve) => {
+        moving.current = { resolve, viewport: destination };
+        flow.setViewport(destination, options).then((result) => {
+          if (moving.current?.resolve === resolve) moving.current = null;
+          resolve(result);
+        });
+      });
+    },
+    [flow, cancelCamera],
+  );
   const navigation = usePanelNavigation(
     root,
     project && !graph.nodes.size ? { type: 'project' } : null,
     () => ({
-      viewport: flow.getViewport(),
+      viewport: moving.current?.viewport ?? flow.getViewport(),
       selected,
       focus,
       atHome: atHome.current,
       framed: framed.current,
       contextEnabled,
+      filters,
+      layer,
+      mobileMap,
+      expanded: [
+        ...expandedAt(
+          layout,
+          moving.current?.viewport.zoom ?? flow.getViewport().zoom,
+          {
+            width: pane.current.clientWidth,
+            height: pane.current.clientHeight,
+          },
+          previousExpanded.current,
+        ),
+      ],
+      size: {
+        width: pane.current.clientWidth,
+        height: pane.current.clientHeight,
+      },
     }),
-    (scene) => {
+    async (scene) => {
+      const ticket = ++fitting.current;
+      cancelCamera();
       setSelected(scene.selected);
       setFocus(scene.focus);
       explicitFocus.current = scene.focus;
       atHome.current = scene.atHome;
       framed.current = scene.framed;
       setContextEnabled(scene.contextEnabled);
-      flow.setViewport(scene.viewport);
+      setFilters(scene.filters);
+      setLayer(scene.layer);
+      setMobileMap(scene.mobileMap);
+      // Restoring a panel changes the available drawing area. Let that resize
+      // land before restoring the camera, otherwise its observer moves it again.
+      await settlePane();
+      if (ticket !== fitting.current || !pane.current) return false;
+      previousExpanded.current = new Set(scene.expanded);
+      await moveCamera({
+        ...scene.viewport,
+        x: scene.viewport.x + (pane.current.clientWidth - scene.size.width) / 2,
+        y:
+          scene.viewport.y +
+          (pane.current.clientHeight - scene.size.height) / 2,
+      });
     },
   );
   const {
@@ -113,12 +184,18 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     open: openPanel,
     close: closePanel,
     reset: resetPanel,
+    checkpoint,
   } = navigation;
+  const panelRef = useRef(panel);
+  panelRef.current = panel;
   const workspace =
     !!project &&
     (panel?.type === 'project' ||
       (panel?.type === 'record' && panel.workspace !== 'map'));
-  useEffect(() => setMobileMap(false), [panel?.entryId]);
+  useEffect(
+    () => setMobileMap(panel?.scene?.mobileMap ?? false),
+    [panel?.entryId, panel?.scene?.mobileMap],
+  );
   useEffect(() => {
     if (mobileMap) pane.current?.focus({ preventScroll: true });
   }, [mobileMap]);
@@ -135,15 +212,12 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     previousExpanded.current = next;
     return next;
   }, [layout, viewport.zoom, size]);
-  const clearClick = useCallback(() => {
-    clearTimeout(pendingClick.current);
-  }, []);
   useEffect(
     () => () => {
-      clearClick();
       fitting.current++;
+      cancelCamera();
     },
-    [clearClick],
+    [cancelCamera],
   );
   const nodeCamera = useCallback(
     (key, frameLeaf = false) => {
@@ -189,71 +263,111 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     [layout, graph, maxZoom],
   );
   const fitNode = useCallback(
-    async (key, keepPanel = false, frameLeaf = false) => {
-      clearClick();
+    async (key, keepPanel = false, frameLeaf = false, remember = true) => {
       if (!graph.nodes.has(key)) throw new Error('UNKNOWN_NODE:' + key);
       // A workspace replaces the drawing. Reveal its destination directly; an
       // animation from an invisible camera can be interrupted by the pane resize.
       const animate = getComputedStyle(pane.current).visibility !== 'hidden';
       const leaf = !graph.nodes.get(key).children;
+      const current = flow.getViewport();
+      const destination = nodeCamera(key, frameLeaf);
+      const heldPanel = panelRef.current;
+      const samePanel =
+        keepPanel ||
+        (leaf
+          ? heldPanel?.type === 'node' && heldPanel.key === key
+          : !heldPanel);
+      if (
+        samePanel &&
+        selectedRef.current === key &&
+        framed.current === destination.key &&
+        Object.keys(current).every(
+          (field) =>
+            Math.abs(current[field] - destination.viewport[field]) < 0.001,
+        )
+      )
+        return false;
+      if (remember) checkpoint();
       const ticket = ++fitting.current;
+      cancelCamera();
       atHome.current = false;
       setContextEnabled(true);
-      if (!keepPanel) leaf ? openPanel({ type: 'node', key }) : closePanel();
+      if (!keepPanel)
+        leaf ? openPanel({ type: 'node', key }, false) : closePanel();
       setSelected(key);
       explicitFocus.current = key;
       setFocus(key);
-      await new Promise((resolve) =>
-        requestAnimationFrame(() => requestAnimationFrame(resolve)),
-      );
-      if (ticket !== fitting.current) return false;
+      await settlePane();
+      if (ticket !== fitting.current || !pane.current) return false;
       const camera = nodeCamera(key, frameLeaf);
       framed.current = camera.key;
-      return flow.setViewport(camera.viewport, {
+      return moveCamera(camera.viewport, {
         duration: animate ? duration() : 0,
       });
     },
-    [flow, graph, nodeCamera, clearClick, openPanel, closePanel],
+    [
+      flow,
+      graph,
+      nodeCamera,
+      checkpoint,
+      openPanel,
+      closePanel,
+      moveCamera,
+      cancelCamera,
+      settlePane,
+    ],
   );
-  const home = useCallback(async () => {
-    clearClick();
-    const ticket = ++fitting.current;
-    atHome.current = true;
-    framed.current = null;
-    resetPanel(project && !graph.nodes.size ? { type: 'project' } : null);
-    setSelected(null);
-    setContextEnabled(true);
-    explicitFocus.current = null;
-    pointer.current = null;
-    setFocus(null);
-    await new Promise((resolve) =>
-      requestAnimationFrame(() => requestAnimationFrame(resolve)),
-    );
-    if (ticket !== fitting.current) return false;
-    const size = {
-      width: pane.current.clientWidth,
-      height: pane.current.clientHeight,
-    };
-    return flow.setViewport(fitToFrame(size, layout.bounds), {
-      duration: duration(),
-    });
-  }, [flow, layout, clearClick, project, graph, resetPanel]);
+  const home = useCallback(
+    async (remember = false) => {
+      if (remember) checkpoint();
+      const ticket = ++fitting.current;
+      cancelCamera();
+      atHome.current = true;
+      framed.current = null;
+      if (remember) closePanel();
+      else
+        resetPanel(project && !graph.nodes.size ? { type: 'project' } : null);
+      setSelected(null);
+      setContextEnabled(true);
+      explicitFocus.current = null;
+      pointer.current = null;
+      setFocus(null);
+      await settlePane();
+      if (ticket !== fitting.current || !pane.current) return false;
+      const size = {
+        width: pane.current.clientWidth,
+        height: pane.current.clientHeight,
+      };
+      return moveCamera(fitToFrame(size, layout.bounds), {
+        duration: duration(),
+      });
+    },
+    [
+      layout,
+      project,
+      graph,
+      resetPanel,
+      checkpoint,
+      closePanel,
+      moveCamera,
+      cancelCamera,
+      settlePane,
+    ],
+  );
   const showNode = useCallback(
     (key) => {
-      clearClick();
       openPanel({ type: 'node', key });
       setSelected(key);
       setContextEnabled(true);
     },
-    [clearClick, openPanel],
+    [openPanel],
   );
   const showRelation = useCallback(
     (bundle) => {
-      clearClick();
       openPanel({ type: 'relation', bundle });
       setSelected(null);
     },
-    [clearClick, openPanel],
+    [openPanel],
   );
   const toggleSurface = useCallback(
     (name, open) =>
@@ -268,7 +382,6 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
   );
   const showRecord = useCallback(
     (key, anchor) => {
-      clearClick();
       openPanel({
         anchor,
         type: 'record',
@@ -283,12 +396,12 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         setContextEnabled(true);
       }
     },
-    [clearClick, openPanel, graph, project],
+    [openPanel, graph, project],
   );
   const showOnMap = useCallback(
     async (key) => {
       openPanel({ type: 'node', key });
-      await fitNode(key, true);
+      await fitNode(key, true, false, false);
       setMobileMap(true);
       pane.current?.focus({ preventScroll: true });
     },
@@ -336,7 +449,6 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
   }, [graph, focus, expanded]);
   const changeZoom = useCallback(
     (direction, screen) => {
-      clearClick();
       const rect = pane.current.getBoundingClientRect();
       const frame = paneFrame(size);
       const point = flow.screenToFlowPosition(
@@ -360,7 +472,7 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         preferred,
       });
       if (target === framed.current) {
-        if (direction < 0 && !atHome.current) return home();
+        if (direction < 0 && !atHome.current) return home(true);
         return Promise.resolve(false);
       }
       // A container may already fill the frame (especially a single-root map).
@@ -386,25 +498,15 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         }
         target = next;
       }
-      return target ? fitNode(target, true, true) : home();
+      return target ? fitNode(target, true, true) : home(true);
     },
-    [
-      clearClick,
-      size,
-      flow,
-      nodes,
-      layout,
-      selected,
-      nodeCamera,
-      fitNode,
-      home,
-    ],
+    [size, flow, nodes, layout, selected, nodeCamera, fitNode, home],
   );
   useZoomGesture(pane, changeZoom);
   const up = useCallback(() => {
     const key = framed.current || path.at(-1),
       parent = key && graph.parents.get(key);
-    parent ? fitNode(parent) : home();
+    parent ? fitNode(parent) : home(true);
   }, [graph, path, fitNode, home]);
   const firstInside = useCallback(
     (key) =>
@@ -441,11 +543,17 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     wanted.current = null;
     seeking.focus({ preventScroll: true });
   }, [anchor, item, nodes, edges, panel]);
-  const seek = useCallback((type, id) => {
-    if (!id) return;
-    wanted.current = { type, id };
-    setCursor(id);
-  }, []);
+  const seek = useCallback(
+    (type, id) => {
+      if (!id) return;
+      const target = { type, id };
+      const element = item(target);
+      wanted.current = element ? null : target;
+      setCursor(id);
+      element?.focus({ preventScroll: true });
+    },
+    [item],
+  );
   const step = useCallback(
     (from, delta) => {
       const index = ring.findIndex((entry) => entry.id === from);
@@ -455,25 +563,26 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     },
     [ring, seek],
   );
-  // Enter is the keyboard's double-click and Space its single click, so a block
-  // with an inside is entered — leaving the reader on its first part — and any
-  // other item explains itself.
+  // Enter frames a part, leaving the reader inside a container; Space reads its
+  // details without moving the drawing.
   const act = useCallback(
-    (target, enter) => {
+    async (target, enter) => {
       if (target.type === 'relation') return showRelation(target.bundle);
       if (enter && graph.nodes.get(target.id).children) {
+        await fitNode(target.id);
         seek('node', firstInside(target.id));
-        return fitNode(target.id);
+        return;
       }
+      if (enter) return fitNode(target.id, false, true);
       return showNode(target.id);
     },
     [graph, fitNode, showNode, showRelation, seek, firstInside],
   );
-  const leave = useCallback(() => {
+  const leave = useCallback(async () => {
     if (!level) return up();
-    seek('node', level);
     const parent = graph.parents.get(level);
-    return parent ? fitNode(parent) : home();
+    await (parent ? fitNode(parent) : home(true));
+    seek('node', level);
   }, [level, graph, fitNode, home, up, seek]);
 
   useEffect(() => {
@@ -491,7 +600,17 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
           y: current.y + (next.height - previous.height) / 2,
         };
         const selectedBox = layout.nodes[selectedRef.current];
-        if (atHome.current) {
+        if (moving.current) {
+          // A newly visible Back button or inspector can resize the pane after
+          // framing starts. Finish at the requested destination in the new area,
+          // never at the animation's intermediate position.
+          Object.assign(
+            adjusted,
+            framed.current
+              ? nodeCamera(framed.current, true).viewport
+              : fitToFrame(next, layout.bounds),
+          );
+        } else if (atHome.current) {
           Object.assign(adjusted, fitToFrame(next, layout.bounds));
         } else if (selectedBox && next.width < previous.width) {
           const left = selectedBox.x * current.zoom + adjusted.x;
@@ -505,14 +624,14 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
                   ? next.width - 24 - left - width
                   : 0;
         }
-        flow.setViewport(adjusted);
+        moveCamera(adjusted);
       }
       previous = next;
       setSize(next);
     });
     observer.observe(pane.current);
     return () => observer.disconnect();
-  }, [flow, layout]);
+  }, [flow, layout, moveCamera, nodeCamera]);
   // The header wraps its controls when a width cannot hold them in one row, so
   // its height is a measurement rather than a constant. The pane and every
   // overlay positioned under the header read this variable, so a control pushed
@@ -750,14 +869,14 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     setFilters(view.filters);
     setSurfaces(view.open);
     const stand = view.at ?? view.level;
-    if (stand) await fitNode(stand, view.panel !== 'node');
+    if (stand) await fitNode(stand, view.panel !== 'node', false, false);
     if (view.zoom) {
       if (
         stand &&
         !graph.nodes.get(stand).children &&
         view.zoom > flow.getViewport().zoom * 1.05
       )
-        framed.current = stand;
+        await fitNode(stand, true, true, false);
       if (view.zoom > fitToFrame(size, layout.bounds).zoom * 1.05)
         atHome.current = false;
       flow.zoomTo(view.zoom, { duration: 0 });
@@ -785,6 +904,9 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         query: view.query || '',
         filter: view.recordType || 'all',
       });
+    // A shared address is the initial destination, not a sequence the reader
+    // visited. Its setup must not manufacture a Back step.
+    resetPanel();
   };
   const api = useMemo(
     () => ({
@@ -873,6 +995,7 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         filters={filters}
         setFilters={setFilters}
         panel={panel}
+        navigation={navigation}
         workspace={workspace}
         replacePanel={navigation.replace}
         optionsOpen={surfaces.includes('options')}
@@ -880,7 +1003,6 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         mobileMap={mobileMap}
         setMobileMap={setMobileMap}
         pane={pane}
-        clearClick={clearClick}
         openPanel={openPanel}
         closePanel={closePanel}
         contextActive={!!activeKey}
@@ -932,22 +1054,30 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
           preventScrolling
           onInit={() => setFlowReady(true)}
           onMoveStart={(event) => {
-            clearClick();
             if (event) {
+              cancelCamera();
               explicitFocus.current = null;
               atHome.current = false;
             }
           }}
           onPaneClick={() => {
-            clearClick();
             setSelected(null);
             setContextEnabled(false);
           }}
-          onNodeClick={(_, n) => {
-            clearClick();
-            pendingClick.current = setTimeout(() => showNode(n.id), 320);
+          onNodeClick={async (event, n) => {
+            if (event.detail >= 2) return;
+            const move = fitNode(n.id, false, true);
+            const ticket = fitting.current;
+            await move;
+            const held = panelRef.current;
+            if (
+              ticket === fitting.current &&
+              root.current?.clientWidth <= 780 &&
+              selectedRef.current === n.id &&
+              (!held || (held.type === 'node' && held.key === n.id))
+            )
+              setMobileMap(true);
           }}
-          onNodeDoubleClick={(_, n) => fitNode(n.id)}
           onEdgeClick={(_, e) => showRelation(e.data.bundle)}
           attributionPosition="bottom-left"
         >

@@ -59,15 +59,6 @@ export function Inspector({
       hidden={hidden}
     >
       <nav className="inspector-navigation" aria-label={copy.inspectorLabel}>
-        {navigation.canBack && (
-          <button
-            className="quiet"
-            data-control="record-back"
-            onClick={navigation.back}
-          >
-            ← {projectCopy.navigationBack}
-          </button>
-        )}
         {project && panel.type !== 'project' && (
           <button
             className="quiet"

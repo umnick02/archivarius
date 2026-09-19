@@ -21,16 +21,26 @@ export function usePanelNavigation(root, initial, readScene, restoreScene) {
   const capture = useCallback(() => {
     const element = root.current?.querySelector('[data-control="inspector"]');
     return {
-      ...current.current,
-      scroll: element?.scrollTop || 0,
-      disclosures: [
-        ...(element?.querySelectorAll('details[open][data-disclosure]') || []),
-      ].map((e) => e.dataset.disclosure),
+      panel: current.current && {
+        ...current.current,
+        scroll: element?.scrollTop || 0,
+        disclosures: [
+          ...(element?.querySelectorAll('details[open][data-disclosure]') ||
+            []),
+        ].map((e) => e.dataset.disclosure),
+      },
       scene: callbacks.current.readScene(),
+      focus: document.activeElement,
     };
   }, [root]);
+  // Map destinations and inspector destinations share the same history. A
+  // drawing without an open panel is a destination too.
+  const checkpoint = useCallback(() => {
+    stack.current.push(capture());
+    setDepth(stack.current.length);
+  }, [capture]);
   const open = useCallback(
-    (next) => {
+    (next, remember = true) => {
       const workspace =
         next.type === 'record'
           ? next.workspace ||
@@ -38,24 +48,31 @@ export function usePanelNavigation(root, initial, readScene, restoreScene) {
             current.current?.workspace ||
             'map'
           : undefined;
-      if (current.current) stack.current.push(capture());
-      else returnFocus.current = document.activeElement;
+      if (remember) checkpoint();
+      if (!current.current) returnFocus.current = document.activeElement;
       commit({ ...next, workspace, scroll: 0, entryId: ++sequence.current });
     },
-    [capture, commit],
+    [checkpoint, commit],
   );
   const replace = useCallback(
     (patch) => commit({ ...current.current, ...patch }),
     [commit],
   );
-  const back = useCallback(() => {
+  const back = useCallback(async () => {
     const previous = stack.current.pop();
     if (!previous) return;
-    callbacks.current.restoreScene(previous.scene);
-    commit(previous);
-  }, [commit]);
+    commit(previous.panel && { ...previous.panel, scene: previous.scene });
+    await callbacks.current.restoreScene(previous.scene);
+    (previous.focus?.isConnected
+      ? previous.focus
+      : root.current?.querySelector(
+          previous.panel && !previous.scene.mobileMap
+            ? '[data-control="inspector"]'
+            : '.map-pane',
+        )
+    )?.focus({ preventScroll: true });
+  }, [commit, root]);
   const close = useCallback(() => {
-    stack.current = [];
     commit(null);
     const target = returnFocus.current;
     queueMicrotask(() =>
@@ -65,7 +82,7 @@ export function usePanelNavigation(root, initial, readScene, restoreScene) {
     );
   }, [commit, root]);
   const reset = useCallback(
-    (next = null) => {
+    (next = current.current) => {
       stack.current = [];
       commit(next && { ...next, entryId: ++sequence.current });
     },
@@ -78,6 +95,7 @@ export function usePanelNavigation(root, initial, readScene, restoreScene) {
     back,
     close,
     reset,
+    checkpoint,
     canBack: depth > 0,
   };
 }

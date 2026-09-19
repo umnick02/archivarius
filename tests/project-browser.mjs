@@ -28,6 +28,16 @@ const evidenceDirectory = new URL(
 const click = clicker(b);
 const until = waiter(b);
 const settled = settler(b);
+const centeredCamera = () =>
+  b.evaluate(() => {
+    const viewport = window.consumer.first.snapshot().viewport;
+    const pane = document.querySelector('#first .map-pane');
+    return {
+      x: +(viewport.x - pane.clientWidth / 2).toFixed(6),
+      y: +(viewport.y - pane.clientHeight / 2).toFixed(6),
+      zoom: +viewport.zoom.toFixed(6),
+    };
+  });
 const zoomKey = async (key) => {
   await b.evaluate(() => document.querySelector('#first .map-pane').focus());
   for (const type of ['keyDown', 'keyUp'])
@@ -94,6 +104,7 @@ try {
     const overview = await b.evaluate(
       () => window.consumer.first.snapshot().viewport,
     );
+    const overviewFrame = await centeredCamera();
     const wheel = async (deltaY) => {
       const point = await b.evaluate(() => {
         const r = document
@@ -160,19 +171,56 @@ try {
     );
     await wheel(100);
     assert.deepEqual(
-      await b.evaluate(() => window.consumer.first.snapshot().viewport),
-      overview,
+      await centeredCamera(),
+      overviewFrame,
       'one outward gesture returns to the overview',
     );
     await wheel(100);
     await zoomKey('-');
     await settled(() => window.consumer.first.snapshot().viewport);
     assert.deepEqual(
-      await b.evaluate(() => window.consumer.first.snapshot().viewport),
-      overview,
+      await centeredCamera(),
+      overviewFrame,
       'zoom out must stop at the overview',
     );
     await facts();
+    await b.evaluate(() => window.consumer.first.home());
+    await settled(() => window.consumer.first.snapshot().viewport);
+    const beforeClick = await b.evaluate(() =>
+      window.consumer.first.snapshot(),
+    );
+    await click('#first [data-node=screen]');
+    await settled(() => window.consumer.first.snapshot().viewport);
+    if (width < 500) {
+      await until(
+        () =>
+          document
+            .querySelector('#first [data-control=mobile-map]')
+            .getAttribute('aria-pressed') === 'true',
+      );
+      assert.equal(
+        await b.evaluate(
+          () =>
+            getComputedStyle(document.querySelector('#first .map-pane'))
+              .visibility,
+        ),
+        'visible',
+      );
+    }
+    assert.equal(
+      await b.evaluate(() => window.consumer.first.snapshot().panel),
+      'node',
+    );
+    await click('#first [data-control=navigation-back]');
+    await settled(() => window.consumer.first.snapshot().viewport);
+    const returned = await b.evaluate(() => window.consumer.first.snapshot());
+    assert.deepEqual(
+      returned.viewport,
+      beforeClick.viewport,
+      'Back restores the frame at every screen and text size',
+    );
+    assert.deepEqual(returned.expanded, beforeClick.expanded);
+    assert.equal(returned.panel, null);
   }
   await b.call('Emulation.setDeviceMetricsOverride', {
     width: 1440,
@@ -223,7 +271,7 @@ try {
     ),
     'visible',
   );
-  await click('#first [data-control=record-back]');
+  await click('#first [data-control=navigation-back]');
   assert(
     await b.evaluate(
       () => !!document.querySelector('#first [data-node-facts=writer]'),
@@ -283,7 +331,7 @@ try {
       )
     ).includes(copy.reasonsByCode.REQUIREMENT_UNMAPPED),
   );
-  await click('#first [data-control=record-back]');
+  await click('#first [data-control=navigation-back]');
   assert.equal(
     await b.evaluate(
       () => document.querySelector('#first [data-control=record-type]').value,
@@ -311,7 +359,7 @@ try {
       );
   });
   assert(order[0] < order[1] && order[1] < order[2]);
-  await click('#first [data-control=record-back]');
+  await click('#first [data-control=navigation-back]');
   assert.equal(
     await b.evaluate(
       () =>
@@ -530,6 +578,9 @@ try {
             record: container.querySelector('[data-record-title]')?.dataset
               .recordTitle,
             selected: search.get(name + '.at'),
+            canBack: !!container.querySelector(
+              '[data-control=navigation-back]',
+            ),
             errors: container.querySelector('[role=alert]')?.textContent,
           };
         } finally {
@@ -543,6 +594,11 @@ try {
     assert.equal(restored.record, key, JSON.stringify(restored));
     assert.equal(restored.selected, 'writer');
     assert.equal(restored.errors, undefined);
+    assert.equal(
+      restored.canBack,
+      false,
+      'restoring an address creates no navigation history',
+    );
   }
 
   const restoredWorkspace = await b.evaluate(async (model) => {
@@ -634,7 +690,7 @@ try {
   );
   await click('#first [data-record=row-limit]');
   await b.capture('project-requirement-desktop');
-  await click('#first [data-control=record-back]');
+  await click('#first [data-control=navigation-back]');
   assert.equal(
     await b.evaluate(
       () => document.querySelector('#first [data-control=record-search]').value,
@@ -662,7 +718,7 @@ try {
   );
   assert(scrollBefore > 0);
   await click('#first [data-record=implement-export]');
-  await click('#first [data-control=record-back]');
+  await click('#first [data-control=navigation-back]');
   assert.equal(
     await b.evaluate(
       () => document.querySelector('#first [data-control=inspector]').scrollTop,
@@ -785,7 +841,7 @@ try {
           )
         ).endsWith(record(edge.contract).payload),
       );
-      await click('#first [data-control=record-back]');
+      await click('#first [data-control=navigation-back]');
       assert(
         await b.evaluate(
           (selector) =>
@@ -937,7 +993,7 @@ try {
         ),
         confirmed.records.find((record) => record.key === 'within-limit').title,
       );
-      await click('#first [data-control=record-back]');
+      await click('#first [data-control=navigation-back]');
       assert(
         await b.evaluate(
           () =>
@@ -1042,7 +1098,7 @@ try {
     'within-limit',
   );
   await b.capture('consumer-structured-documents');
-  await click('#first [data-control=record-back]');
+  await click('#first [data-control=navigation-back]');
   assert(
     await b.evaluate(() => {
       const doc = document.querySelector('#first .project-document');
@@ -1082,7 +1138,7 @@ try {
     ),
     'doc-routing',
   );
-  await click('#first [data-control=record-back]');
+  await click('#first [data-control=navigation-back]');
   assert.equal(
     await b.evaluate(
       () =>

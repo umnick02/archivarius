@@ -11,11 +11,11 @@ export function MapHeader({
   filters,
   setFilters,
   panel,
+  navigation,
   workspace,
   mobileMap,
   setMobileMap,
   pane,
-  clearClick,
   openPanel,
   replacePanel,
   closePanel,
@@ -46,6 +46,15 @@ export function MapHeader({
     <>
       <header>
         <div className="identity">
+          {navigation.canBack && (
+            <button
+              className="quiet"
+              data-control="navigation-back"
+              onClick={navigation.back}
+            >
+              ← {projectCopy.navigationBack}
+            </button>
+          )}
           <div className="logo">↗</div>
           <div>
             <div className="brand">
@@ -65,7 +74,6 @@ export function MapHeader({
                 data-workspace-view="map"
                 aria-current={active === 'map' ? 'page' : undefined}
                 onClick={() => {
-                  clearClick();
                   closePanel();
                 }}
               >
@@ -76,7 +84,6 @@ export function MapHeader({
                 data-control="project"
                 aria-current={workspace ? 'page' : undefined}
                 onClick={() => {
-                  clearClick();
                   openPanel({ type: 'project', view: 'overview' });
                 }}
               >
@@ -92,7 +99,6 @@ export function MapHeader({
               placeholder={projectCopy.search}
               value={panel?.type === 'project' ? panel.query || '' : ''}
               onChange={(e) => {
-                clearClick();
                 const next = {
                   type: 'project',
                   view: 'all',
@@ -120,7 +126,6 @@ export function MapHeader({
                   }
                   value={query}
                   onChange={(e) => {
-                    clearClick();
                     setQuery(e.target.value);
                     setHighlighted('');
                   }}
@@ -182,7 +187,6 @@ export function MapHeader({
                   aria-label={copy.layerLabel}
                   value={layer}
                   onChange={(e) => {
-                    clearClick();
                     setLayer(e.target.value);
                     closePanel();
                   }}
@@ -198,7 +202,6 @@ export function MapHeader({
                 <Filters
                   filters={filters}
                   setFilter={(field, value) => {
-                    clearClick();
                     setFilters({ ...filters, [field]: value });
                   }}
                 />
@@ -207,7 +210,6 @@ export function MapHeader({
                 className="quiet"
                 data-control="contracts"
                 onClick={() => {
-                  clearClick();
                   toggleOptions(false);
                   openPanel({ type: 'contracts' });
                 }}

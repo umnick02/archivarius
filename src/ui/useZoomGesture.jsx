@@ -11,14 +11,11 @@ export function useZoomGesture(pane, changeZoom) {
     const element = pane.current;
     let lastWheel = -Infinity,
       lastDirection = 0,
-      busy = false,
       pinch = null;
     const move = (direction, point) => {
-      if (busy) return;
-      busy = true;
-      Promise.resolve(action.current(direction, point)).finally(() => {
-        busy = false;
-      });
+      // Gesture boundaries limit input. A camera animation can be interrupted
+      // by a click, pan or resize, so its promise must never lock future input.
+      action.current(direction, point);
     };
     const wheel = (event) => {
       if (!event.target.closest('.react-flow') || !event.deltaY) return;
