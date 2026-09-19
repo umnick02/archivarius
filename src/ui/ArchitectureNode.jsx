@@ -57,16 +57,12 @@ export function ArchitectureNode({ data }) {
     borderWidth: highlighted ? 2 : 1,
     borderRadius: shapeRadii[look.shape](w, h),
   };
-  const labelled = mounted && !expanded && w > 180 && h > 125;
   const enterable = mounted && !expanded && item.children && w > 120 && h > 80;
+  const largeTitle = w > 180;
   const confirmationMark = (
-    <span
-      className="node-implementation"
-      data-labelled={String(labelled)}
-      title={confirmation}
-    >
+    <span className="node-implementation" title={confirmation}>
       <ImplementationMark state={state} />
-      {labelled && <span>{copy.mapImplementation[state]}</span>}
+      <span>{copy.mapImplementation[state]}</span>
     </span>
   );
   // Focusable from the first paint; which item of the level carries the map's one
@@ -91,7 +87,7 @@ export function ArchitectureNode({ data }) {
         data-incoming={interfaces.incoming.length}
         data-outgoing={interfaces.outgoing.length}
         data-enterable={String(!!enterable)}
-        data-labelled={String(labelled)}
+        data-large-title={String(largeTitle)}
         role="button"
         tabIndex={-1}
         aria-expanded={item.children ? String(expanded) : undefined}
@@ -120,7 +116,7 @@ export function ArchitectureNode({ data }) {
           (item.children ? copy.expandAction : copy.explainAction)
         }
       >
-        {!labelled && confirmationMark}
+        {(!mounted || expanded) && confirmationMark}
         {!mounted ? null : expanded ? (
           <div
             className="expanded-heading"
@@ -133,78 +129,29 @@ export function ArchitectureNode({ data }) {
             }}
           >
             <h2 title={item.title}>{item.title}</h2>
-            {summary && w > 450 && h > 400 ? (
-              <ProjectSignals summary={summary} compact />
-            ) : (
-              !summary && h > 430 && w > 650 && <p>{item.summary}</p>
-            )}
           </div>
         ) : (
           <div className="card-copy" data-project-card={String(!!summary)}>
-            {w > 230 && h > 210 && (
+            <h2 title={item.title}>{item.title}</h2>
+            {confirmationMark}
+            <div className="node-details">
               <div className="eyebrow">
                 {copy.nodeKinds[item.kind]} ·{' '}
                 <span className="node-zone">{copy.zones[item.zone]}</span>
               </div>
-            )}
-            <h2 title={item.title}>{item.title}</h2>
-            {labelled && confirmationMark}
-            {summary && w > 180 && h > 125 && (
-              <ProjectSignals summary={summary} compact />
-            )}
-            {!summary && w > 180 && h > 190 && (
-              <p
-                className="node-summary"
-                style={{ WebkitLineClamp: h > 210 ? 3 : 2 }}
-              >
-                {item.summary}
-              </p>
-            )}
-            {!summary && w > 460 && h > 330 && !item.children && (
-              <div className="card-interfaces">
-                {interfaces.incoming.length > 0 && (
-                  <p>
-                    <b>{copy.receives}: </b>
-                    {interfaces.incoming
-                      .slice(0, 2)
-                      .map((r) => r.label)
-                      .join('; ')}
-                  </p>
-                )}
-                {interfaces.outgoing.length > 0 && (
-                  <p>
-                    <b>{copy.sends}: </b>
-                    {interfaces.outgoing
-                      .slice(0, 2)
-                      .map((r) => r.label)
-                      .join('; ')}
-                  </p>
-                )}
-                <p className="card-rules">
-                  {item.rules.map((rule) => rule.title).join(' · ')}
-                </p>
-              </div>
-            )}
-            {!item.children && w > 180 && h > (summary ? 180 : 115) && (
-              <div className="node-footer">
-                <span className="connection-counts">
-                  {format(copy.inputCount, {
-                    count: interfaces.incoming.length,
-                  })}{' '}
-                  ·{' '}
-                  {format(copy.outputCount, {
-                    count: interfaces.outgoing.length,
-                  })}
-                </span>
-              </div>
-            )}
+              {summary ? (
+                <ProjectSignals summary={summary} />
+              ) : (
+                <p className="node-summary">{item.summary}</p>
+              )}
+            </div>
           </div>
         )}
       </div>
       {enterable && (
         <div
           className="node-actions"
-          data-labelled={String(labelled)}
+          data-large-title={String(largeTitle)}
           style={{
             width: w,
             height: h,

@@ -4,12 +4,12 @@ import { currentRecord } from '../model/project-view.mjs';
 
 // The same factual summary on a card and beside the drawing. The bar measures
 // confirmed criteria, never a guessed implementation percentage.
-export function ProjectSignals({ summary, compact = false }) {
+export function ProjectSignals({ summary }) {
   const { copy, projectCopy } = useArchitecture();
   const diagram = projectCopy.diagram;
   const issue = summary.issues[0];
   return (
-    <div className="project-signals" data-compact={String(compact)}>
+    <div className="project-signals">
       <div className="criteria-meter" title={diagram.criteria}>
         <span>{diagram.criteria}</span>
         <strong>

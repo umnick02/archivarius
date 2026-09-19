@@ -63,6 +63,97 @@ try {
   });
   await until(() => document.querySelector('#first').clientWidth > 1000);
   await settled(() => window.consumer.first.snapshot().viewport);
+  // A wheel sweep must reveal one complete set of card facts, not a sequence
+  // of meter-only, status-only and half-populated cards. Repeat with less room
+  // and larger text, and observe what is actually painted rather than the DOM.
+  for (const [width, height, font] of [
+    [1440, 1000, 16],
+    [390, 844, 16],
+    [1440, 1000, 32],
+  ]) {
+    await b.call('Emulation.setDeviceMetricsOverride', {
+      width,
+      height,
+      deviceScaleFactor: 1,
+      mobile: width < 500,
+    });
+    await b.evaluate(async (font) => {
+      document.documentElement.style.fontSize = font + 'px';
+      await window.consumer.first.home();
+    }, font);
+    await settled(() => window.consumer.first.snapshot().viewport);
+    const point = await b.evaluate(() => {
+      const r = document
+        .querySelector('#first [data-node=screen]')
+        .getBoundingClientRect();
+      return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+    });
+    const wheel = async (deltaY) => {
+      await b.call('Input.dispatchMouseEvent', {
+        type: 'mouseWheel',
+        ...point,
+        deltaX: 0,
+        deltaY,
+      });
+      await settled(() => window.consumer.first.snapshot().viewport);
+    };
+    for (let step = 0; step < 5; step++) await wheel(100);
+    for (const delta of [-100, 100]) {
+      const seen = new Set();
+      for (let step = 0; step < 24; step++) {
+        const picture = await b.evaluate(() => {
+          const card = document.querySelector('#first [data-node=screen]');
+          const visible = (element) =>
+            !!element?.getBoundingClientRect().width &&
+            !!element?.getBoundingClientRect().height;
+          const selectors = [
+            '.eyebrow',
+            '.node-implementation > span',
+            'meter',
+            '.signal-badges',
+          ];
+          return {
+            facts: selectors.map((selector) =>
+              visible(card.querySelector(selector)),
+            ),
+            parentFacts: [
+              ...document.querySelectorAll(
+                '#first .node-card.expanded .project-signals',
+              ),
+            ].length,
+          };
+        });
+        const count = picture.facts.filter(Boolean).length;
+        assert(
+          count === 0 || count === 4,
+          'partial card during zoom: ' +
+            JSON.stringify({ width, font, delta, step, picture }),
+        );
+        assert.equal(
+          picture.parentFacts,
+          0,
+          'expanded containers repeat their child facts',
+        );
+        seen.add(count);
+        await wheel(delta);
+      }
+      assert.deepEqual(
+        [...seen].sort(),
+        [0, 4],
+        'the sweep must exercise both card views: ' +
+          JSON.stringify({ width, font, delta }),
+      );
+    }
+  }
+  await b.call('Emulation.setDeviceMetricsOverride', {
+    width: 1440,
+    height: 1000,
+    deviceScaleFactor: 1,
+    mobile: false,
+  });
+  await b.evaluate(() => {
+    document.documentElement.style.fontSize = '';
+  });
   await b.evaluate(() => window.consumer.first.focus('writer'));
   await settled(() => window.consumer.first.snapshot().viewport);
   assert(
@@ -71,18 +162,15 @@ try {
     ),
   );
   const signals = await b.evaluate(() => {
-    const card = document.querySelector('#first [data-node=writer]');
+    const card = document.querySelector('#first [data-node-facts=writer]');
     return {
       text: card.innerText,
-      state: card.querySelector('.node-implementation').textContent,
       tasks: card.querySelector('[data-signal=tasks]')?.textContent,
       legend: !!document.querySelector(
         '#first [data-control=appearance-legend]',
       ),
-      size: [card.clientWidth, card.clientHeight],
     };
   });
-  assert(signals.state.trim().length, JSON.stringify(signals));
   assert.match(signals.tasks, /\d+ tasks? to confirm/);
   assert(signals.text.includes(copy.diagram.criteria));
   assert.equal(signals.legend, false);
@@ -1175,7 +1263,7 @@ try {
     'a claim inside its life is reported ageing',
   );
 
-  // A long title must leave the card's connection footer inside its bounds.
+  // A long title must leave every visible card fact inside its bounds.
   const cramped = structuredClone(project);
   cramped.records.find((r) => r.key === 'screen').title =
     'Streaming output writer with explicit cancellation and bounded memory';
@@ -1195,10 +1283,8 @@ try {
       [
         ...document.querySelectorAll('#first .node-card:not(.expanded)'),
       ].flatMap((card) => {
-        const footer = card.querySelector('.node-footer');
-        return footer &&
-          footer.getBoundingClientRect().bottom >
-            card.getBoundingClientRect().bottom + 1
+        const copy = card.querySelector('.card-copy');
+        return copy.scrollHeight > copy.clientHeight + 1
           ? [card.dataset.node]
           : [];
       }),

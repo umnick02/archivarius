@@ -73,8 +73,6 @@
   "sends": "Sends",
   "from": "from",
   "to": "to:",
-  "inputCount": "Inputs: {count}",
-  "outputCount": "Outputs: {count}",
   "componentRules": "Component rules",
   "internalRelations": "Internal interactions",
   "inspectInteraction": "Inspect interaction ↗",
