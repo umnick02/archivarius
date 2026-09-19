@@ -145,7 +145,7 @@
         },
         {
           "path": "src/ui/App.jsx",
-          "digest": "35be82bc95da52ababf4170b41ae4d10ea55c603cdb6511a5358b893b2306b35"
+          "digest": "6c3d12f4f9a03cd5e074a58139ab35fa981ca984befc045f46018a6aa0d962e4"
         },
         {
           "path": "src/ui/ArchitectureNode.jsx",
@@ -178,6 +178,14 @@
         {
           "path": "src/ui/useMapProjection.jsx",
           "digest": "89f61802336bf3d73f14d8336a7e18f5e328521969e53fa4cd78f0c5267269ee"
+        },
+        {
+          "path": "src/ui/useZoomGesture.jsx",
+          "digest": "912cc065a84c9455f324753114ca41b805f21db8b36489fa219cc024f2f948e2"
+        },
+        {
+          "path": "src/model/zoom.mjs",
+          "digest": "f10a4a3826d5ed568949926c53aaa58af4aba9efab4ab39ceb00deb297469fcb"
         }
       ]
     },
@@ -8773,6 +8781,461 @@
         },
         "reconsideredBecause": "The owner requested a clearer map and removal of the separate explanation. The revised design puts names and actions directly on diagram elements, preserves completion semantics and keeps the generated-document key separate from the removed browser guide. This updates the reviewed design, not execution evidence."
       }
+    },
+    {
+      "digest": "04decd283c1fd1def5483c3562889488573138b7e3ea5db7022f6626a3a4df32",
+      "record": {
+        "key": "map",
+        "type": "component",
+        "title": "Architecture map",
+        "scope": "archivarius",
+        "parent": "render",
+        "kind": "component",
+        "zone": "presentation",
+        "summary": "Lays out components and interactions with semantic zoom. A card has a compact view with its identity and an open-parts action, and a readable view that reveals kind, zone, confirmation and counted attention or work together. Expanded containers show their name and children. Edge labels name their interaction type or aggregate count.",
+        "boundary": "Layout geometry stays inside the map."
+      }
+    },
+    {
+      "digest": "e482eddccbd0d7d7f2ac4b065a273a2e1b52594263a5a82a639d634246130693",
+      "record": {
+        "key": "semantic-zoom",
+        "type": "requirement",
+        "title": "Detail arrives by zooming",
+        "scope": "archivarius",
+        "category": "product",
+        "rule": "Zooming a container past its legibility threshold reveals its children in place and zooming out returns them to one card; no separate drill-down step is required.",
+        "when": [
+          "A container box crosses the expansion threshold."
+        ],
+        "exceptions": [
+          "A container with no children never expands."
+        ],
+        "appliesTo": [
+          "render",
+          "map"
+        ],
+        "sources": [
+          "owner-intent",
+          "research-fisheye",
+          "research-zoomable-surface",
+          "research-visual-taxonomy",
+          "standard-architecture-model"
+        ]
+      }
+    },
+    {
+      "digest": "527c248fb67cb2f46b12dec4d5a580dae41be5b20105743f57b70bb819b7b846",
+      "record": {
+        "key": "semantic-zoom-c",
+        "type": "criterion",
+        "title": "Expansion follows the threshold",
+        "scope": "archivarius",
+        "requirement": "semantic-zoom",
+        "assertion": "A container expands into its children when its box crosses the threshold and collapses back with hysteresis, and the map states which level is shown."
+      }
+    },
+    {
+      "digest": "86674bdb62173c8772faf1974fa94e0131578b91e3aa7f0f580eaac0ee08aff5",
+      "record": {
+        "key": "read-a-structure",
+        "type": "scenario",
+        "title": "Read a system nobody explained",
+        "scope": "archivarius",
+        "actor": "An owner new to the system",
+        "given": [
+          "A validated snapshot of a system with more parts than fit on one screen is mounted."
+        ],
+        "steps": [
+          "Read the overview and the stated level.",
+          "Search for a part by name.",
+          "Zoom it past its threshold until its children appear in place.",
+          "Follow one relation to a neighbour and read the closure of what a change to it reaches.",
+          "Copy the address and open it again in a new tab."
+        ],
+        "uses": [
+          "semantic-zoom",
+          "searchable-model",
+          "answers-about-change",
+          "addressable-view",
+          "responsive-at-scale"
+        ],
+        "then": [
+          "semantic-zoom-c",
+          "searchable-model-c",
+          "answers-about-change-c",
+          "addressable-view-c",
+          "responsive-at-scale-c"
+        ],
+        "failures": [
+          "A name that matches nothing states so instead of clearing the map.",
+          "An address naming an absent record is refused with a stated failure."
+        ]
+      }
+    },
+    {
+      "digest": "b5e2b6cf4bdf9fd4903bdab3d25681a939963044bbdec7c0fb7e9e4ed4ab4765",
+      "record": {
+        "key": "task-zoom-levels",
+        "type": "task",
+        "title": "Levels a reader can name",
+        "scope": "archivarius",
+        "change": "Give the map named zoom levels that correspond to abstraction, expand a container with hysteresis at its threshold, and state which level is shown.",
+        "affects": [
+          "map",
+          "render"
+        ],
+        "covers": [
+          "semantic-zoom-c"
+        ],
+        "needs": [],
+        "uses": [
+          "semantic-zoom",
+          "standard-architecture-model",
+          "research-zoomable-surface"
+        ],
+        "basis": {
+          "contract": "1b922cc8e74f711621ca7cae10be7ea9cacc4e905e737ff2b8f8e47e6a211a0f",
+          "dependencies": "374fcf4770d354d73d5c65cd709aaca1eced4b7cd0d94324ab1e47bf6bab2421",
+          "definitions": {
+            "archivarius": "3d2c939171898afd61a610ec45673d67c25c48b86d755927a0eb75edd9d46786",
+            "map": "d26d3e8dd7087b590036132467d2c98c602b42c06304285747577be5f31a1a01",
+            "owner-intent": "f02af80cb4d91978313ea21864f6d7b38e34692e470885215ae9ea65b670f5a5",
+            "render": "33536b286e191040b6b1a67f97280f108e5ea8b5815f647ecbb7c0830740eb43",
+            "research-fisheye": "b78c15e49b15f31563937b3f573a2e8de38ad64c855d685bd72061f63714b656",
+            "research-visual-taxonomy": "7618e8a91be888cee612132aeb3854900bc13184ed80bb969b3fa941e476a725",
+            "research-zoomable-surface": "70cacbe7df635fda6ea8a347af5ba8cd98957faa618d14e51dc596269c1a1b08",
+            "semantic-zoom": "04339b776e1ec6544b5400ec4beef3da1f690f98cbc4c646c43c8bf194fc6cc7",
+            "semantic-zoom-c": "67b88aeae278074d74eced76531ae3a267fa8051ca89768bc0777b1313e096fb",
+            "standard-architecture-model": "5946b5e21ea9b02e0a7df8c083e0fce70a59e9bcc31979c76b4f4a8d2545db70",
+            "task-zoom-levels": "850bf21fbebbd36075f0fda5c595c50a2c1f230cf37febc88928fb75e74291c3"
+          },
+          "at": "2026-09-17T00:00:00Z",
+          "by": "opencode"
+        },
+        "reconsideredBecause": "The plan and the code were read together in this session: the reach answer was built and proved in the model layer and in the panel, the receipt rule was narrowed to what a check actually read, and the layer and gate checks were written down. These records were read against that state of the repository, so their basis is taken again."
+      }
+    },
+    {
+      "digest": "07db9590144a16dcdea7c2ec006a4443ba244b283c7106b37ad9d61f299b2b54",
+      "record": {
+        "key": "check-zoom",
+        "type": "check",
+        "title": "Zooming, overview and address",
+        "scope": "archivarius",
+        "method": "Drive the mounted map in a browser: cross a threshold, read the stated level, read a line that stands for several relations and split it by expanding an end, return to the previous position, and restore a view from its address.",
+        "covers": [
+          "semantic-zoom-c",
+          "addressable-view-c",
+          "relation-aggregation-c"
+        ],
+        "scenarios": [
+          "read-a-structure"
+        ],
+        "targets": [
+          "map",
+          "render"
+        ],
+        "level": "integration",
+        "command": [
+          "npm",
+          "run",
+          "test:browser"
+        ],
+        "basis": {
+          "contract": "fa57f63a2f4a8a490617ba8b597842a4dbeb2b8757f1271c80c672a63223ac41",
+          "dependencies": "3c869171e29ae7a5d742102fc72f564e5af7780fbb814b152f93f16e49139207",
+          "definitions": {
+            "addressable-view": "d2d4bf10b2ddada82f4c2b1f78610bff666edee56cbd10a9eea5799614c51376",
+            "addressable-view-c": "fd07951e57e5e128d6fc15c4c1de8850e09f0a29840c0bddd78857cd8eacdbbc",
+            "answers-about-change": "b94b6d49126ced5331eea030574d8edeb599e362681c990747c373f00ae1a0ef",
+            "answers-about-change-c": "21e777661af19bc27b3ea0a273b3d1cfe84567eef0fe7055c74f5a348cdd5588",
+            "archivarius": "3d2c939171898afd61a610ec45673d67c25c48b86d755927a0eb75edd9d46786",
+            "check-zoom": "30cc5e892cfb42cba5bb44882889ec133bd0e96154d03434dfd446969dc840e3",
+            "core": "236481fb710c9f0c36d892f3f1414f9140de823298745bb4af7fe1906c3a30e1",
+            "inspector": "1f33047d99e3ce4862eb49a4f37b87f6039fd64f8017002db8f8820630d9541a",
+            "map": "d26d3e8dd7087b590036132467d2c98c602b42c06304285747577be5f31a1a01",
+            "owner-intent": "f02af80cb4d91978313ea21864f6d7b38e34692e470885215ae9ea65b670f5a5",
+            "read-a-structure": "cb7435ef2de29d080fff62e72a995840e6461539cd260cd4a1023ebc2605fb08",
+            "reader-observation": "b6910a8b99a5e61700caf5e6927750c33832588cb366d80e660e8304a495cddb",
+            "relation-aggregation": "ac84c25d24e1f5a2758e74f23117c07076d02d168a31956e2bc29887684b91f5",
+            "relation-aggregation-c": "6e58c6e91c3e888bb0af2528a1b3add5ec80b3e9b4e00a27fdddc78b53713260",
+            "render": "33536b286e191040b6b1a67f97280f108e5ea8b5815f647ecbb7c0830740eb43",
+            "research-edge-bundling": "93e690f267d798c161a91784d542b58b89f69d6698883457073d6c0cafc1b691",
+            "research-fisheye": "b78c15e49b15f31563937b3f573a2e8de38ad64c855d685bd72061f63714b656",
+            "research-hierarchical-aggregation": "671ad4fc289a0e935979483612a1c74954dd560b092136603d36c732536a5c42",
+            "research-layered-layout": "d7b4553a1185e606686c6b0c400019e6e826d0670e489ec04df75b4d57deaa1e",
+            "research-response-time": "063715492a68911453aadb8861d7acdf92b7aa67fcd97cbe4d7dcd2fa9b63adb",
+            "research-view-model": "0802267b3ca7897bd25817ebacee7c80dddea897ee893df420976e5dd0ab87b9",
+            "research-visual-taxonomy": "7618e8a91be888cee612132aeb3854900bc13184ed80bb969b3fa941e476a725",
+            "research-zoom-review": "75ba0e1b24a3e0fc8afbc80b97561c80146d58a5eb1babcbd8c4a8a4c57d7c34",
+            "research-zoomable-surface": "70cacbe7df635fda6ea8a347af5ba8cd98957faa618d14e51dc596269c1a1b08",
+            "responsive-at-scale": "588b852910bb6e52441a7b6f3a1a6987061f6165ff62fec6a7a2310050457348",
+            "responsive-at-scale-c": "d8cc470cecf085fde43975fcd20fde054baa5c43eb1af5aba3ac03bf3a47ab5c",
+            "scale-observation": "60f9466a51475760438b5abd1856c953481707069027b94ce8844f28881d7dc3",
+            "searchable-model": "afdf39b124336f6b38f2d826f67c6722c68530ec2924518ea210736a392743fe",
+            "searchable-model-c": "24e572b2fe44214360859a71c76a0c1727413a13670b72b8c48e6c60683d134c",
+            "semantic-zoom": "04339b776e1ec6544b5400ec4beef3da1f690f98cbc4c646c43c8bf194fc6cc7",
+            "semantic-zoom-c": "67b88aeae278074d74eced76531ae3a267fa8051ca89768bc0777b1313e096fb",
+            "standard-architecture-model": "5946b5e21ea9b02e0a7df8c083e0fce70a59e9bcc31979c76b4f4a8d2545db70"
+          },
+          "at": "2026-09-17T00:00:00Z",
+          "by": "opencode"
+        },
+        "reconsideredBecause": "The zoom check now also proves that a line standing for several relations splits when an end expands, because relation aggregation is a zoom behaviour and this check is the one that crosses a threshold in a browser."
+      }
+    },
+    {
+      "digest": "4fd1cc70e72da75f7d160775466cd1f53ae3dcbe446d2331b5a3f2036e77d53a",
+      "record": {
+        "key": "check-reading",
+        "type": "check",
+        "title": "Reading without noise",
+        "scope": "archivarius",
+        "method": "Drive the installed consumer at desktop and phone widths: sweep wheel zoom in and out with normal and doubled text to prove that each collapsed card has only compact and complete fact views and that expanded containers never repeat their fact summary. Verify a diagram-first opening without a reading guide, named confirmation states, criterion meters and task-to-confirm counts, explicit one-click entry into container parts without a second panel, failure versus missing-evidence signals, concise component summaries, task navigation beside the diagram, Back and address restoration, explicit record browsing, document links, safe content and bounded card and overlay geometry. Unit tests verify task aggregation and evidence deduplication against project analysis and ignore removed guide state in old addresses.",
+        "covers": [
+          "quiet-chrome-c",
+          "bounded-detail-c"
+        ],
+        "scenarios": [
+          "read-a-structure"
+        ],
+        "targets": [
+          "map",
+          "render",
+          "inspector"
+        ],
+        "level": "integration",
+        "command": [
+          "npm",
+          "run",
+          "test:browser"
+        ],
+        "basis": {
+          "contract": "d828cc5599ea045d037f983df988b257af186ccadd317d8fec8e29edafadaad5",
+          "dependencies": "b90cbbc292a37dfbb682e9d5407a3658f4f3c96438e3a0517e87c71195ac8390",
+          "definitions": {
+            "addressable-view": "d2d4bf10b2ddada82f4c2b1f78610bff666edee56cbd10a9eea5799614c51376",
+            "addressable-view-c": "fd07951e57e5e128d6fc15c4c1de8850e09f0a29840c0bddd78857cd8eacdbbc",
+            "answers-about-change": "b94b6d49126ced5331eea030574d8edeb599e362681c990747c373f00ae1a0ef",
+            "answers-about-change-c": "21e777661af19bc27b3ea0a273b3d1cfe84567eef0fe7055c74f5a348cdd5588",
+            "archivarius": "3d2c939171898afd61a610ec45673d67c25c48b86d755927a0eb75edd9d46786",
+            "bounded-detail": "3fcd9b4f109fadfa02fa1c7cc1832a8e2273f00d6a872cae79dc7f20d1400acd",
+            "bounded-detail-c": "1e5146dc01c0f678d4dc1aa6f4cfc0b2f49bebe89bd42dd9931e3470837a08d3",
+            "check-reading": "f1580873feb9473321887e8642f8f9f951743b89726a5078e8a550771faa1086",
+            "core": "236481fb710c9f0c36d892f3f1414f9140de823298745bb4af7fe1906c3a30e1",
+            "inspector": "64ec93e720d66451d42227fc08d2a6a39a0f4be62af0ec32619a377984163ed6",
+            "map": "39f088f8f9fd52f3aad6b9ba8ee6873ba31e15a304d02db60fc51ddcc1f37d83",
+            "owner-intent": "f02af80cb4d91978313ea21864f6d7b38e34692e470885215ae9ea65b670f5a5",
+            "quiet-chrome": "eb97dc60cc4f22baaf50b035dcfeef2599ddfd77f920521c65c0c8bc548641f1",
+            "quiet-chrome-c": "05c61122a8a5c651427b85749356e62c079f4005b22d3d58ca0a13ad4b2d7b06",
+            "read-a-structure": "cb7435ef2de29d080fff62e72a995840e6461539cd260cd4a1023ebc2605fb08",
+            "reader-observation": "b6910a8b99a5e61700caf5e6927750c33832588cb366d80e660e8304a495cddb",
+            "render": "00cabaed500029496deca314fe01f354fb83cf9e6448ab1aba3bb947a04f559d",
+            "research-fisheye": "b78c15e49b15f31563937b3f573a2e8de38ad64c855d685bd72061f63714b656",
+            "research-layered-layout": "d7b4553a1185e606686c6b0c400019e6e826d0670e489ec04df75b4d57deaa1e",
+            "research-notation-physics": "94af1ea1dfeeabfe4f09ae2780241d29e2239e213a6ef9194ab62adf3908e7bd",
+            "research-progressive-disclosure": "d7fa3996fa0678c8e1fc22594ad1e3a7e653fea40f4cda3d761ccf21528cf504",
+            "research-response-time": "063715492a68911453aadb8861d7acdf92b7aa67fcd97cbe4d7dcd2fa9b63adb",
+            "research-view-model": "0802267b3ca7897bd25817ebacee7c80dddea897ee893df420976e5dd0ab87b9",
+            "research-visual-taxonomy": "7618e8a91be888cee612132aeb3854900bc13184ed80bb969b3fa941e476a725",
+            "research-zoom-review": "75ba0e1b24a3e0fc8afbc80b97561c80146d58a5eb1babcbd8c4a8a4c57d7c34",
+            "research-zoomable-surface": "70cacbe7df635fda6ea8a347af5ba8cd98957faa618d14e51dc596269c1a1b08",
+            "responsive-at-scale": "588b852910bb6e52441a7b6f3a1a6987061f6165ff62fec6a7a2310050457348",
+            "responsive-at-scale-c": "d8cc470cecf085fde43975fcd20fde054baa5c43eb1af5aba3ac03bf3a47ab5c",
+            "scale-observation": "60f9466a51475760438b5abd1856c953481707069027b94ce8844f28881d7dc3",
+            "searchable-model": "afdf39b124336f6b38f2d826f67c6722c68530ec2924518ea210736a392743fe",
+            "searchable-model-c": "24e572b2fe44214360859a71c76a0c1727413a13670b72b8c48e6c60683d134c",
+            "semantic-zoom": "04339b776e1ec6544b5400ec4beef3da1f690f98cbc4c646c43c8bf194fc6cc7",
+            "semantic-zoom-c": "67b88aeae278074d74eced76531ae3a267fa8051ca89768bc0777b1313e096fb",
+            "standard-architecture-model": "5946b5e21ea9b02e0a7df8c083e0fce70a59e9bcc31979c76b4f4a8d2545db70",
+            "standard-usability-heuristics": "a0ceff2bbabcf764148f8b81bae26c2f82defe4ee6d9abef7e4332df8155cba6"
+          }
+        },
+        "reconsideredBecause": "The owner reported meaningless intermediate states during zoom. A measured wheel sweep found five distinct partial card views and an additional summary appearing on expanded parents. The new presentation uses one threshold for the full fact group while preserving continuous camera movement, semantic expansion and inspector access. This records the reviewed design rather than execution evidence."
+      }
+    },
+    {
+      "digest": "e1c579e73c6d8126192996076bafd76ac10fe692787da4bd819ffee1f8f4ba36",
+      "record": {
+        "key": "task-zoom-levels",
+        "type": "task",
+        "title": "Levels a reader can name",
+        "scope": "archivarius",
+        "change": "Move wheel, pinch and zoom controls between framed hierarchy destinations, skip redundant camera stops and stop at readable leaves or the overview. Share target selection in the zoom model and framing with explicit focus. Keep one transition per continuous gesture, named levels and expansion hysteresis.",
+        "affects": [
+          "map",
+          "render"
+        ],
+        "covers": [
+          "semantic-zoom-c"
+        ],
+        "needs": [],
+        "uses": [
+          "semantic-zoom",
+          "standard-architecture-model",
+          "research-zoomable-surface"
+        ],
+        "basis": {
+          "contract": "1b922cc8e74f711621ca7cae10be7ea9cacc4e905e737ff2b8f8e47e6a211a0f",
+          "dependencies": "374fcf4770d354d73d5c65cd709aaca1eced4b7cd0d94324ab1e47bf6bab2421",
+          "definitions": {
+            "archivarius": "3d2c939171898afd61a610ec45673d67c25c48b86d755927a0eb75edd9d46786",
+            "map": "d26d3e8dd7087b590036132467d2c98c602b42c06304285747577be5f31a1a01",
+            "owner-intent": "f02af80cb4d91978313ea21864f6d7b38e34692e470885215ae9ea65b670f5a5",
+            "render": "33536b286e191040b6b1a67f97280f108e5ea8b5815f647ecbb7c0830740eb43",
+            "research-fisheye": "b78c15e49b15f31563937b3f573a2e8de38ad64c855d685bd72061f63714b656",
+            "research-visual-taxonomy": "7618e8a91be888cee612132aeb3854900bc13184ed80bb969b3fa941e476a725",
+            "research-zoomable-surface": "70cacbe7df635fda6ea8a347af5ba8cd98957faa618d14e51dc596269c1a1b08",
+            "semantic-zoom": "04339b776e1ec6544b5400ec4beef3da1f690f98cbc4c646c43c8bf194fc6cc7",
+            "semantic-zoom-c": "67b88aeae278074d74eced76531ae3a267fa8051ca89768bc0777b1313e096fb",
+            "standard-architecture-model": "5946b5e21ea9b02e0a7df8c083e0fce70a59e9bcc31979c76b4f4a8d2545db70",
+            "task-zoom-levels": "850bf21fbebbd36075f0fda5c595c50a2c1f230cf37febc88928fb75e74291c3"
+          },
+          "at": "2026-09-17T00:00:00Z",
+          "by": "opencode"
+        },
+        "reconsideredBecause": "The plan and the code were read together in this session: the reach answer was built and proved in the model layer and in the panel, the receipt rule was narrowed to what a check actually read, and the layer and gate checks were written down. These records were read against that state of the repository, so their basis is taken again."
+      }
+    },
+    {
+      "digest": "618181f0477545eec4bc9e54b926cf5414a26360164d41de178c92841914106b",
+      "record": {
+        "key": "check-zoom",
+        "type": "check",
+        "title": "Zooming, overview and address",
+        "scope": "archivarius",
+        "method": "Drive the mounted map with real wheel and touch input: a wheel burst and a continued pinch each open exactly one level, a new gesture enters the next container, outward input restores the containing frame, and repeated input stops at leaves and the overview. Exercise the same stops through buttons and keyboard, normal and enlarged text, named levels, relation aggregation, return navigation and address restoration. Unit tests prove target selection follows hierarchy rather than skipping directly to a deep hit.",
+        "covers": [
+          "semantic-zoom-c",
+          "addressable-view-c",
+          "relation-aggregation-c"
+        ],
+        "scenarios": [
+          "read-a-structure"
+        ],
+        "targets": [
+          "map",
+          "render"
+        ],
+        "level": "integration",
+        "command": [
+          "npm",
+          "run",
+          "test:browser"
+        ],
+        "basis": {
+          "contract": "fa57f63a2f4a8a490617ba8b597842a4dbeb2b8757f1271c80c672a63223ac41",
+          "dependencies": "3c869171e29ae7a5d742102fc72f564e5af7780fbb814b152f93f16e49139207",
+          "definitions": {
+            "addressable-view": "d2d4bf10b2ddada82f4c2b1f78610bff666edee56cbd10a9eea5799614c51376",
+            "addressable-view-c": "fd07951e57e5e128d6fc15c4c1de8850e09f0a29840c0bddd78857cd8eacdbbc",
+            "answers-about-change": "b94b6d49126ced5331eea030574d8edeb599e362681c990747c373f00ae1a0ef",
+            "answers-about-change-c": "21e777661af19bc27b3ea0a273b3d1cfe84567eef0fe7055c74f5a348cdd5588",
+            "archivarius": "3d2c939171898afd61a610ec45673d67c25c48b86d755927a0eb75edd9d46786",
+            "check-zoom": "30cc5e892cfb42cba5bb44882889ec133bd0e96154d03434dfd446969dc840e3",
+            "core": "236481fb710c9f0c36d892f3f1414f9140de823298745bb4af7fe1906c3a30e1",
+            "inspector": "1f33047d99e3ce4862eb49a4f37b87f6039fd64f8017002db8f8820630d9541a",
+            "map": "d26d3e8dd7087b590036132467d2c98c602b42c06304285747577be5f31a1a01",
+            "owner-intent": "f02af80cb4d91978313ea21864f6d7b38e34692e470885215ae9ea65b670f5a5",
+            "read-a-structure": "cb7435ef2de29d080fff62e72a995840e6461539cd260cd4a1023ebc2605fb08",
+            "reader-observation": "b6910a8b99a5e61700caf5e6927750c33832588cb366d80e660e8304a495cddb",
+            "relation-aggregation": "ac84c25d24e1f5a2758e74f23117c07076d02d168a31956e2bc29887684b91f5",
+            "relation-aggregation-c": "6e58c6e91c3e888bb0af2528a1b3add5ec80b3e9b4e00a27fdddc78b53713260",
+            "render": "33536b286e191040b6b1a67f97280f108e5ea8b5815f647ecbb7c0830740eb43",
+            "research-edge-bundling": "93e690f267d798c161a91784d542b58b89f69d6698883457073d6c0cafc1b691",
+            "research-fisheye": "b78c15e49b15f31563937b3f573a2e8de38ad64c855d685bd72061f63714b656",
+            "research-hierarchical-aggregation": "671ad4fc289a0e935979483612a1c74954dd560b092136603d36c732536a5c42",
+            "research-layered-layout": "d7b4553a1185e606686c6b0c400019e6e826d0670e489ec04df75b4d57deaa1e",
+            "research-response-time": "063715492a68911453aadb8861d7acdf92b7aa67fcd97cbe4d7dcd2fa9b63adb",
+            "research-view-model": "0802267b3ca7897bd25817ebacee7c80dddea897ee893df420976e5dd0ab87b9",
+            "research-visual-taxonomy": "7618e8a91be888cee612132aeb3854900bc13184ed80bb969b3fa941e476a725",
+            "research-zoom-review": "75ba0e1b24a3e0fc8afbc80b97561c80146d58a5eb1babcbd8c4a8a4c57d7c34",
+            "research-zoomable-surface": "70cacbe7df635fda6ea8a347af5ba8cd98957faa618d14e51dc596269c1a1b08",
+            "responsive-at-scale": "588b852910bb6e52441a7b6f3a1a6987061f6165ff62fec6a7a2310050457348",
+            "responsive-at-scale-c": "d8cc470cecf085fde43975fcd20fde054baa5c43eb1af5aba3ac03bf3a47ab5c",
+            "scale-observation": "60f9466a51475760438b5abd1856c953481707069027b94ce8844f28881d7dc3",
+            "searchable-model": "afdf39b124336f6b38f2d826f67c6722c68530ec2924518ea210736a392743fe",
+            "searchable-model-c": "24e572b2fe44214360859a71c76a0c1727413a13670b72b8c48e6c60683d134c",
+            "semantic-zoom": "04339b776e1ec6544b5400ec4beef3da1f690f98cbc4c646c43c8bf194fc6cc7",
+            "semantic-zoom-c": "67b88aeae278074d74eced76531ae3a267fa8051ca89768bc0777b1313e096fb",
+            "standard-architecture-model": "5946b5e21ea9b02e0a7df8c083e0fce70a59e9bcc31979c76b4f4a8d2545db70"
+          },
+          "at": "2026-09-17T00:00:00Z",
+          "by": "opencode"
+        },
+        "reconsideredBecause": "The zoom check now also proves that a line standing for several relations splits when an end expands, because relation aggregation is a zoom behaviour and this check is the one that crosses a threshold in a browser."
+      }
+    },
+    {
+      "digest": "8db40d748146da63510f98c120985c539a9ec99b2b1c7840743be19d697b6233",
+      "record": {
+        "key": "check-reading",
+        "type": "check",
+        "title": "Reading without noise",
+        "scope": "archivarius",
+        "method": "Drive the installed consumer at desktop and phone widths: step through semantic zoom destinations in and out with normal and doubled text to prove that each collapsed card has only compact and complete fact views and that expanded containers never repeat their fact summary. Verify a diagram-first opening without a reading guide, named confirmation states, criterion meters and task-to-confirm counts, explicit one-click entry into container parts without a second panel, failure versus missing-evidence signals, concise component summaries, task navigation beside the diagram, Back and address restoration, explicit record browsing, document links, safe content and bounded card and overlay geometry. Unit tests verify task aggregation and evidence deduplication against project analysis and ignore removed guide state in old addresses.",
+        "covers": [
+          "quiet-chrome-c",
+          "bounded-detail-c"
+        ],
+        "scenarios": [
+          "read-a-structure"
+        ],
+        "targets": [
+          "map",
+          "render",
+          "inspector"
+        ],
+        "level": "integration",
+        "command": [
+          "npm",
+          "run",
+          "test:browser"
+        ],
+        "basis": {
+          "contract": "d828cc5599ea045d037f983df988b257af186ccadd317d8fec8e29edafadaad5",
+          "dependencies": "b90cbbc292a37dfbb682e9d5407a3658f4f3c96438e3a0517e87c71195ac8390",
+          "definitions": {
+            "addressable-view": "d2d4bf10b2ddada82f4c2b1f78610bff666edee56cbd10a9eea5799614c51376",
+            "addressable-view-c": "fd07951e57e5e128d6fc15c4c1de8850e09f0a29840c0bddd78857cd8eacdbbc",
+            "answers-about-change": "b94b6d49126ced5331eea030574d8edeb599e362681c990747c373f00ae1a0ef",
+            "answers-about-change-c": "21e777661af19bc27b3ea0a273b3d1cfe84567eef0fe7055c74f5a348cdd5588",
+            "archivarius": "3d2c939171898afd61a610ec45673d67c25c48b86d755927a0eb75edd9d46786",
+            "bounded-detail": "3fcd9b4f109fadfa02fa1c7cc1832a8e2273f00d6a872cae79dc7f20d1400acd",
+            "bounded-detail-c": "1e5146dc01c0f678d4dc1aa6f4cfc0b2f49bebe89bd42dd9931e3470837a08d3",
+            "check-reading": "f1580873feb9473321887e8642f8f9f951743b89726a5078e8a550771faa1086",
+            "core": "236481fb710c9f0c36d892f3f1414f9140de823298745bb4af7fe1906c3a30e1",
+            "inspector": "64ec93e720d66451d42227fc08d2a6a39a0f4be62af0ec32619a377984163ed6",
+            "map": "39f088f8f9fd52f3aad6b9ba8ee6873ba31e15a304d02db60fc51ddcc1f37d83",
+            "owner-intent": "f02af80cb4d91978313ea21864f6d7b38e34692e470885215ae9ea65b670f5a5",
+            "quiet-chrome": "eb97dc60cc4f22baaf50b035dcfeef2599ddfd77f920521c65c0c8bc548641f1",
+            "quiet-chrome-c": "05c61122a8a5c651427b85749356e62c079f4005b22d3d58ca0a13ad4b2d7b06",
+            "read-a-structure": "cb7435ef2de29d080fff62e72a995840e6461539cd260cd4a1023ebc2605fb08",
+            "reader-observation": "b6910a8b99a5e61700caf5e6927750c33832588cb366d80e660e8304a495cddb",
+            "render": "00cabaed500029496deca314fe01f354fb83cf9e6448ab1aba3bb947a04f559d",
+            "research-fisheye": "b78c15e49b15f31563937b3f573a2e8de38ad64c855d685bd72061f63714b656",
+            "research-layered-layout": "d7b4553a1185e606686c6b0c400019e6e826d0670e489ec04df75b4d57deaa1e",
+            "research-notation-physics": "94af1ea1dfeeabfe4f09ae2780241d29e2239e213a6ef9194ab62adf3908e7bd",
+            "research-progressive-disclosure": "d7fa3996fa0678c8e1fc22594ad1e3a7e653fea40f4cda3d761ccf21528cf504",
+            "research-response-time": "063715492a68911453aadb8861d7acdf92b7aa67fcd97cbe4d7dcd2fa9b63adb",
+            "research-view-model": "0802267b3ca7897bd25817ebacee7c80dddea897ee893df420976e5dd0ab87b9",
+            "research-visual-taxonomy": "7618e8a91be888cee612132aeb3854900bc13184ed80bb969b3fa941e476a725",
+            "research-zoom-review": "75ba0e1b24a3e0fc8afbc80b97561c80146d58a5eb1babcbd8c4a8a4c57d7c34",
+            "research-zoomable-surface": "70cacbe7df635fda6ea8a347af5ba8cd98957faa618d14e51dc596269c1a1b08",
+            "responsive-at-scale": "588b852910bb6e52441a7b6f3a1a6987061f6165ff62fec6a7a2310050457348",
+            "responsive-at-scale-c": "d8cc470cecf085fde43975fcd20fde054baa5c43eb1af5aba3ac03bf3a47ab5c",
+            "scale-observation": "60f9466a51475760438b5abd1856c953481707069027b94ce8844f28881d7dc3",
+            "searchable-model": "afdf39b124336f6b38f2d826f67c6722c68530ec2924518ea210736a392743fe",
+            "searchable-model-c": "24e572b2fe44214360859a71c76a0c1727413a13670b72b8c48e6c60683d134c",
+            "semantic-zoom": "04339b776e1ec6544b5400ec4beef3da1f690f98cbc4c646c43c8bf194fc6cc7",
+            "semantic-zoom-c": "67b88aeae278074d74eced76531ae3a267fa8051ca89768bc0777b1313e096fb",
+            "standard-architecture-model": "5946b5e21ea9b02e0a7df8c083e0fce70a59e9bcc31979c76b4f4a8d2545db70",
+            "standard-usability-heuristics": "a0ceff2bbabcf764148f8b81bae26c2f82defe4ee6d9abef7e4332df8155cba6"
+          }
+        },
+        "reconsideredBecause": "The owner reported meaningless intermediate states during zoom. A measured wheel sweep found five distinct partial card views and an additional summary appearing on expanded parents. The new presentation uses one threshold for the full fact group while preserving continuous camera movement, semantic expansion and inspector access. This records the reviewed design rather than execution evidence."
+      }
     }
   ],
   "records": [
@@ -8896,7 +9359,7 @@
       "parent": "render",
       "kind": "component",
       "zone": "presentation",
-      "summary": "Lays out components and interactions with semantic zoom. A card has a compact view with its identity and an open-parts action, and a readable view that reveals kind, zone, confirmation and counted attention or work together. Expanded containers show their name and children. Edge labels name their interaction type or aggregate count.",
+      "summary": "Lays out components and interactions with semantic zoom. Wheel, pinch and zoom controls move directly between framed hierarchy levels and stop at readable leaves or the overview. Card facts appear together; expanded containers show their name and children. Edge labels name their interaction type or aggregate count.",
       "boundary": "Layout geometry stays inside the map."
     },
     {
@@ -9593,9 +10056,9 @@
       "title": "Detail arrives by zooming",
       "scope": "archivarius",
       "category": "product",
-      "rule": "Zooming a container past its legibility threshold reveals its children in place and zooming out returns them to one card; no separate drill-down step is required.",
+      "rule": "Zoom input moves directly between useful views of the same map: the overview, a framed container with its children, and a readable leaf when more magnification is needed. One wheel or pinch gesture enters at most one new hierarchy level; its inertia does not keep drilling. Zoom-out returns to the containing level and stops at the overview. A leaf has no further zoom states once it is readable. Container expansion follows legibility thresholds with hysteresis during the transition.",
       "when": [
-        "A container box crosses the expansion threshold."
+        "A reader zooms with the wheel, pinch, buttons or keyboard."
       ],
       "exceptions": [
         "A container with no children never expands."
@@ -10089,10 +10552,10 @@
     {
       "key": "semantic-zoom-c",
       "type": "criterion",
-      "title": "Expansion follows the threshold",
+      "title": "Zoom stops at meaningful views",
       "scope": "archivarius",
       "requirement": "semantic-zoom",
-      "assertion": "A container expands into its children when its box crosses the threshold and collapses back with hysteresis, and the map states which level is shown."
+      "assertion": "One wheel gesture reveals the pointed container in place; an uninterrupted burst or continued pinch does not skip another level. Buttons and keyboard use the same framed destinations. A further inward gesture enters a nested container or makes a small leaf readable; repeated inward input at a readable leaf leaves the camera unchanged. Outward input returns to the containing frame in one step and cannot shrink beyond the overview. Zoom-in never reduces scale, including when a single root already fills the overview. Named levels, expansion hysteresis, pan, explicit entry, return navigation and restored addresses remain usable."
     },
     {
       "key": "addressable-view-c",
@@ -10500,7 +10963,7 @@
       "steps": [
         "Read the overview and the stated level.",
         "Search for a part by name.",
-        "Zoom it past its threshold until its children appear in place.",
+        "Zoom into it in one gesture to reveal its children in place.",
         "Follow one relation to a neighbour and read the closure of what a change to it reaches.",
         "Copy the address and open it again in a new tab."
       ],
@@ -10666,7 +11129,7 @@
       "type": "task",
       "title": "Levels a reader can name",
       "scope": "archivarius",
-      "change": "Give the map named zoom levels that correspond to abstraction, expand a container with hysteresis at its threshold, and state which level is shown.",
+      "change": "Move wheel, pinch and zoom controls between framed hierarchy destinations, skip redundant camera stops and stop at readable leaves or the overview. Share target selection in the zoom model and framing with explicit focus. Keep one transition per continuous gesture, named levels and expansion hysteresis.",
       "affects": [
         "map",
         "render"
@@ -10681,25 +11144,23 @@
         "research-zoomable-surface"
       ],
       "basis": {
-        "contract": "1b922cc8e74f711621ca7cae10be7ea9cacc4e905e737ff2b8f8e47e6a211a0f",
-        "dependencies": "374fcf4770d354d73d5c65cd709aaca1eced4b7cd0d94324ab1e47bf6bab2421",
+        "contract": "a442c6abb25c47ca3548ed037faac2453ec50f931dc0f35cbe0d73b6150e0259",
+        "dependencies": "4b9cdb5ca0697a183e21bfe130b42f3e1c01f444c5a667c2debcb17c08baf8a7",
         "definitions": {
           "archivarius": "3d2c939171898afd61a610ec45673d67c25c48b86d755927a0eb75edd9d46786",
-          "map": "d26d3e8dd7087b590036132467d2c98c602b42c06304285747577be5f31a1a01",
+          "map": "ff74afffbc4a3b4f74e7cbb354250a17e38fa410caca0fa51fd3421457d48bc3",
           "owner-intent": "f02af80cb4d91978313ea21864f6d7b38e34692e470885215ae9ea65b670f5a5",
-          "render": "33536b286e191040b6b1a67f97280f108e5ea8b5815f647ecbb7c0830740eb43",
+          "render": "00cabaed500029496deca314fe01f354fb83cf9e6448ab1aba3bb947a04f559d",
           "research-fisheye": "b78c15e49b15f31563937b3f573a2e8de38ad64c855d685bd72061f63714b656",
           "research-visual-taxonomy": "7618e8a91be888cee612132aeb3854900bc13184ed80bb969b3fa941e476a725",
           "research-zoomable-surface": "70cacbe7df635fda6ea8a347af5ba8cd98957faa618d14e51dc596269c1a1b08",
-          "semantic-zoom": "04339b776e1ec6544b5400ec4beef3da1f690f98cbc4c646c43c8bf194fc6cc7",
-          "semantic-zoom-c": "67b88aeae278074d74eced76531ae3a267fa8051ca89768bc0777b1313e096fb",
+          "semantic-zoom": "4e17962396618759985b0dee001c5a0c9f68ec7316abfbca0241b7deecf67fdd",
+          "semantic-zoom-c": "26084e3b75146675774dd561098e6b6d2cb682c04210473ec16574f32a3e72d6",
           "standard-architecture-model": "5946b5e21ea9b02e0a7df8c083e0fce70a59e9bcc31979c76b4f4a8d2545db70",
-          "task-zoom-levels": "850bf21fbebbd36075f0fda5c595c50a2c1f230cf37febc88928fb75e74291c3"
-        },
-        "at": "2026-09-17T00:00:00Z",
-        "by": "opencode"
+          "task-zoom-levels": "d186c2a2879268a7c5077277cde9e21e5bcac79fb71da41eb5d080b455dc1270"
+        }
       },
-      "reconsideredBecause": "The plan and the code were read together in this session: the reach answer was built and proved in the model layer and in the panel, the receipt rule was narrowed to what a check actually read, and the layer and gate checks were written down. These records were read against that state of the repository, so their basis is taken again."
+      "reconsideredBecause": "The owner confirmed that grouping card fields did not remove the unnecessary zoom states. Camera input now navigates meaningful framed hierarchy destinations instead of arbitrary scale increments. This reviews the changed contract and checks; it does not assert execution evidence."
     },
     {
       "key": "task-overview-and-return",
@@ -12325,7 +12786,7 @@
       "type": "check",
       "title": "Zooming, overview and address",
       "scope": "archivarius",
-      "method": "Drive the mounted map in a browser: cross a threshold, read the stated level, read a line that stands for several relations and split it by expanding an end, return to the previous position, and restore a view from its address.",
+      "method": "Drive the mounted map with real wheel and touch input: a wheel burst and a continued pinch each open exactly one level, a new gesture enters the next container, outward input restores the containing frame, and repeated input stops at leaves and the overview. Exercise the same stops through buttons and keyboard, normal and enlarged text, named levels, relation aggregation, return navigation and address restoration. Unit tests prove target selection follows hierarchy rather than skipping directly to a deep hit.",
       "covers": [
         "semantic-zoom-c",
         "addressable-view-c",
@@ -12345,24 +12806,24 @@
         "test:browser"
       ],
       "basis": {
-        "contract": "fa57f63a2f4a8a490617ba8b597842a4dbeb2b8757f1271c80c672a63223ac41",
-        "dependencies": "3c869171e29ae7a5d742102fc72f564e5af7780fbb814b152f93f16e49139207",
+        "contract": "a442c6abb25c47ca3548ed037faac2453ec50f931dc0f35cbe0d73b6150e0259",
+        "dependencies": "8911bf803515bb01ee57ea2e7e81be49cc7491f7c0ef46e663151e3a830a4555",
         "definitions": {
           "addressable-view": "d2d4bf10b2ddada82f4c2b1f78610bff666edee56cbd10a9eea5799614c51376",
           "addressable-view-c": "fd07951e57e5e128d6fc15c4c1de8850e09f0a29840c0bddd78857cd8eacdbbc",
           "answers-about-change": "b94b6d49126ced5331eea030574d8edeb599e362681c990747c373f00ae1a0ef",
           "answers-about-change-c": "21e777661af19bc27b3ea0a273b3d1cfe84567eef0fe7055c74f5a348cdd5588",
           "archivarius": "3d2c939171898afd61a610ec45673d67c25c48b86d755927a0eb75edd9d46786",
-          "check-zoom": "30cc5e892cfb42cba5bb44882889ec133bd0e96154d03434dfd446969dc840e3",
+          "check-zoom": "7c0495f943854635a4dc357d729be7a51608885a04e1a8ed8f924aa2b02481ec",
           "core": "236481fb710c9f0c36d892f3f1414f9140de823298745bb4af7fe1906c3a30e1",
-          "inspector": "1f33047d99e3ce4862eb49a4f37b87f6039fd64f8017002db8f8820630d9541a",
-          "map": "d26d3e8dd7087b590036132467d2c98c602b42c06304285747577be5f31a1a01",
+          "inspector": "64ec93e720d66451d42227fc08d2a6a39a0f4be62af0ec32619a377984163ed6",
+          "map": "ff74afffbc4a3b4f74e7cbb354250a17e38fa410caca0fa51fd3421457d48bc3",
           "owner-intent": "f02af80cb4d91978313ea21864f6d7b38e34692e470885215ae9ea65b670f5a5",
-          "read-a-structure": "cb7435ef2de29d080fff62e72a995840e6461539cd260cd4a1023ebc2605fb08",
+          "read-a-structure": "79482745183ff1a2abf441b14051a5cd3761be7eb924cf47a8579d63f902cc6c",
           "reader-observation": "b6910a8b99a5e61700caf5e6927750c33832588cb366d80e660e8304a495cddb",
           "relation-aggregation": "ac84c25d24e1f5a2758e74f23117c07076d02d168a31956e2bc29887684b91f5",
           "relation-aggregation-c": "6e58c6e91c3e888bb0af2528a1b3add5ec80b3e9b4e00a27fdddc78b53713260",
-          "render": "33536b286e191040b6b1a67f97280f108e5ea8b5815f647ecbb7c0830740eb43",
+          "render": "00cabaed500029496deca314fe01f354fb83cf9e6448ab1aba3bb947a04f559d",
           "research-edge-bundling": "93e690f267d798c161a91784d542b58b89f69d6698883457073d6c0cafc1b691",
           "research-fisheye": "b78c15e49b15f31563937b3f573a2e8de38ad64c855d685bd72061f63714b656",
           "research-hierarchical-aggregation": "671ad4fc289a0e935979483612a1c74954dd560b092136603d36c732536a5c42",
@@ -12377,14 +12838,12 @@
           "scale-observation": "60f9466a51475760438b5abd1856c953481707069027b94ce8844f28881d7dc3",
           "searchable-model": "afdf39b124336f6b38f2d826f67c6722c68530ec2924518ea210736a392743fe",
           "searchable-model-c": "24e572b2fe44214360859a71c76a0c1727413a13670b72b8c48e6c60683d134c",
-          "semantic-zoom": "04339b776e1ec6544b5400ec4beef3da1f690f98cbc4c646c43c8bf194fc6cc7",
-          "semantic-zoom-c": "67b88aeae278074d74eced76531ae3a267fa8051ca89768bc0777b1313e096fb",
+          "semantic-zoom": "4e17962396618759985b0dee001c5a0c9f68ec7316abfbca0241b7deecf67fdd",
+          "semantic-zoom-c": "26084e3b75146675774dd561098e6b6d2cb682c04210473ec16574f32a3e72d6",
           "standard-architecture-model": "5946b5e21ea9b02e0a7df8c083e0fce70a59e9bcc31979c76b4f4a8d2545db70"
-        },
-        "at": "2026-09-17T00:00:00Z",
-        "by": "opencode"
+        }
       },
-      "reconsideredBecause": "The zoom check now also proves that a line standing for several relations splits when an end expands, because relation aggregation is a zoom behaviour and this check is the one that crosses a threshold in a browser."
+      "reconsideredBecause": "The owner confirmed that grouping card fields did not remove the unnecessary zoom states. Camera input now navigates meaningful framed hierarchy destinations instead of arbitrary scale increments. This reviews the changed contract and checks; it does not assert execution evidence."
     },
     {
       "key": "check-navigation",
@@ -14352,7 +14811,7 @@
       "type": "check",
       "title": "Reading without noise",
       "scope": "archivarius",
-      "method": "Drive the installed consumer at desktop and phone widths: sweep wheel zoom in and out with normal and doubled text to prove that each collapsed card has only compact and complete fact views and that expanded containers never repeat their fact summary. Verify a diagram-first opening without a reading guide, named confirmation states, criterion meters and task-to-confirm counts, explicit one-click entry into container parts without a second panel, failure versus missing-evidence signals, concise component summaries, task navigation beside the diagram, Back and address restoration, explicit record browsing, document links, safe content and bounded card and overlay geometry. Unit tests verify task aggregation and evidence deduplication against project analysis and ignore removed guide state in old addresses.",
+      "method": "Drive the installed consumer at desktop and phone widths: step through semantic zoom destinations in and out with normal and doubled text to prove that each collapsed card has only compact and complete fact views and that expanded containers never repeat their fact summary. Verify a diagram-first opening without a reading guide, named confirmation states, criterion meters and task-to-confirm counts, explicit one-click entry into container parts without a second panel, failure versus missing-evidence signals, concise component summaries, task navigation beside the diagram, Back and address restoration, explicit record browsing, document links, safe content and bounded card and overlay geometry. Unit tests verify task aggregation and evidence deduplication against project analysis and ignore removed guide state in old addresses.",
       "covers": [
         "quiet-chrome-c",
         "bounded-detail-c"
@@ -14372,8 +14831,8 @@
         "test:browser"
       ],
       "basis": {
-        "contract": "d828cc5599ea045d037f983df988b257af186ccadd317d8fec8e29edafadaad5",
-        "dependencies": "b90cbbc292a37dfbb682e9d5407a3658f4f3c96438e3a0517e87c71195ac8390",
+        "contract": "a442c6abb25c47ca3548ed037faac2453ec50f931dc0f35cbe0d73b6150e0259",
+        "dependencies": "7eed4a8869475b76ba74a9be564d944f98956336d11e5128c824a6dddca631bc",
         "definitions": {
           "addressable-view": "d2d4bf10b2ddada82f4c2b1f78610bff666edee56cbd10a9eea5799614c51376",
           "addressable-view-c": "fd07951e57e5e128d6fc15c4c1de8850e09f0a29840c0bddd78857cd8eacdbbc",
@@ -14382,14 +14841,14 @@
           "archivarius": "3d2c939171898afd61a610ec45673d67c25c48b86d755927a0eb75edd9d46786",
           "bounded-detail": "3fcd9b4f109fadfa02fa1c7cc1832a8e2273f00d6a872cae79dc7f20d1400acd",
           "bounded-detail-c": "1e5146dc01c0f678d4dc1aa6f4cfc0b2f49bebe89bd42dd9931e3470837a08d3",
-          "check-reading": "f1580873feb9473321887e8642f8f9f951743b89726a5078e8a550771faa1086",
+          "check-reading": "5161bae38caccdc214e3c026fa4cff7834aa3c40badc87e44bb912eb42eec8da",
           "core": "236481fb710c9f0c36d892f3f1414f9140de823298745bb4af7fe1906c3a30e1",
           "inspector": "64ec93e720d66451d42227fc08d2a6a39a0f4be62af0ec32619a377984163ed6",
-          "map": "39f088f8f9fd52f3aad6b9ba8ee6873ba31e15a304d02db60fc51ddcc1f37d83",
+          "map": "ff74afffbc4a3b4f74e7cbb354250a17e38fa410caca0fa51fd3421457d48bc3",
           "owner-intent": "f02af80cb4d91978313ea21864f6d7b38e34692e470885215ae9ea65b670f5a5",
           "quiet-chrome": "eb97dc60cc4f22baaf50b035dcfeef2599ddfd77f920521c65c0c8bc548641f1",
           "quiet-chrome-c": "05c61122a8a5c651427b85749356e62c079f4005b22d3d58ca0a13ad4b2d7b06",
-          "read-a-structure": "cb7435ef2de29d080fff62e72a995840e6461539cd260cd4a1023ebc2605fb08",
+          "read-a-structure": "79482745183ff1a2abf441b14051a5cd3761be7eb924cf47a8579d63f902cc6c",
           "reader-observation": "b6910a8b99a5e61700caf5e6927750c33832588cb366d80e660e8304a495cddb",
           "render": "00cabaed500029496deca314fe01f354fb83cf9e6448ab1aba3bb947a04f559d",
           "research-fisheye": "b78c15e49b15f31563937b3f573a2e8de38ad64c855d685bd72061f63714b656",
@@ -14406,13 +14865,13 @@
           "scale-observation": "60f9466a51475760438b5abd1856c953481707069027b94ce8844f28881d7dc3",
           "searchable-model": "afdf39b124336f6b38f2d826f67c6722c68530ec2924518ea210736a392743fe",
           "searchable-model-c": "24e572b2fe44214360859a71c76a0c1727413a13670b72b8c48e6c60683d134c",
-          "semantic-zoom": "04339b776e1ec6544b5400ec4beef3da1f690f98cbc4c646c43c8bf194fc6cc7",
-          "semantic-zoom-c": "67b88aeae278074d74eced76531ae3a267fa8051ca89768bc0777b1313e096fb",
+          "semantic-zoom": "4e17962396618759985b0dee001c5a0c9f68ec7316abfbca0241b7deecf67fdd",
+          "semantic-zoom-c": "26084e3b75146675774dd561098e6b6d2cb682c04210473ec16574f32a3e72d6",
           "standard-architecture-model": "5946b5e21ea9b02e0a7df8c083e0fce70a59e9bcc31979c76b4f4a8d2545db70",
           "standard-usability-heuristics": "a0ceff2bbabcf764148f8b81bae26c2f82defe4ee6d9abef7e4332df8155cba6"
         }
       },
-      "reconsideredBecause": "The owner reported meaningless intermediate states during zoom. A measured wheel sweep found five distinct partial card views and an additional summary appearing on expanded parents. The new presentation uses one threshold for the full fact group while preserving continuous camera movement, semantic expansion and inspector access. This records the reviewed design rather than execution evidence."
+      "reconsideredBecause": "The owner confirmed that grouping card fields did not remove the unnecessary zoom states. Camera input now navigates meaningful framed hierarchy destinations instead of arbitrary scale increments. This reviews the changed contract and checks; it does not assert execution evidence."
     },
     {
       "key": "single-relation-bundle",
@@ -68929,6 +69388,1490 @@
             {
               "path": "src/ui/useMapProjection.jsx",
               "digest": "89f61802336bf3d73f14d8336a7e18f5e328521969e53fa4cd78f0c5267269ee"
+            }
+          ]
+        },
+        "model": {
+          "path": "assets/archivarius-model.schema.json",
+          "digest": "c0d92015b029caae76749df12fab16e5d43af9afaa523e7a2d1395ba02c32b7d"
+        },
+        "model-source": {
+          "path": "src/ui/load.mjs",
+          "digest": "2a49d0d47803ec30d4dd78e15ba48e25f145e9ee7089067bc1c209f63a3df0f7"
+        },
+        "node-api": {
+          "parts": [
+            {
+              "path": "src/node.mjs",
+              "digest": "84ac335c0c99a680758b65291b25dfdafb9f3ed9d754602f8183a282e9855414"
+            },
+            {
+              "path": "src/io/project-storage.mjs",
+              "digest": "5a0a68c152a9b2b451040f2ad6beb16aaebfb8f99f021c1693496c3d506693c4"
+            },
+            {
+              "path": "src/io/project-git.mjs",
+              "digest": "285a2821f73d03420ea9da637c507bc17789e4202c7443552a95863dd86ce4d2"
+            }
+          ]
+        },
+        "node-index": {
+          "path": "src/model/graph.mjs",
+          "digest": "56f22e3f8f37ab422a1c89aa3d8767b96457924c96b356bf5544adb6b13d3437"
+        },
+        "record-detail": {
+          "path": "src/model/project-view.mjs",
+          "digest": "129aea421943353368b2d9dc1efc89a62c8d13e9d58e25470d295e239a2d7ee2"
+        },
+        "reference-set": {
+          "path": "src/model/records.mjs",
+          "digest": "169993d9b21260390e6b08cf327c8319c0678a0c5331d632f6d2c7db3ea74eea"
+        },
+        "render": {
+          "path": "src/index.jsx",
+          "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+        },
+        "single-relation-bundle": {
+          "path": "src/model/graph.mjs",
+          "digest": "56f22e3f8f37ab422a1c89aa3d8767b96457924c96b356bf5544adb6b13d3437"
+        },
+        "single-relation-facts": {
+          "path": "src/ui/Interactions.jsx",
+          "digest": "3e84864c75f344ab98aec8c7768d61e4cc7a3b48db72b15ea9b6c2ba80a79cc4"
+        },
+        "validate-before-verify": {
+          "path": "src/model/evidence.mjs",
+          "digest": "a59ce7340013a6c3d488abd5b5308cd93cd8a894aecb54c78bf6c11dd739af50"
+        },
+        "verify-evidence": {
+          "path": "src/node.mjs",
+          "digest": "84ac335c0c99a680758b65291b25dfdafb9f3ed9d754602f8183a282e9855414"
+        }
+      }
+    },
+    {
+      "title": "Archivarius",
+      "root": "archivarius",
+      "entry": "map",
+      "contract": "d828cc5599ea045d037f983df988b257af186ccadd317d8fec8e29edafadaad5",
+      "realization": "dd1573b66a8880547a08e18289566bbf94eb2afd24da76e84644848ae687f894",
+      "records": {
+        "archivarius": "d478102e4b79a22fcda80276465402bb1d7544dc23cff67792ef9ef22f44aab2",
+        "owner-intent": "d8eda33949d0ff75d1a23473ff150f735b9e6c988987f70ab16ee6cb3970ccc7",
+        "self-description": "0b910912710b40eeb3efca3d4f89ed12374635a41f782cc3cac31fe6e054e5fc",
+        "contract-basis": "e895593cb63ab759076a96a5cd50b77505d8014de3484a5917d7e7aeb0b4440d",
+        "model": "3d82226221bac3dd6c1d5aed7ebe48bb33a34f51c04c1764b04abd0fc036a6c3",
+        "core": "706e79d65ff0a6886e7e563982ec2c7e9f30d212d12003dc7c37ddb8d2a35c81",
+        "graph": "343788a25f41a140f4651943f2d8a262fbdc17a677880c174048b726a6709cfb",
+        "digest": "c118ed08dcaf8a03dabd4a5173ec5a7f16082f1b84964886b99e7afbe8d9338e",
+        "node-api": "301020886f78c3ce8c695086eb86d90fca7dacc8862cec5275e6c50845431f4e",
+        "cli": "6b3a4d9d278f72934c4b0b99cb3ba18d1829630108802d5b68343353436c22b0",
+        "evidence": "c5e1d00a4ce17cf82caaddc1a622a197c99fd4d8601a08af404e6b6b551fcf4d",
+        "render": "36fd4c85417c1d3cf93ba8098bc90f06f44d1091b6734ad88b86a5efbb1bab58",
+        "map": "04decd283c1fd1def5483c3562889488573138b7e3ea5db7022f6626a3a4df32",
+        "inspector": "6187de69129487bac8373d36fffa5acc62c775c5c2952ead481fb4f3e8130057",
+        "model-source": "fd1edf25b79988cfa492c1643e3d6817ed81f16394e52d118ec2c228a9e1d9f8",
+        "change-input": "36700ab06f06beb646c3175473500db224d2afb798fdc1e538e476230a1a0b4e",
+        "evidence-artifact": "20f1f777c06d7160ee61d10eb56772d3d1e7d470a810e477cffea52672e72d97",
+        "reference-set": "8e3d45c40edac217ae1b424b8632ff0d0291599e74ee72f32d0350ca06001899",
+        "basis-value": "af443b0015619c65451a274414a8d286a7660af0ca3392185d78398b7fc4aebe",
+        "record-detail": "4141fbf755ed83f2ea570d144fc42b8c97bfccbedb8c801a37784463c3c7aeeb",
+        "load-model": "97709ccf95fc14621f75d832f5b61e1f54b1696e1d5c46236bc7c325284191cf",
+        "check-references": "ad6a21ddbcaf833fdb3f4554feae9e982ebf2c6bffbcaeefe63b46bd604a58d0",
+        "compute-basis": "f44be21695787d9b66c0e2698afb4209b7fe668d9424d1e0ab1c0d99887f78e3",
+        "inspect-record": "28da7823e8b8787b03d18025a4a053d11a442b0b6de39f1f410833c2480ed862",
+        "apply-change": "6460f9a6987c4b8a23ae5a4a96613b94249f2ba6f200d930fd64c84be74599ea",
+        "verify-evidence": "ab170aa235bf5eabce1983ddd52c3479de88581675785b5b2fda77bca8f5e363",
+        "single-snapshot": "899d40eeac3d670274767f4162a55c594205e7fbc2ce6e47c6df06283673e442",
+        "single-snapshot-c": "54682dc7a4da547b76349e3d286498f5934fa227620cfc84fb32930771d1d62f",
+        "validated-change": "dbf7d05ac04c11ccedc9d534f72c029ef2b98990bcb753a5a11e885ec3574bd7",
+        "validated-change-c": "f5b946e1ae5095a3ab95788a373ae5784abc62c4f08b91c3f1707ece890a0b68",
+        "byte-exact-evidence": "ee1948a7d615eed5fe92db4f0b64881e03a3b6da1a9876a376d9f150e3392f18",
+        "byte-exact-evidence-c": "ab1734ed6adf6ac9ee830b8bc9204e5d059db46142964b1956d14aa0f70d8dbf",
+        "conservative-freshness": "7911d529bb8fa23ea7b8916dd75a34e5e8f40741ac90373e38083e4e27a187ce",
+        "conservative-freshness-c": "7a4ff864fc435b6f679882c901981d824c4f8de4ab788a40e4e038d7517d6fde",
+        "basis-digest": "fe0d728a6f5b9aba4dc0d39299e4cc5e8280c5c4ac4e8f85f25e09236b29d445",
+        "external-resources": "15b0d2ee3d8bbde0922cd8b940f3864c66391d4597de6a35d2acb3a5eb670e5d",
+        "edit-and-render": "9130958b427c5349ff3febd5517f8051975a1aeca3e9c5897ca8cd87616bab22",
+        "task-model": "a7eba37f2533a25dedd267c0af361caa80dde4195eab61f8b08415f2b9e61e7d",
+        "task-render": "761bfc56c845116402172817aed877887606f7b23410beacbc33b117348deb94",
+        "task-evidence": "7e6ef03c86f0b4c0288a3b3e60156b0b2654cb93eaf5d7e82edc4f03d0392e79",
+        "check-model": "a4f619ffea2adc74513879c84d53612024eba118efc50462f862a0b21e02312b",
+        "check-render": "7855eba34b2b3d30820639d1be6b4e95fdb989841ebe82c5a8f4394a11b151bf",
+        "check-evidence": "7fb48c50eeedea635cce61c615c7046e6d7e61d6ec61b01730bde9f00f4ff486",
+        "shared-appearance": "2b33932f391105f40dbf616a93c441d71c8a2d968a07864c851c9ca0fa21fff6",
+        "consumer-intent": "201faa8e06b1461114ff14c79d7808fbc426152635ebefc53547015452bf8cbe",
+        "reader-observation": "2b01cc0f641adfdacdbaafa8c65b8cd6722e09d57c498ef76c71487049dd4536",
+        "scale-observation": "1e6698846d993cea73bf6d57bb95d903e75a93f6642365da0ae69ee5e9ab9f5d",
+        "code-truth-assumption": "93f2be5963b09e5c25fd9f2f9e03b388d01d2c5c6926ce631103eddb21221a31",
+        "semantic-zoom": "e482eddccbd0d7d7f2ac4b065a273a2e1b52594263a5a82a639d634246130693",
+        "addressable-view": "5a4bc53748ebde4e14cce6f2639d611d5b163e3d04732766fe72881e316813fc",
+        "keyboard-complete": "b404dac13c497e0bc5721889aba0669dba105d2d6c23d4cdb4d913c50183fda9",
+        "announced-changes": "4aac27402750e6bb65772c4a4d4ec7855658b4dec4ec9f2ccf049c472cf933ea",
+        "reader-settings": "26cdbed474755881f9945cf678f22f596f045e0c63687b243f893f3d4e9cf067",
+        "documented-failures": "452a14fe8274d184ed59efc20511a625c5686a3904421b8478e4200a72322728",
+        "usable-from-the-readme": "40402a80fbdf5368fec622da1983d32394ae0aef55255c5686f57cbb1fd2d766",
+        "versioning-promise": "7fdfe359548d040cd2cbb86053bafad02fef476577f98b7695782411c957863d",
+        "responsive-at-scale": "ed213c5a05d9f1a7e47d85363aff5924f3bb29e22291e3391313f2765506f191",
+        "bounded-input": "5e64a8f554cef4d4d55530229b99a2fac49040c57284542e8f650804e51ba42e",
+        "authoring-onboarding": "0e2b38b082d382defb0b5d02edc970b6e5a79270653aa00cebf9e3711f5673e7",
+        "precise-bindings": "54b959da8ea672077840b968b75401e0f894cd897eb992cb2a5d02c265b506bd",
+        "scoped-freshness": "014a74b4fc8a9b7548af5801d3bc7ca69b066fb56eb4e8c7defb2bd7a0b0b455",
+        "snapshot-diff": "b9b2ee31a9951fa326a22d7c7eee22f3549a8460b35a8c514e99c4e2d28c9a43",
+        "code-truth": "2b4557b6493db31561e76c47b0b423d2b4242c01b5bdbd985b889772fd5ba603",
+        "attributable-records": "e48c6097c85c4a7e261d71ca5c448e1342b61587882dc83aa382e74905f25328",
+        "executable-checks": "4cc922eba8a38c0c2a56881a083eb3af02f9cd105dc72a033a1aaabdd677c852",
+        "literal-content": "27d94c8d691bbf184329d03e5ff916c8bfd6c3f3cf788ea9e0d427595d823496",
+        "layer-boundaries": "fa466f177125c24046c44c54dab602537d43578a9d2b0b64474407fbae7c85d8",
+        "generated-documents-agree": "5fb820b0047e70c15749d931a926d7eb23ed4b56686768dfcc4f1e966e9579b0",
+        "english-only": "79f43e30023653c026ecd9fb714b26f29a968dce91889bfa06117587178c2ccb",
+        "exportable-elsewhere": "5657a218569fe1fc2d46126e62f518aa3866a76ba7bfd0349e3e546486683158",
+        "searchable-model": "e0371f972de94e6dc2c8d9836f7ef3d8ae95dff2d659a7a3f5b113d0ae989098",
+        "answers-about-change": "e48bdacc8ddf1237253258cea3f4a7be9fb3fdcc40cad68d2cbd178eee4f312d",
+        "semantic-zoom-c": "527c248fb67cb2f46b12dec4d5a580dae41be5b20105743f57b70bb819b7b846",
+        "addressable-view-c": "0e4ccbe2aa9a4cfb24d49a82123223416afc96229f1d3fc1a87876c6aaa5819c",
+        "keyboard-complete-c": "02ef4bec3374cf30287c22adddec8d5c0c16dac65e3bdd834d86e15701a56af3",
+        "announced-changes-c": "3c0f2dab61cfb4fea63f20833152d0cb91926fb21d6bfd78dbb304283bfb6d62",
+        "reader-settings-c": "5fedafab027314402851d9730ad74b6012c099c28e055098de3657a3741750af",
+        "documented-failures-c": "a4cb6aa92636601cee782f603eebb7adea0b0a32a6c18d73c61aa96a966aef17",
+        "usable-from-the-readme-c": "2e434997c6d3d3fed0f7018314eb061141c72da19b9beb6a0e8700aa2a86ca39",
+        "versioning-promise-c": "81c24f3cc1841357068b04b8503b0bec4c9ff0dc395d3a6ce4250a21603f20c2",
+        "responsive-at-scale-c": "ad55072e0c30afb54c345ff1679683ab293e013ddc0abb5c6478a3bcdd0d55d9",
+        "bounded-input-c": "6425a7b00fe08ec29f33816ffe595f7f324180689276c175cd329f9087479d2b",
+        "authoring-onboarding-c": "d7ee183cdb3e12b2e151ae4e16a676d2773bebda2953f809061d3b682de0ade6",
+        "precise-bindings-c": "c1408a734e130a84a5bb02402bdda03f1226320cef1158cbcb24b43b6927f89f",
+        "scoped-freshness-c": "a794409b091081c07d2cca9dcbdba0e8219cc8c5c1d84e3e03179f59f4f91d95",
+        "snapshot-diff-c": "af4701a3c3c2726290b67b7ae38462cea9e09e9b2b58327b6e41c04c94d4add3",
+        "code-truth-c": "dfffcc9a31caab8268e87d335bfe03f67e4979364d017879df62936a53be4c90",
+        "attributable-records-c": "d21de8870e6a820227c7baf3425200ea9d4eca98ff50dfeb6aa9f6297646ed63",
+        "executable-checks-c": "e67edc1df96a9ebf928ee8e60280f7879ff0de8bc66b177b894f131f2103e8f9",
+        "literal-content-c": "df86ad22b5b02657d234cc5f65bb41d4b40a3cc543939bdf1756ae76c58aba54",
+        "layer-boundaries-c": "fef1c92dbb4c7bfb6e5e14c76c7986315b3805e95313deb77f6770538bb6611e",
+        "generated-documents-agree-c": "aedb6383d3e0b5d75e5661becb84f3fd4cc8fbbcee0685d27e4d3eea2ea90d72",
+        "english-only-c": "548f3c6df239eb4f41704c6a27fcd1a7bbc9174ba0e37a58587fbec40730485c",
+        "exportable-elsewhere-c": "659b21ea65feb8e7cba547ed2de48f48d8adddf89057ec3444903e5aad35b8bb",
+        "searchable-model-c": "37a0d9143983a272ec5e2d28cb705ed7811d514f90705975048a3134a67daa51",
+        "answers-about-change-c": "64b40c046ce6e4b693ed2a8aa07709786c2c35857094cc05d1d23afcb43d74a7",
+        "research-fisheye": "7a223446223587b50f7e517b783bcdb14d4f5125ffc0bc0555d07a821bf104bb",
+        "research-zoomable-surface": "16ed1ba8d831f386ccc57dd264efa77bf284fc0e82e3eb4c97116a58f6ed82f1",
+        "research-zoom-review": "1186ba2f7ad0a5ce325972c6f006efddeaeb0acb03029aa64349175555d5a509",
+        "research-visual-taxonomy": "e8fb265ecc0ba826aa4ce7b1d60cf34c8f463265c9779436832e85d5a4526f89",
+        "research-notation-physics": "78ee8cfd6d5540636c6d3ea3e4b5ac8f8bd7bf9397a2c6361d75d882504e78a6",
+        "research-graphical-perception": "c64a79739f05b7303cfba0d88f026b398a9dd7dfdc8c807df991a25da6053ea7",
+        "research-secondary-notation": "aca00a04c93058f41c9982886d99673b7e3af3258803ca8d82234e06adfa1555",
+        "research-layered-layout": "8b7d9160ca6c2b02fc605f7150fd2cb259af0f40eeb178933ad7fe94f67d5040",
+        "research-response-time": "74118bcd4b4a23d04e4476e1bb3fe29356d99e90a1b8fe0fb1b516911188d9ab",
+        "research-view-model": "5219ba83bf0741f9360401e7e91711f10e00b663ca9fe910fa57756534f6bf22",
+        "research-module-criteria": "f24c21d4460f5ff3b10e06f3683545368a15c919f312b7f629b4af2e5fe6fc1c",
+        "research-design-by-contract": "c4808d41d5451f12f79144a6d6a72b1de8f36c5ae47e889034c32478eed364a0",
+        "standard-accessibility": "f937ec24355a9370ad48bb7956bf1700313032b249cdf13144762a7e09faf9ba",
+        "standard-usability-heuristics": "6593233a57273a625fa6543e36efaf2b16144f752b747f841e591f75feaea5de",
+        "standard-contract-versioning": "4313b1129ddc73b116b5443e3559fab7f37ff39c59863926366dee5a53c3c601",
+        "standard-architecture-model": "9e3c202ddcb849a5e8b899d1b2dbae90a7f5e7af18b4fcb5084086c2e6781ddd",
+        "redundant-encoding": "ae67491c2cbf002150efb00555a2cb0cab8622959c9acbe5b269b8c8c077d2b0",
+        "redundant-encoding-c": "4a6a5951f4edec1c2dd734de8b59a69adfd57a00557a1a1d311b017b1a54f1ec",
+        "layered-layout": "ccd91a0b8a84418c2ad3920b10bc0d82f96788a68452b4cf806e1cabf28773e7",
+        "read-a-structure": "86674bdb62173c8772faf1974fa94e0131578b91e3aa7f0f580eaac0ee08aff5",
+        "read-without-a-mouse": "d35e83cda4ea4ba4e5170dd5e033f11c394a5b3f9b92e8f538ab3df33b1be556",
+        "adopt-the-library": "becbf28980693f43cf650d1bb2b6975e84d624f4916660f628ce46fc269bad9d",
+        "confirm-a-claim": "c8c8ff22b6bac2c42883831a1f4f1d7090de41f3e36584a9a2176fdd340b3f83",
+        "generate-the-documents": "b0fbf5e2bd40486cd2eee6ee205bb7875e1cc27969293efeb3b444f0b838def6",
+        "task-zoom-levels": "b5e2b6cf4bdf9fd4903bdab3d25681a939963044bbdec7c0fb7e9e4ed4ab4765",
+        "task-overview-and-return": "3eb37f26095756a54ea0c3b9c37fa32f4b9b7bb370671549557232645e13f0cb",
+        "task-addressable-state": "b8f2ca64ee201815e05285ba654491105675176d442a4ab782216a78292c97e6",
+        "task-search-every-version": "79ed9b5e253fce4067369c49e3353355bedd935b37e409c8f79e1ba57ad2d35f",
+        "task-filter-and-relate": "91151fd19207feb290b94e5e6c2bd75c9840254eb149517d4832751fb7a76370",
+        "task-impact-closure": "280fd4cc419425d36e70c3d786722dd04aab65923199e1aadd3d9fba3a1c2e36",
+        "task-layer-separation": "951efd4ca3c3e7dadeefd1a245b60f19bdc9f2d55e6075327bf31a574edd009c",
+        "task-second-channel": "c48fe8442764d4e86415ef7734ca844273f16940911f989868b1b7dda14b459f",
+        "task-generated-legend": "1374d75eada7f5c9ba5b71c929900dd45d4def6ec92ba6de9de6e03059ba0e12",
+        "task-layout-off-thread": "25d6a3f715a75025e32eef2498da796db383e5a7ae27360091e9cca0e86d4769",
+        "task-virtualized-map": "51f45615af31975a2d01da46c065bd78c58d8e22dc0068dddd96332f6dd2be82",
+        "task-response-budget": "4fc49b27cb49246222e83a1da6851e30d4666f190dd6d3b82b499de3066fa26e",
+        "task-cancellable-reads": "e9b85f773a7d32d9ac906bbde22c6c3244e29e2ebd911aa518a2ed131f8aef6e",
+        "task-stated-limits": "81050b74c1b922daf79cbdefc45bac551ac9c71c55609b102fc9dd565777413a",
+        "task-keyboard-map": "ac72567bd1d8c445360df94d45189c8169e3caeb35b0ce3574c42511aaa511b6",
+        "task-visible-focus": "e9af0088dcd6ae315a7bbd3cbda51f66e2e4357e95e8c2fdf634f5ab4869d3de",
+        "task-announcements": "3e288e6354593f0f917e0a72792ea649561d3c90e78d64b1d8534638a42d320b",
+        "task-reader-preferences": "90e8de8005d8d19332a06517923d38ce47783b29705b710c1a606a19b85c2a91",
+        "task-accessibility-harness": "03e2609bbdd555c8c727903f81956db41c549233b3843e13bfbd4074865f8362",
+        "task-failure-catalogue": "414047d385ce780409865a96ee27a5ada926ef8bf74ca840232a5b07b6a920d7",
+        "task-failure-on-screen": "130cbf7841c5b50a0c4df992074d6d25d0c16abac6183e7a72469597dc3e4f67",
+        "task-quickstart": "393b14f66754ea8bbbee799a5238390039763cc4203baa77af1c7f22d7c9d792",
+        "task-public-surface": "c711341507f69c8f9c9b28337ee4a84a6fa65a67471faa13d3bf557ee26d6e4f",
+        "task-contract-grading": "221bbb0aa510a870abd1e44b7129bd4a52ce46415ff4772ef64996ee2f0a9f75",
+        "task-asset-names": "4104baa5e29f3edb32f6891e5efc560b607f5376693cfa6cc5da04e31e3ddfa9",
+        "task-licence-and-history": "af46295b8e4affe19d59d392e277d90958ce1d1881d7d9218dbc7e10fa150668",
+        "task-init-snapshot": "28c44177fbb873b6b9c9a4f968fb1037d130027ec94b3d9d897fe76c2dcefaa5",
+        "task-explain-rejection": "aa4501f001078f3e124c069bb49340e9dafd9b89a60db6d09b331875cefce803",
+        "task-snapshot-diff": "8f68a19dbf8eb7b8a36a8078d6da5eabe0e93e604602d2670eb84f32a902c9f3",
+        "task-record-attribution": "f1d5e9e7fc11f2616087f956729bfda60c9582cf4b131d1d7164bf40db1dee4d",
+        "task-open-questions": "312c06ead6299ca96a68e0849f788d5ef21cb721f4e619d2dda28ddf510e2dcf",
+        "task-scoped-withdrawal": "7b2976528b937155f3e982e364ca555be3b11cdc0aee05fd482c96a6807de747",
+        "task-freshness-report": "a2e3a5dfbd500257f8a019789e5c5ec1ddccce070f71d21b092f2cb4b3f1624e",
+        "task-code-reconciliation": "b96b8e91d0cb6bb13277773d77f84a56ed1bf50c41aa7c4054a4d19ed9c69c8b",
+        "task-run-and-record": "b876cf4399171d2a41a1ef29a6ce5f9a3a8b647f309a5a8a7ffb71ed1f9641e1",
+        "task-export-formats": "5b6970aa5b53312c13e77989c8ba4a9d984fb1b987d7f634d33532c10542558d",
+        "task-diagram-parses": "8709653196cd77ca38c0846e8e2efb18d811dc3485a817f3e1652a93e7277f4b",
+        "task-inert-content": "a65655e0b7b80f4db39f80cb7a79984a507c119b83792fe69a74792bc9830c65",
+        "task-one-language": "62718141abe9338371042a55eef2ec4be57ad514a1213f8c90cf3e49f490261d",
+        "check-zoom": "07db9590144a16dcdea7c2ec006a4443ba244b283c7106b37ad9d61f299b2b54",
+        "check-navigation": "e7b0fb351a6c4f616e4db16cab6f133c7cd7788ad74c0856ac753a9449f99d11",
+        "check-accessibility": "9af228f4817214fba8c440eff2834bc68e7e2153a472f52e8b741a737889e60b",
+        "check-performance": "03e127114fb0cda9d07b9132e7dd04d11dc585f941ac6edde905f0d3751cbebb",
+        "check-failures": "28348c84c358ae9a4d4d3b19c0d8c350300694ae6c608207da82726bf92a3d25",
+        "check-documents": "9de99959bc64d3d02b46922843eabdb0128a9f647373efd72b856e1ddea4494a",
+        "check-versioning": "ee0f728d10061f2619077296f0ab55561ba8d752eaedff6333bfbeadd7e1ac3d",
+        "check-freshness": "518667b769508dfcb6f0725d9719a08d9f38b48e5d0b0b1c5922ff414103c21e",
+        "hash-evidence": "e7e566f28d7efb4a1b4c715853345dc1472888a7bb41581084bb50e1ec289be3",
+        "hash-record": "ac570d4b599808546c5b5922f805e99ef7fe73e64926b97957bf2a460583c38c",
+        "validate-before-verify": "0569b1efb2f61d22eda22d4ca5726eeee25ca6b884b43f16859b35ed3c9e5eb4",
+        "check-reconciliation": "135805b3434a8079653432d63b28f30b5f27fa424967e6d709eefca6b717a06d",
+        "run-reconciliation-2026-09-17b": "018a5fafaab7f8438323f3a93ff9c201438dab2aa5ebfed066b8e580783a369d",
+        "run-model-2026-09-17b": "d67e6dac23d52d6a337aac6af7a15462fc361a9b53b2c9d8e7fa347e7221c3db",
+        "run-render-2026-09-17b": "7adbde1d22c32b09fd49fe784f212458fbaee59322e7b403bd294af13bc2def8",
+        "run-evidence-2026-09-17b": "f84b48b3edf757b467d025725862134c2d472d21417ed7d276d290d9554326cc",
+        "run-navigation-2026-09-17b": "4b7f3cb284ce3c6deb5134470c90d7c4ebffa507b58d43b5a0c104602b79d846",
+        "run-failures-2026-09-17b": "c9b84e1f276fea57c0e50754eb5501eb13483e850d3f59227d828f929dd8d942",
+        "run-freshness-2026-09-17b": "b20a2bf9cda10c4896de33d489861bda472039c5469ce71b92248c489f3c905e",
+        "run-performance-2026-09-17b": "be471369710ba587db583714da9d5d6943f91271f4f6be94617138ac771f400c",
+        "run-accessibility-2026-09-17b": "72f323ddb2ab24950b0ca75a34570d62f5be5062f0eb1aaf76175c69a207e1de",
+        "run-versioning-2026-09-17b": "0dd07c15e38248bb6645b59d301a64b3f08ed01406f75ec1c7192044bbdac898",
+        "run-zoom-2026-09-17b": "4c189094a5ef5998a8c0f6a5eceee87cae4f5ea1c8937f84e064064758c6ca73",
+        "run-documents-2026-09-17d": "4fe7b25d0fe3155101d3b2d375520ab952c1653cce554d98d1b7a5ebb022a851",
+        "run-documents-2026-09-17e": "d4a7d495141f1768ea731042cf6c73b247e6cab1f92812040a41d9a5cbb2bba6",
+        "result-basis-scope": "71abfeb46e689393bfa40031d70e526717852403c6a4a73dc920b16a5206d121",
+        "check-layers": "21ddba8436ef028108420448647349c057cb16f1e27f08ad2b94ab8ecb4d12d6",
+        "check-gate": "5e3aa8bb4ea834d230165dce690b2bae9929709cbcfb3326183465a1cc87aa09",
+        "run-layers-2026-09-17c": "a1709d2ceda5e5ea226844a98a848c841b3acbac25152f33bb5923623ac642a0",
+        "run-model-2026-09-17c": "fc7b199de641b54044a948dd9e57e495b58e91a90811435cafa16d83f098267e",
+        "run-render-2026-09-17c": "da60fe64519d7596e023dea2ed14b488f9a1b4e409ff192090f9ed4bca671fec",
+        "run-evidence-2026-09-17c": "03b22ffbe2e346e4907f8a6ad3e5f2de039514645c0d80f975a6bfda592fe50f",
+        "run-navigation-2026-09-17c": "cf253334853f77cc1aaf148daf92fa08138f92e4b3b573a8e8b73333b8d6cb47",
+        "run-failures-2026-09-17c": "677cb00921df194fc223915970490adb2255c2a56bba9193c997fffc0a5e4daf",
+        "run-freshness-2026-09-17c": "e3ec30b1d7b45bfb9a58763b264b828c24f69586b65220c00829a5abadcc2821",
+        "run-documents-2026-09-17f": "96fe806ec827f565573fbea0a3778d2132e33509eff8d655c979a17977bda7a4",
+        "run-reconciliation-2026-09-17c": "de0ea2299be7fb5ccf681b4ca82581da569435032f00f197e30767224947ed08",
+        "run-performance-2026-09-17c": "72d949de24251ee2470fb91e775020518c55041439d942480f964dfa3adeee69",
+        "run-accessibility-2026-09-17c": "d8dc997041a853d020ec8509e6ade83c8557b52bc8e8c42d5a73eee9b3f0f10b",
+        "run-zoom-2026-09-17c": "a94208e08d870fe25f08b5bd2c7458282da9733a89e57bcb6980807f82c6e6f1",
+        "run-versioning-2026-09-17c": "a1ed934e4e55742b77860a051439b8d0b044e9c872cbf622b53230bb797c60db",
+        "run-gate-2026-09-17c": "a895adc7fd8998836e121ba7d7a576a3eb27137b4a97895272b9459aa7df3c70",
+        "node-index": "d170dc6381af86bd754f27e26f47b4662c635e24de390c1932104aa6603dbd2b",
+        "index-nodes": "09cedaf5ad98231d327aa2b4bd875de8255aacbfdc929621a514ee8605f61748",
+        "run-layers-2026-09-17d": "169ee00720e8e3cdda4b31c1bd660311f9df5b123363b264851a40788356904a",
+        "run-model-2026-09-17d": "db1d45610ca58da27ae8c6b066e27d2928c6e5a3d9b32475b2917ddc6625a9f0",
+        "run-render-2026-09-17d": "d20ef80e3d8334b280a7f120b14f8132cfb2b4921bf3cf40797f7eba5bc734bc",
+        "run-evidence-2026-09-17d": "12e8cfcc5a6e30c04035b3af5e9402a61fcd08a557d1283aa0b095caf620e8f9",
+        "run-navigation-2026-09-17d": "1a68c0bd4a4d7ec3c2823b51c85d75e743d162a3d8a2d19ad4d804a3142e9348",
+        "run-failures-2026-09-17d": "69c7ebd60c17593e76b7aa69e0b9f8aaf5fa40129d64ccfa8299ef0ba83058b9",
+        "run-freshness-2026-09-17d": "6f4f5897d3ac1b53a3760dbfb4cc089b41a0d52b67490bd75511b55e4214a07a",
+        "run-reconciliation-2026-09-17d": "4ed39ed9b8d8403f0f72dbfa8301cc0913808939daefd04a7e398b2aa0d5206e",
+        "run-performance-2026-09-17d": "5a553cc62de9e4fb06c5339aff147d05b4f4d1166ca2aaa7eb6e87bc80e879dd",
+        "run-accessibility-2026-09-17d": "c3c13d3c9fd2a923ca94ec420b2f0f6aa91e3b023d842e2d2987fe18286df0f3",
+        "run-zoom-2026-09-17d": "3ad6f1cdce7be2b5311d8d8e1d0733a01ff68056aea1ed924a57759909ab8d9c",
+        "run-versioning-2026-09-17d": "f4b596c9289490f318a70a6f86fd0d948fa1d4434dd1df56b143844dea174e36",
+        "run-documents-2026-09-17g": "794a35732b590a5deaf716627700210bb698bcde0abbb205eb97696cbf517560",
+        "run-gate-2026-09-17d": "e181c33c0e2756b75dd9bbc158e27b308f48704a0950d718be597b971fc25ad0",
+        "tone-separation": "f64a864fb404b4a53dd10d4a2a50335323a32425b0b043e77c83ba7d5f3e26b8",
+        "tone-separation-c": "558bcc0e323034617750e0d2f55f72e0a2728042ecb42e6308a4b87ab94eb6a3",
+        "research-hierarchical-aggregation": "4072ca601b1202bc12cc2dc90c4e9a70403fff9438d316d145772460714b51b9",
+        "research-edge-bundling": "14dff51a4037205aed8d2e3d9b4f66fb3893ca2ff440483cead8a348bda0c239",
+        "research-progressive-disclosure": "74b35b8511ad75c04c8af701227e0de870f56eb8b2b8e7922984f2ae059a9ed5",
+        "relation-aggregation": "d1579718b5cee63641929e17fe962edad84bfdab0c020816a3c5805f8f6c3625",
+        "relation-aggregation-c": "151367d38938b269c469de1b93aec0943e3299db664b7f5393084a8fa67cdc1d",
+        "quiet-chrome": "31769c70234668eab8b7bd4d40a4e220d52353805f5e2ae3e9935d5a12444b05",
+        "quiet-chrome-c": "59538986f86e8aaa30000e1e51835bf2068e00fe64f41f9b676a805d9ebdc800",
+        "bounded-detail": "c225e6a0b67ec0d56216b24a4751055173807a3e0eebaae02433748be827af58",
+        "bounded-detail-c": "d2e27ab0c4427d3cb546d60ffe031e61ffb15b3774a2fcbe60de7e8319b2e9e1",
+        "task-relation-bundles": "070668e678d5fd447af984642a5e2ea2c8f5d1bbf2ad202321bb3b2ef0f1a8b8",
+        "task-quiet-chrome": "4ccc46d028b7cdce4c6a874d8388a72fc674ad8b65fd9bd3bb819661906d7be6",
+        "task-bounded-detail": "ace0eee25a678e85aa5dffc24ae700172b46864b36110f6b5636b2178ddd4dbe",
+        "check-reading": "4fd1cc70e72da75f7d160775466cd1f53ae3dcbe446d2331b5a3f2036e77d53a",
+        "single-relation-bundle": "e55b6c08fe3fbba552edd1d3f2ac525840258c12d357704f11f1e9b2f3d5f6ee",
+        "single-relation-facts": "662f5c9717746264055e61c5b39cc389473ba47f47f1eb95b7dd4140e1419dfe",
+        "run-reading-2026-09-17a": "4d5c2d7454a5d4e8bda305fa171ab04a438858e89dcda4654081e88bd5a0b7c6",
+        "run-model-2026-09-17e": "8299b6c07cc7ec75bb0345996e75374b9b0dda6bdfdf2cd7fbab5e5226a41d11",
+        "run-evidence-2026-09-17e": "478f550b73288a0fe9fe6199605b6a6f380bc2e427e9f98c486e915725de3b46",
+        "run-navigation-2026-09-17e": "e1d6c38a64a422f996bce3e3b74f49083196ca82ccfb1e0ba478a9a6dab473bf",
+        "run-freshness-2026-09-17e": "849d1e57c1761da1d8956667053dacedde29410c487cd0b54a49b658736b0df5",
+        "run-reconciliation-2026-09-17e": "6ddd863adee04e263474a4ebad2f3654f5c8ddf2a0ff0b265da72bf44d59ba7c",
+        "run-accessibility-2026-09-17e": "7e8e96472cf903e990c613ade1326183f98e402d4c1cf07236566a6853988674",
+        "run-performance-2026-09-17e": "2eaeaad709e203424e3c6bbfabdd485b220587a62ca9cbea23c3a133e34ed477",
+        "run-zoom-2026-09-17e": "b75dff448d6f39a1d741039b78987289253ac44fcba77339303703d02f0e3bbe",
+        "run-render-2026-09-17h": "374598cd85e42d58db5365517a9ca5b6b16885369f8f0b7f911aad795777fcae",
+        "run-failures-2026-09-17h": "a613c3114c54700ec79cdbe2504794c44d1b3b8ea36663da7202a4ab1fdb00e3",
+        "run-layers-2026-09-17h": "d5fba884b916636b497badd60ec393902d4b203c93faaa8dff3be804eba3f100",
+        "run-versioning-2026-09-17h": "615ce85234e0487496013d4606a9151985918d573f1e83ac9ddb0e34a9991786",
+        "run-documents-2026-09-17h": "e7f734619a38b910e905d739074a3b795a1c10d19d1175dc7943c22a13aa743c",
+        "run-gate-2026-09-17h": "1e2d561cb39ab8675571b9d9120de525c7d86c384eae0e8b9b054fa0727e9850"
+      },
+      "bindings": {
+        "apply-change": {
+          "path": "src/node.mjs",
+          "digest": "84ac335c0c99a680758b65291b25dfdafb9f3ed9d754602f8183a282e9855414"
+        },
+        "archivarius": {
+          "path": "package.json",
+          "digest": "9d6635fa8d1fe93bb5bb78084c53b12c102eae0539d7aef89f246a6bd5b8e467"
+        },
+        "basis-value": {
+          "path": "src/model/project-digest.mjs",
+          "digest": "2d91ed6800a2998a95a746280f6a4e5d69da546e020067e2c5c33cd9e46198a1"
+        },
+        "change-input": {
+          "path": "src/model/project-authoring.mjs",
+          "digest": "6167a49396d2e581c35d0b4b75e81574d81c2d58ed337e04fb87c9dd67b9dcde"
+        },
+        "check-references": {
+          "path": "src/model/project-contract.mjs",
+          "digest": "d1906838268d4a57dc4227d7ce8837c16507b47c0d3727b0a7215801b7b9312e"
+        },
+        "cli": {
+          "path": "src/cli.mjs",
+          "digest": "7b16f0dfe54dca33f105b4b2a36ed2233f3f4402f91d0a9fff4f52b92ec743b7"
+        },
+        "compute-basis": {
+          "path": "src/model/project-digest.mjs",
+          "digest": "2d91ed6800a2998a95a746280f6a4e5d69da546e020067e2c5c33cd9e46198a1"
+        },
+        "core": {
+          "parts": [
+            {
+              "path": "src/core.mjs",
+              "digest": "e033feca174947767f96039278263379101953ab878ea91696478fc048b0426d"
+            },
+            {
+              "path": "src/model/parse.mjs",
+              "digest": "e31b118e7fffad84529963ba22287ae17798784310496dc4653c56bb9f08e403"
+            },
+            {
+              "path": "src/model/project-contract.mjs",
+              "digest": "d1906838268d4a57dc4227d7ce8837c16507b47c0d3727b0a7215801b7b9312e"
+            },
+            {
+              "path": "src/model/project-architecture.mjs",
+              "digest": "aae94eaedca11b85656aa0c57b21836af89949fd754bd30f085aa885deb37574"
+            },
+            {
+              "path": "src/model/project-analysis.mjs",
+              "digest": "13a7a6977e1a37677c12b0ed2ce3904a9531559092938a11bfc1ece119152389"
+            }
+          ]
+        },
+        "digest": {
+          "path": "src/model/digest.mjs",
+          "digest": "cff43d0d16a94ad4490162347bca9672998b938f594eb0a19413c8afe37fc5f6"
+        },
+        "evidence": {
+          "path": "src/model/evidence.mjs",
+          "digest": "a59ce7340013a6c3d488abd5b5308cd93cd8a894aecb54c78bf6c11dd739af50"
+        },
+        "evidence-artifact": {
+          "path": "src/model/evidence.mjs",
+          "digest": "a59ce7340013a6c3d488abd5b5308cd93cd8a894aecb54c78bf6c11dd739af50"
+        },
+        "graph": {
+          "path": "src/model/graph.mjs",
+          "digest": "56f22e3f8f37ab422a1c89aa3d8767b96457924c96b356bf5544adb6b13d3437"
+        },
+        "hash-evidence": {
+          "path": "src/model/evidence.mjs",
+          "digest": "a59ce7340013a6c3d488abd5b5308cd93cd8a894aecb54c78bf6c11dd739af50"
+        },
+        "hash-record": {
+          "path": "src/ui/ProjectInspector.jsx",
+          "digest": "1b312000a2887365fb896f9fd8d3821683c65d3637fcd2f6a2f3913cc8454d6d"
+        },
+        "index-nodes": {
+          "path": "src/ui/useMapProjection.jsx",
+          "digest": "89f61802336bf3d73f14d8336a7e18f5e328521969e53fa4cd78f0c5267269ee"
+        },
+        "inspect-record": {
+          "path": "src/index.jsx",
+          "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+        },
+        "inspector": {
+          "parts": [
+            {
+              "path": "src/ui/ProjectInspector.jsx",
+              "digest": "1b312000a2887365fb896f9fd8d3821683c65d3637fcd2f6a2f3913cc8454d6d"
+            },
+            {
+              "path": "src/ui/ImplementationSummary.jsx",
+              "digest": "ccd29e9ec0784ae29c69b3eff4694ea8d3943624663793de037901f71b37c328"
+            },
+            {
+              "path": "src/ui/Inspector.jsx",
+              "digest": "17d5a556d884a5b54ccd8a917441667ffbe83d3b94eb4e49b3067ff15b6c46ed"
+            },
+            {
+              "path": "src/ui/NodePanel.jsx",
+              "digest": "c05ce9d823acefb9e67bbb315f2399844f94903f99326585d5320421ede729a9"
+            },
+            {
+              "path": "src/ui/RelationPanel.jsx",
+              "digest": "63f2aefebcf8d972e1727053eb3e86ea13767b3e6ecf4a0327a9b600c7116a4c"
+            },
+            {
+              "path": "src/ui/Reach.jsx",
+              "digest": "19f9638ef48276891145208929ff02190b5d20903c291b0b556cfe7f864bf192"
+            },
+            {
+              "path": "src/ui/Interactions.jsx",
+              "digest": "3e84864c75f344ab98aec8c7768d61e4cc7a3b48db72b15ea9b6c2ba80a79cc4"
+            },
+            {
+              "path": "src/ui/ProjectOverview.jsx",
+              "digest": "3a763fe9ebe7298841aac338e2e7a4bf0798782f0c51df4e7ae4ed2537ddfc57"
+            },
+            {
+              "path": "src/ui/ProjectDocument.jsx",
+              "digest": "923837a821f91321f35591c41e77e4741ea76dae3c84be6e109cb34613bf9cb6"
+            },
+            {
+              "path": "src/ui/usePanelNavigation.jsx",
+              "digest": "9c7fbe151c50ead975aac10d4104f940760109de7531b8a8a130a8bceda036f5"
+            }
+          ]
+        },
+        "load-model": {
+          "path": "src/ui/load.mjs",
+          "digest": "2a49d0d47803ec30d4dd78e15ba48e25f145e9ee7089067bc1c209f63a3df0f7"
+        },
+        "map": {
+          "parts": [
+            {
+              "path": "src/ui/ArchitectureMap.jsx",
+              "digest": "6760bd2f6946e2df19424afa28e354856ce377369401aafd6484207d0303732a"
+            },
+            {
+              "path": "src/ui/App.jsx",
+              "digest": "35be82bc95da52ababf4170b41ae4d10ea55c603cdb6511a5358b893b2306b35"
+            },
+            {
+              "path": "src/ui/ArchitectureNode.jsx",
+              "digest": "35581d8324af02c514c6261a649f144952884d571a1de9dde1443ca5650cf242"
+            },
+            {
+              "path": "src/ui/ArchitectureEdge.jsx",
+              "digest": "72f9aefb540a078101c6d4928d28669d65b39aa9436d1bd07ffb4ea14dd917fc"
+            },
+            {
+              "path": "src/ui/MapChrome.jsx",
+              "digest": "8fb71f12b4d8af7d8d51533ac14b8cc7b709fdb47a18f2a3038b3d98643a05b1"
+            },
+            {
+              "path": "src/ui/MapHeader.jsx",
+              "digest": "e69e72db3efd9df22a4fc9fb817e9b408bbdc688b5d3b181bc13526f12a84978"
+            },
+            {
+              "path": "src/ui/MapOverlays.jsx",
+              "digest": "26aec7397834c82e5a50aff4a3e6b0d8a9249e95f9640d10f7bd1f5fbadfbca7"
+            },
+            {
+              "path": "src/ui/Overview.jsx",
+              "digest": "3424c65204922b6102d0cda022a3b9cb28b2aeff9e7b5324711c4c4ffca1c75c"
+            },
+            {
+              "path": "src/ui/Filters.jsx",
+              "digest": "fe1eef67f353c963392ba411288858bb74f60e5ea2e37357357199c4f65b8b53"
+            },
+            {
+              "path": "src/ui/useMapProjection.jsx",
+              "digest": "89f61802336bf3d73f14d8336a7e18f5e328521969e53fa4cd78f0c5267269ee"
+            }
+          ]
+        },
+        "model": {
+          "path": "assets/archivarius-model.schema.json",
+          "digest": "c0d92015b029caae76749df12fab16e5d43af9afaa523e7a2d1395ba02c32b7d"
+        },
+        "model-source": {
+          "path": "src/ui/load.mjs",
+          "digest": "2a49d0d47803ec30d4dd78e15ba48e25f145e9ee7089067bc1c209f63a3df0f7"
+        },
+        "node-api": {
+          "parts": [
+            {
+              "path": "src/node.mjs",
+              "digest": "84ac335c0c99a680758b65291b25dfdafb9f3ed9d754602f8183a282e9855414"
+            },
+            {
+              "path": "src/io/project-storage.mjs",
+              "digest": "5a0a68c152a9b2b451040f2ad6beb16aaebfb8f99f021c1693496c3d506693c4"
+            },
+            {
+              "path": "src/io/project-git.mjs",
+              "digest": "285a2821f73d03420ea9da637c507bc17789e4202c7443552a95863dd86ce4d2"
+            }
+          ]
+        },
+        "node-index": {
+          "path": "src/model/graph.mjs",
+          "digest": "56f22e3f8f37ab422a1c89aa3d8767b96457924c96b356bf5544adb6b13d3437"
+        },
+        "record-detail": {
+          "path": "src/model/project-view.mjs",
+          "digest": "129aea421943353368b2d9dc1efc89a62c8d13e9d58e25470d295e239a2d7ee2"
+        },
+        "reference-set": {
+          "path": "src/model/records.mjs",
+          "digest": "169993d9b21260390e6b08cf327c8319c0678a0c5331d632f6d2c7db3ea74eea"
+        },
+        "render": {
+          "path": "src/index.jsx",
+          "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+        },
+        "single-relation-bundle": {
+          "path": "src/model/graph.mjs",
+          "digest": "56f22e3f8f37ab422a1c89aa3d8767b96457924c96b356bf5544adb6b13d3437"
+        },
+        "single-relation-facts": {
+          "path": "src/ui/Interactions.jsx",
+          "digest": "3e84864c75f344ab98aec8c7768d61e4cc7a3b48db72b15ea9b6c2ba80a79cc4"
+        },
+        "validate-before-verify": {
+          "path": "src/model/evidence.mjs",
+          "digest": "a59ce7340013a6c3d488abd5b5308cd93cd8a894aecb54c78bf6c11dd739af50"
+        },
+        "verify-evidence": {
+          "path": "src/node.mjs",
+          "digest": "84ac335c0c99a680758b65291b25dfdafb9f3ed9d754602f8183a282e9855414"
+        }
+      }
+    },
+    {
+      "title": "Archivarius",
+      "root": "archivarius",
+      "entry": "map",
+      "contract": "a442c6abb25c47ca3548ed037faac2453ec50f931dc0f35cbe0d73b6150e0259",
+      "realization": "dd1573b66a8880547a08e18289566bbf94eb2afd24da76e84644848ae687f894",
+      "records": {
+        "archivarius": "d478102e4b79a22fcda80276465402bb1d7544dc23cff67792ef9ef22f44aab2",
+        "owner-intent": "d8eda33949d0ff75d1a23473ff150f735b9e6c988987f70ab16ee6cb3970ccc7",
+        "self-description": "0b910912710b40eeb3efca3d4f89ed12374635a41f782cc3cac31fe6e054e5fc",
+        "contract-basis": "e895593cb63ab759076a96a5cd50b77505d8014de3484a5917d7e7aeb0b4440d",
+        "model": "3d82226221bac3dd6c1d5aed7ebe48bb33a34f51c04c1764b04abd0fc036a6c3",
+        "core": "706e79d65ff0a6886e7e563982ec2c7e9f30d212d12003dc7c37ddb8d2a35c81",
+        "graph": "343788a25f41a140f4651943f2d8a262fbdc17a677880c174048b726a6709cfb",
+        "digest": "c118ed08dcaf8a03dabd4a5173ec5a7f16082f1b84964886b99e7afbe8d9338e",
+        "node-api": "301020886f78c3ce8c695086eb86d90fca7dacc8862cec5275e6c50845431f4e",
+        "cli": "6b3a4d9d278f72934c4b0b99cb3ba18d1829630108802d5b68343353436c22b0",
+        "evidence": "c5e1d00a4ce17cf82caaddc1a622a197c99fd4d8601a08af404e6b6b551fcf4d",
+        "render": "36fd4c85417c1d3cf93ba8098bc90f06f44d1091b6734ad88b86a5efbb1bab58",
+        "map": "2e237dde13747835b8466793bfacaf5a815a1ef88a74d70dea4e4f1194f9b0c6",
+        "inspector": "6187de69129487bac8373d36fffa5acc62c775c5c2952ead481fb4f3e8130057",
+        "model-source": "fd1edf25b79988cfa492c1643e3d6817ed81f16394e52d118ec2c228a9e1d9f8",
+        "change-input": "36700ab06f06beb646c3175473500db224d2afb798fdc1e538e476230a1a0b4e",
+        "evidence-artifact": "20f1f777c06d7160ee61d10eb56772d3d1e7d470a810e477cffea52672e72d97",
+        "reference-set": "8e3d45c40edac217ae1b424b8632ff0d0291599e74ee72f32d0350ca06001899",
+        "basis-value": "af443b0015619c65451a274414a8d286a7660af0ca3392185d78398b7fc4aebe",
+        "record-detail": "4141fbf755ed83f2ea570d144fc42b8c97bfccbedb8c801a37784463c3c7aeeb",
+        "load-model": "97709ccf95fc14621f75d832f5b61e1f54b1696e1d5c46236bc7c325284191cf",
+        "check-references": "ad6a21ddbcaf833fdb3f4554feae9e982ebf2c6bffbcaeefe63b46bd604a58d0",
+        "compute-basis": "f44be21695787d9b66c0e2698afb4209b7fe668d9424d1e0ab1c0d99887f78e3",
+        "inspect-record": "28da7823e8b8787b03d18025a4a053d11a442b0b6de39f1f410833c2480ed862",
+        "apply-change": "6460f9a6987c4b8a23ae5a4a96613b94249f2ba6f200d930fd64c84be74599ea",
+        "verify-evidence": "ab170aa235bf5eabce1983ddd52c3479de88581675785b5b2fda77bca8f5e363",
+        "single-snapshot": "899d40eeac3d670274767f4162a55c594205e7fbc2ce6e47c6df06283673e442",
+        "single-snapshot-c": "54682dc7a4da547b76349e3d286498f5934fa227620cfc84fb32930771d1d62f",
+        "validated-change": "dbf7d05ac04c11ccedc9d534f72c029ef2b98990bcb753a5a11e885ec3574bd7",
+        "validated-change-c": "f5b946e1ae5095a3ab95788a373ae5784abc62c4f08b91c3f1707ece890a0b68",
+        "byte-exact-evidence": "ee1948a7d615eed5fe92db4f0b64881e03a3b6da1a9876a376d9f150e3392f18",
+        "byte-exact-evidence-c": "ab1734ed6adf6ac9ee830b8bc9204e5d059db46142964b1956d14aa0f70d8dbf",
+        "conservative-freshness": "7911d529bb8fa23ea7b8916dd75a34e5e8f40741ac90373e38083e4e27a187ce",
+        "conservative-freshness-c": "7a4ff864fc435b6f679882c901981d824c4f8de4ab788a40e4e038d7517d6fde",
+        "basis-digest": "fe0d728a6f5b9aba4dc0d39299e4cc5e8280c5c4ac4e8f85f25e09236b29d445",
+        "external-resources": "15b0d2ee3d8bbde0922cd8b940f3864c66391d4597de6a35d2acb3a5eb670e5d",
+        "edit-and-render": "9130958b427c5349ff3febd5517f8051975a1aeca3e9c5897ca8cd87616bab22",
+        "task-model": "a7eba37f2533a25dedd267c0af361caa80dde4195eab61f8b08415f2b9e61e7d",
+        "task-render": "761bfc56c845116402172817aed877887606f7b23410beacbc33b117348deb94",
+        "task-evidence": "7e6ef03c86f0b4c0288a3b3e60156b0b2654cb93eaf5d7e82edc4f03d0392e79",
+        "check-model": "a4f619ffea2adc74513879c84d53612024eba118efc50462f862a0b21e02312b",
+        "check-render": "7855eba34b2b3d30820639d1be6b4e95fdb989841ebe82c5a8f4394a11b151bf",
+        "check-evidence": "7fb48c50eeedea635cce61c615c7046e6d7e61d6ec61b01730bde9f00f4ff486",
+        "shared-appearance": "2b33932f391105f40dbf616a93c441d71c8a2d968a07864c851c9ca0fa21fff6",
+        "consumer-intent": "201faa8e06b1461114ff14c79d7808fbc426152635ebefc53547015452bf8cbe",
+        "reader-observation": "2b01cc0f641adfdacdbaafa8c65b8cd6722e09d57c498ef76c71487049dd4536",
+        "scale-observation": "1e6698846d993cea73bf6d57bb95d903e75a93f6642365da0ae69ee5e9ab9f5d",
+        "code-truth-assumption": "93f2be5963b09e5c25fd9f2f9e03b388d01d2c5c6926ce631103eddb21221a31",
+        "semantic-zoom": "6b3b523186bb368c4978e8c18ae2a2009c02b970aaca4c7fb6544e6d139f5e83",
+        "addressable-view": "5a4bc53748ebde4e14cce6f2639d611d5b163e3d04732766fe72881e316813fc",
+        "keyboard-complete": "b404dac13c497e0bc5721889aba0669dba105d2d6c23d4cdb4d913c50183fda9",
+        "announced-changes": "4aac27402750e6bb65772c4a4d4ec7855658b4dec4ec9f2ccf049c472cf933ea",
+        "reader-settings": "26cdbed474755881f9945cf678f22f596f045e0c63687b243f893f3d4e9cf067",
+        "documented-failures": "452a14fe8274d184ed59efc20511a625c5686a3904421b8478e4200a72322728",
+        "usable-from-the-readme": "40402a80fbdf5368fec622da1983d32394ae0aef55255c5686f57cbb1fd2d766",
+        "versioning-promise": "7fdfe359548d040cd2cbb86053bafad02fef476577f98b7695782411c957863d",
+        "responsive-at-scale": "ed213c5a05d9f1a7e47d85363aff5924f3bb29e22291e3391313f2765506f191",
+        "bounded-input": "5e64a8f554cef4d4d55530229b99a2fac49040c57284542e8f650804e51ba42e",
+        "authoring-onboarding": "0e2b38b082d382defb0b5d02edc970b6e5a79270653aa00cebf9e3711f5673e7",
+        "precise-bindings": "54b959da8ea672077840b968b75401e0f894cd897eb992cb2a5d02c265b506bd",
+        "scoped-freshness": "014a74b4fc8a9b7548af5801d3bc7ca69b066fb56eb4e8c7defb2bd7a0b0b455",
+        "snapshot-diff": "b9b2ee31a9951fa326a22d7c7eee22f3549a8460b35a8c514e99c4e2d28c9a43",
+        "code-truth": "2b4557b6493db31561e76c47b0b423d2b4242c01b5bdbd985b889772fd5ba603",
+        "attributable-records": "e48c6097c85c4a7e261d71ca5c448e1342b61587882dc83aa382e74905f25328",
+        "executable-checks": "4cc922eba8a38c0c2a56881a083eb3af02f9cd105dc72a033a1aaabdd677c852",
+        "literal-content": "27d94c8d691bbf184329d03e5ff916c8bfd6c3f3cf788ea9e0d427595d823496",
+        "layer-boundaries": "fa466f177125c24046c44c54dab602537d43578a9d2b0b64474407fbae7c85d8",
+        "generated-documents-agree": "5fb820b0047e70c15749d931a926d7eb23ed4b56686768dfcc4f1e966e9579b0",
+        "english-only": "79f43e30023653c026ecd9fb714b26f29a968dce91889bfa06117587178c2ccb",
+        "exportable-elsewhere": "5657a218569fe1fc2d46126e62f518aa3866a76ba7bfd0349e3e546486683158",
+        "searchable-model": "e0371f972de94e6dc2c8d9836f7ef3d8ae95dff2d659a7a3f5b113d0ae989098",
+        "answers-about-change": "e48bdacc8ddf1237253258cea3f4a7be9fb3fdcc40cad68d2cbd178eee4f312d",
+        "semantic-zoom-c": "ae5401d1cd307fec3acff00207c727fa4a1507bbee2b6c4df20711be383c88ab",
+        "addressable-view-c": "0e4ccbe2aa9a4cfb24d49a82123223416afc96229f1d3fc1a87876c6aaa5819c",
+        "keyboard-complete-c": "02ef4bec3374cf30287c22adddec8d5c0c16dac65e3bdd834d86e15701a56af3",
+        "announced-changes-c": "3c0f2dab61cfb4fea63f20833152d0cb91926fb21d6bfd78dbb304283bfb6d62",
+        "reader-settings-c": "5fedafab027314402851d9730ad74b6012c099c28e055098de3657a3741750af",
+        "documented-failures-c": "a4cb6aa92636601cee782f603eebb7adea0b0a32a6c18d73c61aa96a966aef17",
+        "usable-from-the-readme-c": "2e434997c6d3d3fed0f7018314eb061141c72da19b9beb6a0e8700aa2a86ca39",
+        "versioning-promise-c": "81c24f3cc1841357068b04b8503b0bec4c9ff0dc395d3a6ce4250a21603f20c2",
+        "responsive-at-scale-c": "ad55072e0c30afb54c345ff1679683ab293e013ddc0abb5c6478a3bcdd0d55d9",
+        "bounded-input-c": "6425a7b00fe08ec29f33816ffe595f7f324180689276c175cd329f9087479d2b",
+        "authoring-onboarding-c": "d7ee183cdb3e12b2e151ae4e16a676d2773bebda2953f809061d3b682de0ade6",
+        "precise-bindings-c": "c1408a734e130a84a5bb02402bdda03f1226320cef1158cbcb24b43b6927f89f",
+        "scoped-freshness-c": "a794409b091081c07d2cca9dcbdba0e8219cc8c5c1d84e3e03179f59f4f91d95",
+        "snapshot-diff-c": "af4701a3c3c2726290b67b7ae38462cea9e09e9b2b58327b6e41c04c94d4add3",
+        "code-truth-c": "dfffcc9a31caab8268e87d335bfe03f67e4979364d017879df62936a53be4c90",
+        "attributable-records-c": "d21de8870e6a820227c7baf3425200ea9d4eca98ff50dfeb6aa9f6297646ed63",
+        "executable-checks-c": "e67edc1df96a9ebf928ee8e60280f7879ff0de8bc66b177b894f131f2103e8f9",
+        "literal-content-c": "df86ad22b5b02657d234cc5f65bb41d4b40a3cc543939bdf1756ae76c58aba54",
+        "layer-boundaries-c": "fef1c92dbb4c7bfb6e5e14c76c7986315b3805e95313deb77f6770538bb6611e",
+        "generated-documents-agree-c": "aedb6383d3e0b5d75e5661becb84f3fd4cc8fbbcee0685d27e4d3eea2ea90d72",
+        "english-only-c": "548f3c6df239eb4f41704c6a27fcd1a7bbc9174ba0e37a58587fbec40730485c",
+        "exportable-elsewhere-c": "659b21ea65feb8e7cba547ed2de48f48d8adddf89057ec3444903e5aad35b8bb",
+        "searchable-model-c": "37a0d9143983a272ec5e2d28cb705ed7811d514f90705975048a3134a67daa51",
+        "answers-about-change-c": "64b40c046ce6e4b693ed2a8aa07709786c2c35857094cc05d1d23afcb43d74a7",
+        "research-fisheye": "7a223446223587b50f7e517b783bcdb14d4f5125ffc0bc0555d07a821bf104bb",
+        "research-zoomable-surface": "16ed1ba8d831f386ccc57dd264efa77bf284fc0e82e3eb4c97116a58f6ed82f1",
+        "research-zoom-review": "1186ba2f7ad0a5ce325972c6f006efddeaeb0acb03029aa64349175555d5a509",
+        "research-visual-taxonomy": "e8fb265ecc0ba826aa4ce7b1d60cf34c8f463265c9779436832e85d5a4526f89",
+        "research-notation-physics": "78ee8cfd6d5540636c6d3ea3e4b5ac8f8bd7bf9397a2c6361d75d882504e78a6",
+        "research-graphical-perception": "c64a79739f05b7303cfba0d88f026b398a9dd7dfdc8c807df991a25da6053ea7",
+        "research-secondary-notation": "aca00a04c93058f41c9982886d99673b7e3af3258803ca8d82234e06adfa1555",
+        "research-layered-layout": "8b7d9160ca6c2b02fc605f7150fd2cb259af0f40eeb178933ad7fe94f67d5040",
+        "research-response-time": "74118bcd4b4a23d04e4476e1bb3fe29356d99e90a1b8fe0fb1b516911188d9ab",
+        "research-view-model": "5219ba83bf0741f9360401e7e91711f10e00b663ca9fe910fa57756534f6bf22",
+        "research-module-criteria": "f24c21d4460f5ff3b10e06f3683545368a15c919f312b7f629b4af2e5fe6fc1c",
+        "research-design-by-contract": "c4808d41d5451f12f79144a6d6a72b1de8f36c5ae47e889034c32478eed364a0",
+        "standard-accessibility": "f937ec24355a9370ad48bb7956bf1700313032b249cdf13144762a7e09faf9ba",
+        "standard-usability-heuristics": "6593233a57273a625fa6543e36efaf2b16144f752b747f841e591f75feaea5de",
+        "standard-contract-versioning": "4313b1129ddc73b116b5443e3559fab7f37ff39c59863926366dee5a53c3c601",
+        "standard-architecture-model": "9e3c202ddcb849a5e8b899d1b2dbae90a7f5e7af18b4fcb5084086c2e6781ddd",
+        "redundant-encoding": "ae67491c2cbf002150efb00555a2cb0cab8622959c9acbe5b269b8c8c077d2b0",
+        "redundant-encoding-c": "4a6a5951f4edec1c2dd734de8b59a69adfd57a00557a1a1d311b017b1a54f1ec",
+        "layered-layout": "ccd91a0b8a84418c2ad3920b10bc0d82f96788a68452b4cf806e1cabf28773e7",
+        "read-a-structure": "dc8af5f63bed2944ef84b974a109402467a8e43a10d703516bde59ad77242564",
+        "read-without-a-mouse": "d35e83cda4ea4ba4e5170dd5e033f11c394a5b3f9b92e8f538ab3df33b1be556",
+        "adopt-the-library": "becbf28980693f43cf650d1bb2b6975e84d624f4916660f628ce46fc269bad9d",
+        "confirm-a-claim": "c8c8ff22b6bac2c42883831a1f4f1d7090de41f3e36584a9a2176fdd340b3f83",
+        "generate-the-documents": "b0fbf5e2bd40486cd2eee6ee205bb7875e1cc27969293efeb3b444f0b838def6",
+        "task-zoom-levels": "59527dd390d825335d020042b1614f6dec78c8fdb616de40855ef65b795c76b2",
+        "task-overview-and-return": "3eb37f26095756a54ea0c3b9c37fa32f4b9b7bb370671549557232645e13f0cb",
+        "task-addressable-state": "b8f2ca64ee201815e05285ba654491105675176d442a4ab782216a78292c97e6",
+        "task-search-every-version": "79ed9b5e253fce4067369c49e3353355bedd935b37e409c8f79e1ba57ad2d35f",
+        "task-filter-and-relate": "91151fd19207feb290b94e5e6c2bd75c9840254eb149517d4832751fb7a76370",
+        "task-impact-closure": "280fd4cc419425d36e70c3d786722dd04aab65923199e1aadd3d9fba3a1c2e36",
+        "task-layer-separation": "951efd4ca3c3e7dadeefd1a245b60f19bdc9f2d55e6075327bf31a574edd009c",
+        "task-second-channel": "c48fe8442764d4e86415ef7734ca844273f16940911f989868b1b7dda14b459f",
+        "task-generated-legend": "1374d75eada7f5c9ba5b71c929900dd45d4def6ec92ba6de9de6e03059ba0e12",
+        "task-layout-off-thread": "25d6a3f715a75025e32eef2498da796db383e5a7ae27360091e9cca0e86d4769",
+        "task-virtualized-map": "51f45615af31975a2d01da46c065bd78c58d8e22dc0068dddd96332f6dd2be82",
+        "task-response-budget": "4fc49b27cb49246222e83a1da6851e30d4666f190dd6d3b82b499de3066fa26e",
+        "task-cancellable-reads": "e9b85f773a7d32d9ac906bbde22c6c3244e29e2ebd911aa518a2ed131f8aef6e",
+        "task-stated-limits": "81050b74c1b922daf79cbdefc45bac551ac9c71c55609b102fc9dd565777413a",
+        "task-keyboard-map": "ac72567bd1d8c445360df94d45189c8169e3caeb35b0ce3574c42511aaa511b6",
+        "task-visible-focus": "e9af0088dcd6ae315a7bbd3cbda51f66e2e4357e95e8c2fdf634f5ab4869d3de",
+        "task-announcements": "3e288e6354593f0f917e0a72792ea649561d3c90e78d64b1d8534638a42d320b",
+        "task-reader-preferences": "90e8de8005d8d19332a06517923d38ce47783b29705b710c1a606a19b85c2a91",
+        "task-accessibility-harness": "03e2609bbdd555c8c727903f81956db41c549233b3843e13bfbd4074865f8362",
+        "task-failure-catalogue": "414047d385ce780409865a96ee27a5ada926ef8bf74ca840232a5b07b6a920d7",
+        "task-failure-on-screen": "130cbf7841c5b50a0c4df992074d6d25d0c16abac6183e7a72469597dc3e4f67",
+        "task-quickstart": "393b14f66754ea8bbbee799a5238390039763cc4203baa77af1c7f22d7c9d792",
+        "task-public-surface": "c711341507f69c8f9c9b28337ee4a84a6fa65a67471faa13d3bf557ee26d6e4f",
+        "task-contract-grading": "221bbb0aa510a870abd1e44b7129bd4a52ce46415ff4772ef64996ee2f0a9f75",
+        "task-asset-names": "4104baa5e29f3edb32f6891e5efc560b607f5376693cfa6cc5da04e31e3ddfa9",
+        "task-licence-and-history": "af46295b8e4affe19d59d392e277d90958ce1d1881d7d9218dbc7e10fa150668",
+        "task-init-snapshot": "28c44177fbb873b6b9c9a4f968fb1037d130027ec94b3d9d897fe76c2dcefaa5",
+        "task-explain-rejection": "aa4501f001078f3e124c069bb49340e9dafd9b89a60db6d09b331875cefce803",
+        "task-snapshot-diff": "8f68a19dbf8eb7b8a36a8078d6da5eabe0e93e604602d2670eb84f32a902c9f3",
+        "task-record-attribution": "f1d5e9e7fc11f2616087f956729bfda60c9582cf4b131d1d7164bf40db1dee4d",
+        "task-open-questions": "312c06ead6299ca96a68e0849f788d5ef21cb721f4e619d2dda28ddf510e2dcf",
+        "task-scoped-withdrawal": "7b2976528b937155f3e982e364ca555be3b11cdc0aee05fd482c96a6807de747",
+        "task-freshness-report": "a2e3a5dfbd500257f8a019789e5c5ec1ddccce070f71d21b092f2cb4b3f1624e",
+        "task-code-reconciliation": "b96b8e91d0cb6bb13277773d77f84a56ed1bf50c41aa7c4054a4d19ed9c69c8b",
+        "task-run-and-record": "b876cf4399171d2a41a1ef29a6ce5f9a3a8b647f309a5a8a7ffb71ed1f9641e1",
+        "task-export-formats": "5b6970aa5b53312c13e77989c8ba4a9d984fb1b987d7f634d33532c10542558d",
+        "task-diagram-parses": "8709653196cd77ca38c0846e8e2efb18d811dc3485a817f3e1652a93e7277f4b",
+        "task-inert-content": "a65655e0b7b80f4db39f80cb7a79984a507c119b83792fe69a74792bc9830c65",
+        "task-one-language": "62718141abe9338371042a55eef2ec4be57ad514a1213f8c90cf3e49f490261d",
+        "check-zoom": "a07551aca92188008a0cf44555e0fc2cb2d12fb3b31cfb203cee9341c3243838",
+        "check-navigation": "e7b0fb351a6c4f616e4db16cab6f133c7cd7788ad74c0856ac753a9449f99d11",
+        "check-accessibility": "9af228f4817214fba8c440eff2834bc68e7e2153a472f52e8b741a737889e60b",
+        "check-performance": "03e127114fb0cda9d07b9132e7dd04d11dc585f941ac6edde905f0d3751cbebb",
+        "check-failures": "28348c84c358ae9a4d4d3b19c0d8c350300694ae6c608207da82726bf92a3d25",
+        "check-documents": "9de99959bc64d3d02b46922843eabdb0128a9f647373efd72b856e1ddea4494a",
+        "check-versioning": "ee0f728d10061f2619077296f0ab55561ba8d752eaedff6333bfbeadd7e1ac3d",
+        "check-freshness": "518667b769508dfcb6f0725d9719a08d9f38b48e5d0b0b1c5922ff414103c21e",
+        "hash-evidence": "e7e566f28d7efb4a1b4c715853345dc1472888a7bb41581084bb50e1ec289be3",
+        "hash-record": "ac570d4b599808546c5b5922f805e99ef7fe73e64926b97957bf2a460583c38c",
+        "validate-before-verify": "0569b1efb2f61d22eda22d4ca5726eeee25ca6b884b43f16859b35ed3c9e5eb4",
+        "check-reconciliation": "135805b3434a8079653432d63b28f30b5f27fa424967e6d709eefca6b717a06d",
+        "run-reconciliation-2026-09-17b": "018a5fafaab7f8438323f3a93ff9c201438dab2aa5ebfed066b8e580783a369d",
+        "run-model-2026-09-17b": "d67e6dac23d52d6a337aac6af7a15462fc361a9b53b2c9d8e7fa347e7221c3db",
+        "run-render-2026-09-17b": "7adbde1d22c32b09fd49fe784f212458fbaee59322e7b403bd294af13bc2def8",
+        "run-evidence-2026-09-17b": "f84b48b3edf757b467d025725862134c2d472d21417ed7d276d290d9554326cc",
+        "run-navigation-2026-09-17b": "4b7f3cb284ce3c6deb5134470c90d7c4ebffa507b58d43b5a0c104602b79d846",
+        "run-failures-2026-09-17b": "c9b84e1f276fea57c0e50754eb5501eb13483e850d3f59227d828f929dd8d942",
+        "run-freshness-2026-09-17b": "b20a2bf9cda10c4896de33d489861bda472039c5469ce71b92248c489f3c905e",
+        "run-performance-2026-09-17b": "be471369710ba587db583714da9d5d6943f91271f4f6be94617138ac771f400c",
+        "run-accessibility-2026-09-17b": "72f323ddb2ab24950b0ca75a34570d62f5be5062f0eb1aaf76175c69a207e1de",
+        "run-versioning-2026-09-17b": "0dd07c15e38248bb6645b59d301a64b3f08ed01406f75ec1c7192044bbdac898",
+        "run-zoom-2026-09-17b": "4c189094a5ef5998a8c0f6a5eceee87cae4f5ea1c8937f84e064064758c6ca73",
+        "run-documents-2026-09-17d": "4fe7b25d0fe3155101d3b2d375520ab952c1653cce554d98d1b7a5ebb022a851",
+        "run-documents-2026-09-17e": "d4a7d495141f1768ea731042cf6c73b247e6cab1f92812040a41d9a5cbb2bba6",
+        "result-basis-scope": "71abfeb46e689393bfa40031d70e526717852403c6a4a73dc920b16a5206d121",
+        "check-layers": "21ddba8436ef028108420448647349c057cb16f1e27f08ad2b94ab8ecb4d12d6",
+        "check-gate": "5e3aa8bb4ea834d230165dce690b2bae9929709cbcfb3326183465a1cc87aa09",
+        "run-layers-2026-09-17c": "a1709d2ceda5e5ea226844a98a848c841b3acbac25152f33bb5923623ac642a0",
+        "run-model-2026-09-17c": "fc7b199de641b54044a948dd9e57e495b58e91a90811435cafa16d83f098267e",
+        "run-render-2026-09-17c": "da60fe64519d7596e023dea2ed14b488f9a1b4e409ff192090f9ed4bca671fec",
+        "run-evidence-2026-09-17c": "03b22ffbe2e346e4907f8a6ad3e5f2de039514645c0d80f975a6bfda592fe50f",
+        "run-navigation-2026-09-17c": "cf253334853f77cc1aaf148daf92fa08138f92e4b3b573a8e8b73333b8d6cb47",
+        "run-failures-2026-09-17c": "677cb00921df194fc223915970490adb2255c2a56bba9193c997fffc0a5e4daf",
+        "run-freshness-2026-09-17c": "e3ec30b1d7b45bfb9a58763b264b828c24f69586b65220c00829a5abadcc2821",
+        "run-documents-2026-09-17f": "96fe806ec827f565573fbea0a3778d2132e33509eff8d655c979a17977bda7a4",
+        "run-reconciliation-2026-09-17c": "de0ea2299be7fb5ccf681b4ca82581da569435032f00f197e30767224947ed08",
+        "run-performance-2026-09-17c": "72d949de24251ee2470fb91e775020518c55041439d942480f964dfa3adeee69",
+        "run-accessibility-2026-09-17c": "d8dc997041a853d020ec8509e6ade83c8557b52bc8e8c42d5a73eee9b3f0f10b",
+        "run-zoom-2026-09-17c": "a94208e08d870fe25f08b5bd2c7458282da9733a89e57bcb6980807f82c6e6f1",
+        "run-versioning-2026-09-17c": "a1ed934e4e55742b77860a051439b8d0b044e9c872cbf622b53230bb797c60db",
+        "run-gate-2026-09-17c": "a895adc7fd8998836e121ba7d7a576a3eb27137b4a97895272b9459aa7df3c70",
+        "node-index": "d170dc6381af86bd754f27e26f47b4662c635e24de390c1932104aa6603dbd2b",
+        "index-nodes": "09cedaf5ad98231d327aa2b4bd875de8255aacbfdc929621a514ee8605f61748",
+        "run-layers-2026-09-17d": "169ee00720e8e3cdda4b31c1bd660311f9df5b123363b264851a40788356904a",
+        "run-model-2026-09-17d": "db1d45610ca58da27ae8c6b066e27d2928c6e5a3d9b32475b2917ddc6625a9f0",
+        "run-render-2026-09-17d": "d20ef80e3d8334b280a7f120b14f8132cfb2b4921bf3cf40797f7eba5bc734bc",
+        "run-evidence-2026-09-17d": "12e8cfcc5a6e30c04035b3af5e9402a61fcd08a557d1283aa0b095caf620e8f9",
+        "run-navigation-2026-09-17d": "1a68c0bd4a4d7ec3c2823b51c85d75e743d162a3d8a2d19ad4d804a3142e9348",
+        "run-failures-2026-09-17d": "69c7ebd60c17593e76b7aa69e0b9f8aaf5fa40129d64ccfa8299ef0ba83058b9",
+        "run-freshness-2026-09-17d": "6f4f5897d3ac1b53a3760dbfb4cc089b41a0d52b67490bd75511b55e4214a07a",
+        "run-reconciliation-2026-09-17d": "4ed39ed9b8d8403f0f72dbfa8301cc0913808939daefd04a7e398b2aa0d5206e",
+        "run-performance-2026-09-17d": "5a553cc62de9e4fb06c5339aff147d05b4f4d1166ca2aaa7eb6e87bc80e879dd",
+        "run-accessibility-2026-09-17d": "c3c13d3c9fd2a923ca94ec420b2f0f6aa91e3b023d842e2d2987fe18286df0f3",
+        "run-zoom-2026-09-17d": "3ad6f1cdce7be2b5311d8d8e1d0733a01ff68056aea1ed924a57759909ab8d9c",
+        "run-versioning-2026-09-17d": "f4b596c9289490f318a70a6f86fd0d948fa1d4434dd1df56b143844dea174e36",
+        "run-documents-2026-09-17g": "794a35732b590a5deaf716627700210bb698bcde0abbb205eb97696cbf517560",
+        "run-gate-2026-09-17d": "e181c33c0e2756b75dd9bbc158e27b308f48704a0950d718be597b971fc25ad0",
+        "tone-separation": "f64a864fb404b4a53dd10d4a2a50335323a32425b0b043e77c83ba7d5f3e26b8",
+        "tone-separation-c": "558bcc0e323034617750e0d2f55f72e0a2728042ecb42e6308a4b87ab94eb6a3",
+        "research-hierarchical-aggregation": "4072ca601b1202bc12cc2dc90c4e9a70403fff9438d316d145772460714b51b9",
+        "research-edge-bundling": "14dff51a4037205aed8d2e3d9b4f66fb3893ca2ff440483cead8a348bda0c239",
+        "research-progressive-disclosure": "74b35b8511ad75c04c8af701227e0de870f56eb8b2b8e7922984f2ae059a9ed5",
+        "relation-aggregation": "d1579718b5cee63641929e17fe962edad84bfdab0c020816a3c5805f8f6c3625",
+        "relation-aggregation-c": "151367d38938b269c469de1b93aec0943e3299db664b7f5393084a8fa67cdc1d",
+        "quiet-chrome": "31769c70234668eab8b7bd4d40a4e220d52353805f5e2ae3e9935d5a12444b05",
+        "quiet-chrome-c": "59538986f86e8aaa30000e1e51835bf2068e00fe64f41f9b676a805d9ebdc800",
+        "bounded-detail": "c225e6a0b67ec0d56216b24a4751055173807a3e0eebaae02433748be827af58",
+        "bounded-detail-c": "d2e27ab0c4427d3cb546d60ffe031e61ffb15b3774a2fcbe60de7e8319b2e9e1",
+        "task-relation-bundles": "070668e678d5fd447af984642a5e2ea2c8f5d1bbf2ad202321bb3b2ef0f1a8b8",
+        "task-quiet-chrome": "4ccc46d028b7cdce4c6a874d8388a72fc674ad8b65fd9bd3bb819661906d7be6",
+        "task-bounded-detail": "ace0eee25a678e85aa5dffc24ae700172b46864b36110f6b5636b2178ddd4dbe",
+        "check-reading": "30fb666d7df762db8add92fbaf5c93935bee249ff6bff8a4773a5d30bce505f5",
+        "single-relation-bundle": "e55b6c08fe3fbba552edd1d3f2ac525840258c12d357704f11f1e9b2f3d5f6ee",
+        "single-relation-facts": "662f5c9717746264055e61c5b39cc389473ba47f47f1eb95b7dd4140e1419dfe",
+        "run-reading-2026-09-17a": "4d5c2d7454a5d4e8bda305fa171ab04a438858e89dcda4654081e88bd5a0b7c6",
+        "run-model-2026-09-17e": "8299b6c07cc7ec75bb0345996e75374b9b0dda6bdfdf2cd7fbab5e5226a41d11",
+        "run-evidence-2026-09-17e": "478f550b73288a0fe9fe6199605b6a6f380bc2e427e9f98c486e915725de3b46",
+        "run-navigation-2026-09-17e": "e1d6c38a64a422f996bce3e3b74f49083196ca82ccfb1e0ba478a9a6dab473bf",
+        "run-freshness-2026-09-17e": "849d1e57c1761da1d8956667053dacedde29410c487cd0b54a49b658736b0df5",
+        "run-reconciliation-2026-09-17e": "6ddd863adee04e263474a4ebad2f3654f5c8ddf2a0ff0b265da72bf44d59ba7c",
+        "run-accessibility-2026-09-17e": "7e8e96472cf903e990c613ade1326183f98e402d4c1cf07236566a6853988674",
+        "run-performance-2026-09-17e": "2eaeaad709e203424e3c6bbfabdd485b220587a62ca9cbea23c3a133e34ed477",
+        "run-zoom-2026-09-17e": "b75dff448d6f39a1d741039b78987289253ac44fcba77339303703d02f0e3bbe",
+        "run-render-2026-09-17h": "374598cd85e42d58db5365517a9ca5b6b16885369f8f0b7f911aad795777fcae",
+        "run-failures-2026-09-17h": "a613c3114c54700ec79cdbe2504794c44d1b3b8ea36663da7202a4ab1fdb00e3",
+        "run-layers-2026-09-17h": "d5fba884b916636b497badd60ec393902d4b203c93faaa8dff3be804eba3f100",
+        "run-versioning-2026-09-17h": "615ce85234e0487496013d4606a9151985918d573f1e83ac9ddb0e34a9991786",
+        "run-documents-2026-09-17h": "e7f734619a38b910e905d739074a3b795a1c10d19d1175dc7943c22a13aa743c",
+        "run-gate-2026-09-17h": "1e2d561cb39ab8675571b9d9120de525c7d86c384eae0e8b9b054fa0727e9850"
+      },
+      "bindings": {
+        "apply-change": {
+          "path": "src/node.mjs",
+          "digest": "84ac335c0c99a680758b65291b25dfdafb9f3ed9d754602f8183a282e9855414"
+        },
+        "archivarius": {
+          "path": "package.json",
+          "digest": "9d6635fa8d1fe93bb5bb78084c53b12c102eae0539d7aef89f246a6bd5b8e467"
+        },
+        "basis-value": {
+          "path": "src/model/project-digest.mjs",
+          "digest": "2d91ed6800a2998a95a746280f6a4e5d69da546e020067e2c5c33cd9e46198a1"
+        },
+        "change-input": {
+          "path": "src/model/project-authoring.mjs",
+          "digest": "6167a49396d2e581c35d0b4b75e81574d81c2d58ed337e04fb87c9dd67b9dcde"
+        },
+        "check-references": {
+          "path": "src/model/project-contract.mjs",
+          "digest": "d1906838268d4a57dc4227d7ce8837c16507b47c0d3727b0a7215801b7b9312e"
+        },
+        "cli": {
+          "path": "src/cli.mjs",
+          "digest": "7b16f0dfe54dca33f105b4b2a36ed2233f3f4402f91d0a9fff4f52b92ec743b7"
+        },
+        "compute-basis": {
+          "path": "src/model/project-digest.mjs",
+          "digest": "2d91ed6800a2998a95a746280f6a4e5d69da546e020067e2c5c33cd9e46198a1"
+        },
+        "core": {
+          "parts": [
+            {
+              "path": "src/core.mjs",
+              "digest": "e033feca174947767f96039278263379101953ab878ea91696478fc048b0426d"
+            },
+            {
+              "path": "src/model/parse.mjs",
+              "digest": "e31b118e7fffad84529963ba22287ae17798784310496dc4653c56bb9f08e403"
+            },
+            {
+              "path": "src/model/project-contract.mjs",
+              "digest": "d1906838268d4a57dc4227d7ce8837c16507b47c0d3727b0a7215801b7b9312e"
+            },
+            {
+              "path": "src/model/project-architecture.mjs",
+              "digest": "aae94eaedca11b85656aa0c57b21836af89949fd754bd30f085aa885deb37574"
+            },
+            {
+              "path": "src/model/project-analysis.mjs",
+              "digest": "13a7a6977e1a37677c12b0ed2ce3904a9531559092938a11bfc1ece119152389"
+            }
+          ]
+        },
+        "digest": {
+          "path": "src/model/digest.mjs",
+          "digest": "cff43d0d16a94ad4490162347bca9672998b938f594eb0a19413c8afe37fc5f6"
+        },
+        "evidence": {
+          "path": "src/model/evidence.mjs",
+          "digest": "a59ce7340013a6c3d488abd5b5308cd93cd8a894aecb54c78bf6c11dd739af50"
+        },
+        "evidence-artifact": {
+          "path": "src/model/evidence.mjs",
+          "digest": "a59ce7340013a6c3d488abd5b5308cd93cd8a894aecb54c78bf6c11dd739af50"
+        },
+        "graph": {
+          "path": "src/model/graph.mjs",
+          "digest": "56f22e3f8f37ab422a1c89aa3d8767b96457924c96b356bf5544adb6b13d3437"
+        },
+        "hash-evidence": {
+          "path": "src/model/evidence.mjs",
+          "digest": "a59ce7340013a6c3d488abd5b5308cd93cd8a894aecb54c78bf6c11dd739af50"
+        },
+        "hash-record": {
+          "path": "src/ui/ProjectInspector.jsx",
+          "digest": "1b312000a2887365fb896f9fd8d3821683c65d3637fcd2f6a2f3913cc8454d6d"
+        },
+        "index-nodes": {
+          "path": "src/ui/useMapProjection.jsx",
+          "digest": "89f61802336bf3d73f14d8336a7e18f5e328521969e53fa4cd78f0c5267269ee"
+        },
+        "inspect-record": {
+          "path": "src/index.jsx",
+          "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+        },
+        "inspector": {
+          "parts": [
+            {
+              "path": "src/ui/ProjectInspector.jsx",
+              "digest": "1b312000a2887365fb896f9fd8d3821683c65d3637fcd2f6a2f3913cc8454d6d"
+            },
+            {
+              "path": "src/ui/ImplementationSummary.jsx",
+              "digest": "ccd29e9ec0784ae29c69b3eff4694ea8d3943624663793de037901f71b37c328"
+            },
+            {
+              "path": "src/ui/Inspector.jsx",
+              "digest": "17d5a556d884a5b54ccd8a917441667ffbe83d3b94eb4e49b3067ff15b6c46ed"
+            },
+            {
+              "path": "src/ui/NodePanel.jsx",
+              "digest": "c05ce9d823acefb9e67bbb315f2399844f94903f99326585d5320421ede729a9"
+            },
+            {
+              "path": "src/ui/RelationPanel.jsx",
+              "digest": "63f2aefebcf8d972e1727053eb3e86ea13767b3e6ecf4a0327a9b600c7116a4c"
+            },
+            {
+              "path": "src/ui/Reach.jsx",
+              "digest": "19f9638ef48276891145208929ff02190b5d20903c291b0b556cfe7f864bf192"
+            },
+            {
+              "path": "src/ui/Interactions.jsx",
+              "digest": "3e84864c75f344ab98aec8c7768d61e4cc7a3b48db72b15ea9b6c2ba80a79cc4"
+            },
+            {
+              "path": "src/ui/ProjectOverview.jsx",
+              "digest": "3a763fe9ebe7298841aac338e2e7a4bf0798782f0c51df4e7ae4ed2537ddfc57"
+            },
+            {
+              "path": "src/ui/ProjectDocument.jsx",
+              "digest": "923837a821f91321f35591c41e77e4741ea76dae3c84be6e109cb34613bf9cb6"
+            },
+            {
+              "path": "src/ui/usePanelNavigation.jsx",
+              "digest": "9c7fbe151c50ead975aac10d4104f940760109de7531b8a8a130a8bceda036f5"
+            }
+          ]
+        },
+        "load-model": {
+          "path": "src/ui/load.mjs",
+          "digest": "2a49d0d47803ec30d4dd78e15ba48e25f145e9ee7089067bc1c209f63a3df0f7"
+        },
+        "map": {
+          "parts": [
+            {
+              "path": "src/ui/ArchitectureMap.jsx",
+              "digest": "6760bd2f6946e2df19424afa28e354856ce377369401aafd6484207d0303732a"
+            },
+            {
+              "path": "src/ui/App.jsx",
+              "digest": "35be82bc95da52ababf4170b41ae4d10ea55c603cdb6511a5358b893b2306b35"
+            },
+            {
+              "path": "src/ui/ArchitectureNode.jsx",
+              "digest": "35581d8324af02c514c6261a649f144952884d571a1de9dde1443ca5650cf242"
+            },
+            {
+              "path": "src/ui/ArchitectureEdge.jsx",
+              "digest": "72f9aefb540a078101c6d4928d28669d65b39aa9436d1bd07ffb4ea14dd917fc"
+            },
+            {
+              "path": "src/ui/MapChrome.jsx",
+              "digest": "8fb71f12b4d8af7d8d51533ac14b8cc7b709fdb47a18f2a3038b3d98643a05b1"
+            },
+            {
+              "path": "src/ui/MapHeader.jsx",
+              "digest": "e69e72db3efd9df22a4fc9fb817e9b408bbdc688b5d3b181bc13526f12a84978"
+            },
+            {
+              "path": "src/ui/MapOverlays.jsx",
+              "digest": "26aec7397834c82e5a50aff4a3e6b0d8a9249e95f9640d10f7bd1f5fbadfbca7"
+            },
+            {
+              "path": "src/ui/Overview.jsx",
+              "digest": "3424c65204922b6102d0cda022a3b9cb28b2aeff9e7b5324711c4c4ffca1c75c"
+            },
+            {
+              "path": "src/ui/Filters.jsx",
+              "digest": "fe1eef67f353c963392ba411288858bb74f60e5ea2e37357357199c4f65b8b53"
+            },
+            {
+              "path": "src/ui/useMapProjection.jsx",
+              "digest": "89f61802336bf3d73f14d8336a7e18f5e328521969e53fa4cd78f0c5267269ee"
+            }
+          ]
+        },
+        "model": {
+          "path": "assets/archivarius-model.schema.json",
+          "digest": "c0d92015b029caae76749df12fab16e5d43af9afaa523e7a2d1395ba02c32b7d"
+        },
+        "model-source": {
+          "path": "src/ui/load.mjs",
+          "digest": "2a49d0d47803ec30d4dd78e15ba48e25f145e9ee7089067bc1c209f63a3df0f7"
+        },
+        "node-api": {
+          "parts": [
+            {
+              "path": "src/node.mjs",
+              "digest": "84ac335c0c99a680758b65291b25dfdafb9f3ed9d754602f8183a282e9855414"
+            },
+            {
+              "path": "src/io/project-storage.mjs",
+              "digest": "5a0a68c152a9b2b451040f2ad6beb16aaebfb8f99f021c1693496c3d506693c4"
+            },
+            {
+              "path": "src/io/project-git.mjs",
+              "digest": "285a2821f73d03420ea9da637c507bc17789e4202c7443552a95863dd86ce4d2"
+            }
+          ]
+        },
+        "node-index": {
+          "path": "src/model/graph.mjs",
+          "digest": "56f22e3f8f37ab422a1c89aa3d8767b96457924c96b356bf5544adb6b13d3437"
+        },
+        "record-detail": {
+          "path": "src/model/project-view.mjs",
+          "digest": "129aea421943353368b2d9dc1efc89a62c8d13e9d58e25470d295e239a2d7ee2"
+        },
+        "reference-set": {
+          "path": "src/model/records.mjs",
+          "digest": "169993d9b21260390e6b08cf327c8319c0678a0c5331d632f6d2c7db3ea74eea"
+        },
+        "render": {
+          "path": "src/index.jsx",
+          "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+        },
+        "single-relation-bundle": {
+          "path": "src/model/graph.mjs",
+          "digest": "56f22e3f8f37ab422a1c89aa3d8767b96457924c96b356bf5544adb6b13d3437"
+        },
+        "single-relation-facts": {
+          "path": "src/ui/Interactions.jsx",
+          "digest": "3e84864c75f344ab98aec8c7768d61e4cc7a3b48db72b15ea9b6c2ba80a79cc4"
+        },
+        "validate-before-verify": {
+          "path": "src/model/evidence.mjs",
+          "digest": "a59ce7340013a6c3d488abd5b5308cd93cd8a894aecb54c78bf6c11dd739af50"
+        },
+        "verify-evidence": {
+          "path": "src/node.mjs",
+          "digest": "84ac335c0c99a680758b65291b25dfdafb9f3ed9d754602f8183a282e9855414"
+        }
+      }
+    },
+    {
+      "title": "Archivarius",
+      "root": "archivarius",
+      "entry": "map",
+      "contract": "a442c6abb25c47ca3548ed037faac2453ec50f931dc0f35cbe0d73b6150e0259",
+      "realization": "bcf12a75e92f69a46fbd32c382ffd884bd03b7ea5a9ee139de0d8d3f7c56b3f0",
+      "records": {
+        "archivarius": "d478102e4b79a22fcda80276465402bb1d7544dc23cff67792ef9ef22f44aab2",
+        "owner-intent": "d8eda33949d0ff75d1a23473ff150f735b9e6c988987f70ab16ee6cb3970ccc7",
+        "self-description": "0b910912710b40eeb3efca3d4f89ed12374635a41f782cc3cac31fe6e054e5fc",
+        "contract-basis": "e895593cb63ab759076a96a5cd50b77505d8014de3484a5917d7e7aeb0b4440d",
+        "model": "3d82226221bac3dd6c1d5aed7ebe48bb33a34f51c04c1764b04abd0fc036a6c3",
+        "core": "706e79d65ff0a6886e7e563982ec2c7e9f30d212d12003dc7c37ddb8d2a35c81",
+        "graph": "343788a25f41a140f4651943f2d8a262fbdc17a677880c174048b726a6709cfb",
+        "digest": "c118ed08dcaf8a03dabd4a5173ec5a7f16082f1b84964886b99e7afbe8d9338e",
+        "node-api": "301020886f78c3ce8c695086eb86d90fca7dacc8862cec5275e6c50845431f4e",
+        "cli": "6b3a4d9d278f72934c4b0b99cb3ba18d1829630108802d5b68343353436c22b0",
+        "evidence": "c5e1d00a4ce17cf82caaddc1a622a197c99fd4d8601a08af404e6b6b551fcf4d",
+        "render": "36fd4c85417c1d3cf93ba8098bc90f06f44d1091b6734ad88b86a5efbb1bab58",
+        "map": "2e237dde13747835b8466793bfacaf5a815a1ef88a74d70dea4e4f1194f9b0c6",
+        "inspector": "6187de69129487bac8373d36fffa5acc62c775c5c2952ead481fb4f3e8130057",
+        "model-source": "fd1edf25b79988cfa492c1643e3d6817ed81f16394e52d118ec2c228a9e1d9f8",
+        "change-input": "36700ab06f06beb646c3175473500db224d2afb798fdc1e538e476230a1a0b4e",
+        "evidence-artifact": "20f1f777c06d7160ee61d10eb56772d3d1e7d470a810e477cffea52672e72d97",
+        "reference-set": "8e3d45c40edac217ae1b424b8632ff0d0291599e74ee72f32d0350ca06001899",
+        "basis-value": "af443b0015619c65451a274414a8d286a7660af0ca3392185d78398b7fc4aebe",
+        "record-detail": "4141fbf755ed83f2ea570d144fc42b8c97bfccbedb8c801a37784463c3c7aeeb",
+        "load-model": "97709ccf95fc14621f75d832f5b61e1f54b1696e1d5c46236bc7c325284191cf",
+        "check-references": "ad6a21ddbcaf833fdb3f4554feae9e982ebf2c6bffbcaeefe63b46bd604a58d0",
+        "compute-basis": "f44be21695787d9b66c0e2698afb4209b7fe668d9424d1e0ab1c0d99887f78e3",
+        "inspect-record": "28da7823e8b8787b03d18025a4a053d11a442b0b6de39f1f410833c2480ed862",
+        "apply-change": "6460f9a6987c4b8a23ae5a4a96613b94249f2ba6f200d930fd64c84be74599ea",
+        "verify-evidence": "ab170aa235bf5eabce1983ddd52c3479de88581675785b5b2fda77bca8f5e363",
+        "single-snapshot": "899d40eeac3d670274767f4162a55c594205e7fbc2ce6e47c6df06283673e442",
+        "single-snapshot-c": "54682dc7a4da547b76349e3d286498f5934fa227620cfc84fb32930771d1d62f",
+        "validated-change": "dbf7d05ac04c11ccedc9d534f72c029ef2b98990bcb753a5a11e885ec3574bd7",
+        "validated-change-c": "f5b946e1ae5095a3ab95788a373ae5784abc62c4f08b91c3f1707ece890a0b68",
+        "byte-exact-evidence": "ee1948a7d615eed5fe92db4f0b64881e03a3b6da1a9876a376d9f150e3392f18",
+        "byte-exact-evidence-c": "ab1734ed6adf6ac9ee830b8bc9204e5d059db46142964b1956d14aa0f70d8dbf",
+        "conservative-freshness": "7911d529bb8fa23ea7b8916dd75a34e5e8f40741ac90373e38083e4e27a187ce",
+        "conservative-freshness-c": "7a4ff864fc435b6f679882c901981d824c4f8de4ab788a40e4e038d7517d6fde",
+        "basis-digest": "fe0d728a6f5b9aba4dc0d39299e4cc5e8280c5c4ac4e8f85f25e09236b29d445",
+        "external-resources": "15b0d2ee3d8bbde0922cd8b940f3864c66391d4597de6a35d2acb3a5eb670e5d",
+        "edit-and-render": "9130958b427c5349ff3febd5517f8051975a1aeca3e9c5897ca8cd87616bab22",
+        "task-model": "a7eba37f2533a25dedd267c0af361caa80dde4195eab61f8b08415f2b9e61e7d",
+        "task-render": "761bfc56c845116402172817aed877887606f7b23410beacbc33b117348deb94",
+        "task-evidence": "7e6ef03c86f0b4c0288a3b3e60156b0b2654cb93eaf5d7e82edc4f03d0392e79",
+        "check-model": "a4f619ffea2adc74513879c84d53612024eba118efc50462f862a0b21e02312b",
+        "check-render": "7855eba34b2b3d30820639d1be6b4e95fdb989841ebe82c5a8f4394a11b151bf",
+        "check-evidence": "7fb48c50eeedea635cce61c615c7046e6d7e61d6ec61b01730bde9f00f4ff486",
+        "shared-appearance": "2b33932f391105f40dbf616a93c441d71c8a2d968a07864c851c9ca0fa21fff6",
+        "consumer-intent": "201faa8e06b1461114ff14c79d7808fbc426152635ebefc53547015452bf8cbe",
+        "reader-observation": "2b01cc0f641adfdacdbaafa8c65b8cd6722e09d57c498ef76c71487049dd4536",
+        "scale-observation": "1e6698846d993cea73bf6d57bb95d903e75a93f6642365da0ae69ee5e9ab9f5d",
+        "code-truth-assumption": "93f2be5963b09e5c25fd9f2f9e03b388d01d2c5c6926ce631103eddb21221a31",
+        "semantic-zoom": "6b3b523186bb368c4978e8c18ae2a2009c02b970aaca4c7fb6544e6d139f5e83",
+        "addressable-view": "5a4bc53748ebde4e14cce6f2639d611d5b163e3d04732766fe72881e316813fc",
+        "keyboard-complete": "b404dac13c497e0bc5721889aba0669dba105d2d6c23d4cdb4d913c50183fda9",
+        "announced-changes": "4aac27402750e6bb65772c4a4d4ec7855658b4dec4ec9f2ccf049c472cf933ea",
+        "reader-settings": "26cdbed474755881f9945cf678f22f596f045e0c63687b243f893f3d4e9cf067",
+        "documented-failures": "452a14fe8274d184ed59efc20511a625c5686a3904421b8478e4200a72322728",
+        "usable-from-the-readme": "40402a80fbdf5368fec622da1983d32394ae0aef55255c5686f57cbb1fd2d766",
+        "versioning-promise": "7fdfe359548d040cd2cbb86053bafad02fef476577f98b7695782411c957863d",
+        "responsive-at-scale": "ed213c5a05d9f1a7e47d85363aff5924f3bb29e22291e3391313f2765506f191",
+        "bounded-input": "5e64a8f554cef4d4d55530229b99a2fac49040c57284542e8f650804e51ba42e",
+        "authoring-onboarding": "0e2b38b082d382defb0b5d02edc970b6e5a79270653aa00cebf9e3711f5673e7",
+        "precise-bindings": "54b959da8ea672077840b968b75401e0f894cd897eb992cb2a5d02c265b506bd",
+        "scoped-freshness": "014a74b4fc8a9b7548af5801d3bc7ca69b066fb56eb4e8c7defb2bd7a0b0b455",
+        "snapshot-diff": "b9b2ee31a9951fa326a22d7c7eee22f3549a8460b35a8c514e99c4e2d28c9a43",
+        "code-truth": "2b4557b6493db31561e76c47b0b423d2b4242c01b5bdbd985b889772fd5ba603",
+        "attributable-records": "e48c6097c85c4a7e261d71ca5c448e1342b61587882dc83aa382e74905f25328",
+        "executable-checks": "4cc922eba8a38c0c2a56881a083eb3af02f9cd105dc72a033a1aaabdd677c852",
+        "literal-content": "27d94c8d691bbf184329d03e5ff916c8bfd6c3f3cf788ea9e0d427595d823496",
+        "layer-boundaries": "fa466f177125c24046c44c54dab602537d43578a9d2b0b64474407fbae7c85d8",
+        "generated-documents-agree": "5fb820b0047e70c15749d931a926d7eb23ed4b56686768dfcc4f1e966e9579b0",
+        "english-only": "79f43e30023653c026ecd9fb714b26f29a968dce91889bfa06117587178c2ccb",
+        "exportable-elsewhere": "5657a218569fe1fc2d46126e62f518aa3866a76ba7bfd0349e3e546486683158",
+        "searchable-model": "e0371f972de94e6dc2c8d9836f7ef3d8ae95dff2d659a7a3f5b113d0ae989098",
+        "answers-about-change": "e48bdacc8ddf1237253258cea3f4a7be9fb3fdcc40cad68d2cbd178eee4f312d",
+        "semantic-zoom-c": "ae5401d1cd307fec3acff00207c727fa4a1507bbee2b6c4df20711be383c88ab",
+        "addressable-view-c": "0e4ccbe2aa9a4cfb24d49a82123223416afc96229f1d3fc1a87876c6aaa5819c",
+        "keyboard-complete-c": "02ef4bec3374cf30287c22adddec8d5c0c16dac65e3bdd834d86e15701a56af3",
+        "announced-changes-c": "3c0f2dab61cfb4fea63f20833152d0cb91926fb21d6bfd78dbb304283bfb6d62",
+        "reader-settings-c": "5fedafab027314402851d9730ad74b6012c099c28e055098de3657a3741750af",
+        "documented-failures-c": "a4cb6aa92636601cee782f603eebb7adea0b0a32a6c18d73c61aa96a966aef17",
+        "usable-from-the-readme-c": "2e434997c6d3d3fed0f7018314eb061141c72da19b9beb6a0e8700aa2a86ca39",
+        "versioning-promise-c": "81c24f3cc1841357068b04b8503b0bec4c9ff0dc395d3a6ce4250a21603f20c2",
+        "responsive-at-scale-c": "ad55072e0c30afb54c345ff1679683ab293e013ddc0abb5c6478a3bcdd0d55d9",
+        "bounded-input-c": "6425a7b00fe08ec29f33816ffe595f7f324180689276c175cd329f9087479d2b",
+        "authoring-onboarding-c": "d7ee183cdb3e12b2e151ae4e16a676d2773bebda2953f809061d3b682de0ade6",
+        "precise-bindings-c": "c1408a734e130a84a5bb02402bdda03f1226320cef1158cbcb24b43b6927f89f",
+        "scoped-freshness-c": "a794409b091081c07d2cca9dcbdba0e8219cc8c5c1d84e3e03179f59f4f91d95",
+        "snapshot-diff-c": "af4701a3c3c2726290b67b7ae38462cea9e09e9b2b58327b6e41c04c94d4add3",
+        "code-truth-c": "dfffcc9a31caab8268e87d335bfe03f67e4979364d017879df62936a53be4c90",
+        "attributable-records-c": "d21de8870e6a820227c7baf3425200ea9d4eca98ff50dfeb6aa9f6297646ed63",
+        "executable-checks-c": "e67edc1df96a9ebf928ee8e60280f7879ff0de8bc66b177b894f131f2103e8f9",
+        "literal-content-c": "df86ad22b5b02657d234cc5f65bb41d4b40a3cc543939bdf1756ae76c58aba54",
+        "layer-boundaries-c": "fef1c92dbb4c7bfb6e5e14c76c7986315b3805e95313deb77f6770538bb6611e",
+        "generated-documents-agree-c": "aedb6383d3e0b5d75e5661becb84f3fd4cc8fbbcee0685d27e4d3eea2ea90d72",
+        "english-only-c": "548f3c6df239eb4f41704c6a27fcd1a7bbc9174ba0e37a58587fbec40730485c",
+        "exportable-elsewhere-c": "659b21ea65feb8e7cba547ed2de48f48d8adddf89057ec3444903e5aad35b8bb",
+        "searchable-model-c": "37a0d9143983a272ec5e2d28cb705ed7811d514f90705975048a3134a67daa51",
+        "answers-about-change-c": "64b40c046ce6e4b693ed2a8aa07709786c2c35857094cc05d1d23afcb43d74a7",
+        "research-fisheye": "7a223446223587b50f7e517b783bcdb14d4f5125ffc0bc0555d07a821bf104bb",
+        "research-zoomable-surface": "16ed1ba8d831f386ccc57dd264efa77bf284fc0e82e3eb4c97116a58f6ed82f1",
+        "research-zoom-review": "1186ba2f7ad0a5ce325972c6f006efddeaeb0acb03029aa64349175555d5a509",
+        "research-visual-taxonomy": "e8fb265ecc0ba826aa4ce7b1d60cf34c8f463265c9779436832e85d5a4526f89",
+        "research-notation-physics": "78ee8cfd6d5540636c6d3ea3e4b5ac8f8bd7bf9397a2c6361d75d882504e78a6",
+        "research-graphical-perception": "c64a79739f05b7303cfba0d88f026b398a9dd7dfdc8c807df991a25da6053ea7",
+        "research-secondary-notation": "aca00a04c93058f41c9982886d99673b7e3af3258803ca8d82234e06adfa1555",
+        "research-layered-layout": "8b7d9160ca6c2b02fc605f7150fd2cb259af0f40eeb178933ad7fe94f67d5040",
+        "research-response-time": "74118bcd4b4a23d04e4476e1bb3fe29356d99e90a1b8fe0fb1b516911188d9ab",
+        "research-view-model": "5219ba83bf0741f9360401e7e91711f10e00b663ca9fe910fa57756534f6bf22",
+        "research-module-criteria": "f24c21d4460f5ff3b10e06f3683545368a15c919f312b7f629b4af2e5fe6fc1c",
+        "research-design-by-contract": "c4808d41d5451f12f79144a6d6a72b1de8f36c5ae47e889034c32478eed364a0",
+        "standard-accessibility": "f937ec24355a9370ad48bb7956bf1700313032b249cdf13144762a7e09faf9ba",
+        "standard-usability-heuristics": "6593233a57273a625fa6543e36efaf2b16144f752b747f841e591f75feaea5de",
+        "standard-contract-versioning": "4313b1129ddc73b116b5443e3559fab7f37ff39c59863926366dee5a53c3c601",
+        "standard-architecture-model": "9e3c202ddcb849a5e8b899d1b2dbae90a7f5e7af18b4fcb5084086c2e6781ddd",
+        "redundant-encoding": "ae67491c2cbf002150efb00555a2cb0cab8622959c9acbe5b269b8c8c077d2b0",
+        "redundant-encoding-c": "4a6a5951f4edec1c2dd734de8b59a69adfd57a00557a1a1d311b017b1a54f1ec",
+        "layered-layout": "ccd91a0b8a84418c2ad3920b10bc0d82f96788a68452b4cf806e1cabf28773e7",
+        "read-a-structure": "dc8af5f63bed2944ef84b974a109402467a8e43a10d703516bde59ad77242564",
+        "read-without-a-mouse": "d35e83cda4ea4ba4e5170dd5e033f11c394a5b3f9b92e8f538ab3df33b1be556",
+        "adopt-the-library": "becbf28980693f43cf650d1bb2b6975e84d624f4916660f628ce46fc269bad9d",
+        "confirm-a-claim": "c8c8ff22b6bac2c42883831a1f4f1d7090de41f3e36584a9a2176fdd340b3f83",
+        "generate-the-documents": "b0fbf5e2bd40486cd2eee6ee205bb7875e1cc27969293efeb3b444f0b838def6",
+        "task-zoom-levels": "59527dd390d825335d020042b1614f6dec78c8fdb616de40855ef65b795c76b2",
+        "task-overview-and-return": "3eb37f26095756a54ea0c3b9c37fa32f4b9b7bb370671549557232645e13f0cb",
+        "task-addressable-state": "b8f2ca64ee201815e05285ba654491105675176d442a4ab782216a78292c97e6",
+        "task-search-every-version": "79ed9b5e253fce4067369c49e3353355bedd935b37e409c8f79e1ba57ad2d35f",
+        "task-filter-and-relate": "91151fd19207feb290b94e5e6c2bd75c9840254eb149517d4832751fb7a76370",
+        "task-impact-closure": "280fd4cc419425d36e70c3d786722dd04aab65923199e1aadd3d9fba3a1c2e36",
+        "task-layer-separation": "951efd4ca3c3e7dadeefd1a245b60f19bdc9f2d55e6075327bf31a574edd009c",
+        "task-second-channel": "c48fe8442764d4e86415ef7734ca844273f16940911f989868b1b7dda14b459f",
+        "task-generated-legend": "1374d75eada7f5c9ba5b71c929900dd45d4def6ec92ba6de9de6e03059ba0e12",
+        "task-layout-off-thread": "25d6a3f715a75025e32eef2498da796db383e5a7ae27360091e9cca0e86d4769",
+        "task-virtualized-map": "51f45615af31975a2d01da46c065bd78c58d8e22dc0068dddd96332f6dd2be82",
+        "task-response-budget": "4fc49b27cb49246222e83a1da6851e30d4666f190dd6d3b82b499de3066fa26e",
+        "task-cancellable-reads": "e9b85f773a7d32d9ac906bbde22c6c3244e29e2ebd911aa518a2ed131f8aef6e",
+        "task-stated-limits": "81050b74c1b922daf79cbdefc45bac551ac9c71c55609b102fc9dd565777413a",
+        "task-keyboard-map": "ac72567bd1d8c445360df94d45189c8169e3caeb35b0ce3574c42511aaa511b6",
+        "task-visible-focus": "e9af0088dcd6ae315a7bbd3cbda51f66e2e4357e95e8c2fdf634f5ab4869d3de",
+        "task-announcements": "3e288e6354593f0f917e0a72792ea649561d3c90e78d64b1d8534638a42d320b",
+        "task-reader-preferences": "90e8de8005d8d19332a06517923d38ce47783b29705b710c1a606a19b85c2a91",
+        "task-accessibility-harness": "03e2609bbdd555c8c727903f81956db41c549233b3843e13bfbd4074865f8362",
+        "task-failure-catalogue": "414047d385ce780409865a96ee27a5ada926ef8bf74ca840232a5b07b6a920d7",
+        "task-failure-on-screen": "130cbf7841c5b50a0c4df992074d6d25d0c16abac6183e7a72469597dc3e4f67",
+        "task-quickstart": "393b14f66754ea8bbbee799a5238390039763cc4203baa77af1c7f22d7c9d792",
+        "task-public-surface": "c711341507f69c8f9c9b28337ee4a84a6fa65a67471faa13d3bf557ee26d6e4f",
+        "task-contract-grading": "221bbb0aa510a870abd1e44b7129bd4a52ce46415ff4772ef64996ee2f0a9f75",
+        "task-asset-names": "4104baa5e29f3edb32f6891e5efc560b607f5376693cfa6cc5da04e31e3ddfa9",
+        "task-licence-and-history": "af46295b8e4affe19d59d392e277d90958ce1d1881d7d9218dbc7e10fa150668",
+        "task-init-snapshot": "28c44177fbb873b6b9c9a4f968fb1037d130027ec94b3d9d897fe76c2dcefaa5",
+        "task-explain-rejection": "aa4501f001078f3e124c069bb49340e9dafd9b89a60db6d09b331875cefce803",
+        "task-snapshot-diff": "8f68a19dbf8eb7b8a36a8078d6da5eabe0e93e604602d2670eb84f32a902c9f3",
+        "task-record-attribution": "f1d5e9e7fc11f2616087f956729bfda60c9582cf4b131d1d7164bf40db1dee4d",
+        "task-open-questions": "312c06ead6299ca96a68e0849f788d5ef21cb721f4e619d2dda28ddf510e2dcf",
+        "task-scoped-withdrawal": "7b2976528b937155f3e982e364ca555be3b11cdc0aee05fd482c96a6807de747",
+        "task-freshness-report": "a2e3a5dfbd500257f8a019789e5c5ec1ddccce070f71d21b092f2cb4b3f1624e",
+        "task-code-reconciliation": "b96b8e91d0cb6bb13277773d77f84a56ed1bf50c41aa7c4054a4d19ed9c69c8b",
+        "task-run-and-record": "b876cf4399171d2a41a1ef29a6ce5f9a3a8b647f309a5a8a7ffb71ed1f9641e1",
+        "task-export-formats": "5b6970aa5b53312c13e77989c8ba4a9d984fb1b987d7f634d33532c10542558d",
+        "task-diagram-parses": "8709653196cd77ca38c0846e8e2efb18d811dc3485a817f3e1652a93e7277f4b",
+        "task-inert-content": "a65655e0b7b80f4db39f80cb7a79984a507c119b83792fe69a74792bc9830c65",
+        "task-one-language": "62718141abe9338371042a55eef2ec4be57ad514a1213f8c90cf3e49f490261d",
+        "check-zoom": "a07551aca92188008a0cf44555e0fc2cb2d12fb3b31cfb203cee9341c3243838",
+        "check-navigation": "e7b0fb351a6c4f616e4db16cab6f133c7cd7788ad74c0856ac753a9449f99d11",
+        "check-accessibility": "9af228f4817214fba8c440eff2834bc68e7e2153a472f52e8b741a737889e60b",
+        "check-performance": "03e127114fb0cda9d07b9132e7dd04d11dc585f941ac6edde905f0d3751cbebb",
+        "check-failures": "28348c84c358ae9a4d4d3b19c0d8c350300694ae6c608207da82726bf92a3d25",
+        "check-documents": "9de99959bc64d3d02b46922843eabdb0128a9f647373efd72b856e1ddea4494a",
+        "check-versioning": "ee0f728d10061f2619077296f0ab55561ba8d752eaedff6333bfbeadd7e1ac3d",
+        "check-freshness": "518667b769508dfcb6f0725d9719a08d9f38b48e5d0b0b1c5922ff414103c21e",
+        "hash-evidence": "e7e566f28d7efb4a1b4c715853345dc1472888a7bb41581084bb50e1ec289be3",
+        "hash-record": "ac570d4b599808546c5b5922f805e99ef7fe73e64926b97957bf2a460583c38c",
+        "validate-before-verify": "0569b1efb2f61d22eda22d4ca5726eeee25ca6b884b43f16859b35ed3c9e5eb4",
+        "check-reconciliation": "135805b3434a8079653432d63b28f30b5f27fa424967e6d709eefca6b717a06d",
+        "run-reconciliation-2026-09-17b": "018a5fafaab7f8438323f3a93ff9c201438dab2aa5ebfed066b8e580783a369d",
+        "run-model-2026-09-17b": "d67e6dac23d52d6a337aac6af7a15462fc361a9b53b2c9d8e7fa347e7221c3db",
+        "run-render-2026-09-17b": "7adbde1d22c32b09fd49fe784f212458fbaee59322e7b403bd294af13bc2def8",
+        "run-evidence-2026-09-17b": "f84b48b3edf757b467d025725862134c2d472d21417ed7d276d290d9554326cc",
+        "run-navigation-2026-09-17b": "4b7f3cb284ce3c6deb5134470c90d7c4ebffa507b58d43b5a0c104602b79d846",
+        "run-failures-2026-09-17b": "c9b84e1f276fea57c0e50754eb5501eb13483e850d3f59227d828f929dd8d942",
+        "run-freshness-2026-09-17b": "b20a2bf9cda10c4896de33d489861bda472039c5469ce71b92248c489f3c905e",
+        "run-performance-2026-09-17b": "be471369710ba587db583714da9d5d6943f91271f4f6be94617138ac771f400c",
+        "run-accessibility-2026-09-17b": "72f323ddb2ab24950b0ca75a34570d62f5be5062f0eb1aaf76175c69a207e1de",
+        "run-versioning-2026-09-17b": "0dd07c15e38248bb6645b59d301a64b3f08ed01406f75ec1c7192044bbdac898",
+        "run-zoom-2026-09-17b": "4c189094a5ef5998a8c0f6a5eceee87cae4f5ea1c8937f84e064064758c6ca73",
+        "run-documents-2026-09-17d": "4fe7b25d0fe3155101d3b2d375520ab952c1653cce554d98d1b7a5ebb022a851",
+        "run-documents-2026-09-17e": "d4a7d495141f1768ea731042cf6c73b247e6cab1f92812040a41d9a5cbb2bba6",
+        "result-basis-scope": "71abfeb46e689393bfa40031d70e526717852403c6a4a73dc920b16a5206d121",
+        "check-layers": "21ddba8436ef028108420448647349c057cb16f1e27f08ad2b94ab8ecb4d12d6",
+        "check-gate": "5e3aa8bb4ea834d230165dce690b2bae9929709cbcfb3326183465a1cc87aa09",
+        "run-layers-2026-09-17c": "a1709d2ceda5e5ea226844a98a848c841b3acbac25152f33bb5923623ac642a0",
+        "run-model-2026-09-17c": "fc7b199de641b54044a948dd9e57e495b58e91a90811435cafa16d83f098267e",
+        "run-render-2026-09-17c": "da60fe64519d7596e023dea2ed14b488f9a1b4e409ff192090f9ed4bca671fec",
+        "run-evidence-2026-09-17c": "03b22ffbe2e346e4907f8a6ad3e5f2de039514645c0d80f975a6bfda592fe50f",
+        "run-navigation-2026-09-17c": "cf253334853f77cc1aaf148daf92fa08138f92e4b3b573a8e8b73333b8d6cb47",
+        "run-failures-2026-09-17c": "677cb00921df194fc223915970490adb2255c2a56bba9193c997fffc0a5e4daf",
+        "run-freshness-2026-09-17c": "e3ec30b1d7b45bfb9a58763b264b828c24f69586b65220c00829a5abadcc2821",
+        "run-documents-2026-09-17f": "96fe806ec827f565573fbea0a3778d2132e33509eff8d655c979a17977bda7a4",
+        "run-reconciliation-2026-09-17c": "de0ea2299be7fb5ccf681b4ca82581da569435032f00f197e30767224947ed08",
+        "run-performance-2026-09-17c": "72d949de24251ee2470fb91e775020518c55041439d942480f964dfa3adeee69",
+        "run-accessibility-2026-09-17c": "d8dc997041a853d020ec8509e6ade83c8557b52bc8e8c42d5a73eee9b3f0f10b",
+        "run-zoom-2026-09-17c": "a94208e08d870fe25f08b5bd2c7458282da9733a89e57bcb6980807f82c6e6f1",
+        "run-versioning-2026-09-17c": "a1ed934e4e55742b77860a051439b8d0b044e9c872cbf622b53230bb797c60db",
+        "run-gate-2026-09-17c": "a895adc7fd8998836e121ba7d7a576a3eb27137b4a97895272b9459aa7df3c70",
+        "node-index": "d170dc6381af86bd754f27e26f47b4662c635e24de390c1932104aa6603dbd2b",
+        "index-nodes": "09cedaf5ad98231d327aa2b4bd875de8255aacbfdc929621a514ee8605f61748",
+        "run-layers-2026-09-17d": "169ee00720e8e3cdda4b31c1bd660311f9df5b123363b264851a40788356904a",
+        "run-model-2026-09-17d": "db1d45610ca58da27ae8c6b066e27d2928c6e5a3d9b32475b2917ddc6625a9f0",
+        "run-render-2026-09-17d": "d20ef80e3d8334b280a7f120b14f8132cfb2b4921bf3cf40797f7eba5bc734bc",
+        "run-evidence-2026-09-17d": "12e8cfcc5a6e30c04035b3af5e9402a61fcd08a557d1283aa0b095caf620e8f9",
+        "run-navigation-2026-09-17d": "1a68c0bd4a4d7ec3c2823b51c85d75e743d162a3d8a2d19ad4d804a3142e9348",
+        "run-failures-2026-09-17d": "69c7ebd60c17593e76b7aa69e0b9f8aaf5fa40129d64ccfa8299ef0ba83058b9",
+        "run-freshness-2026-09-17d": "6f4f5897d3ac1b53a3760dbfb4cc089b41a0d52b67490bd75511b55e4214a07a",
+        "run-reconciliation-2026-09-17d": "4ed39ed9b8d8403f0f72dbfa8301cc0913808939daefd04a7e398b2aa0d5206e",
+        "run-performance-2026-09-17d": "5a553cc62de9e4fb06c5339aff147d05b4f4d1166ca2aaa7eb6e87bc80e879dd",
+        "run-accessibility-2026-09-17d": "c3c13d3c9fd2a923ca94ec420b2f0f6aa91e3b023d842e2d2987fe18286df0f3",
+        "run-zoom-2026-09-17d": "3ad6f1cdce7be2b5311d8d8e1d0733a01ff68056aea1ed924a57759909ab8d9c",
+        "run-versioning-2026-09-17d": "f4b596c9289490f318a70a6f86fd0d948fa1d4434dd1df56b143844dea174e36",
+        "run-documents-2026-09-17g": "794a35732b590a5deaf716627700210bb698bcde0abbb205eb97696cbf517560",
+        "run-gate-2026-09-17d": "e181c33c0e2756b75dd9bbc158e27b308f48704a0950d718be597b971fc25ad0",
+        "tone-separation": "f64a864fb404b4a53dd10d4a2a50335323a32425b0b043e77c83ba7d5f3e26b8",
+        "tone-separation-c": "558bcc0e323034617750e0d2f55f72e0a2728042ecb42e6308a4b87ab94eb6a3",
+        "research-hierarchical-aggregation": "4072ca601b1202bc12cc2dc90c4e9a70403fff9438d316d145772460714b51b9",
+        "research-edge-bundling": "14dff51a4037205aed8d2e3d9b4f66fb3893ca2ff440483cead8a348bda0c239",
+        "research-progressive-disclosure": "74b35b8511ad75c04c8af701227e0de870f56eb8b2b8e7922984f2ae059a9ed5",
+        "relation-aggregation": "d1579718b5cee63641929e17fe962edad84bfdab0c020816a3c5805f8f6c3625",
+        "relation-aggregation-c": "151367d38938b269c469de1b93aec0943e3299db664b7f5393084a8fa67cdc1d",
+        "quiet-chrome": "31769c70234668eab8b7bd4d40a4e220d52353805f5e2ae3e9935d5a12444b05",
+        "quiet-chrome-c": "59538986f86e8aaa30000e1e51835bf2068e00fe64f41f9b676a805d9ebdc800",
+        "bounded-detail": "c225e6a0b67ec0d56216b24a4751055173807a3e0eebaae02433748be827af58",
+        "bounded-detail-c": "d2e27ab0c4427d3cb546d60ffe031e61ffb15b3774a2fcbe60de7e8319b2e9e1",
+        "task-relation-bundles": "070668e678d5fd447af984642a5e2ea2c8f5d1bbf2ad202321bb3b2ef0f1a8b8",
+        "task-quiet-chrome": "4ccc46d028b7cdce4c6a874d8388a72fc674ad8b65fd9bd3bb819661906d7be6",
+        "task-bounded-detail": "ace0eee25a678e85aa5dffc24ae700172b46864b36110f6b5636b2178ddd4dbe",
+        "check-reading": "30fb666d7df762db8add92fbaf5c93935bee249ff6bff8a4773a5d30bce505f5",
+        "single-relation-bundle": "e55b6c08fe3fbba552edd1d3f2ac525840258c12d357704f11f1e9b2f3d5f6ee",
+        "single-relation-facts": "662f5c9717746264055e61c5b39cc389473ba47f47f1eb95b7dd4140e1419dfe",
+        "run-reading-2026-09-17a": "4d5c2d7454a5d4e8bda305fa171ab04a438858e89dcda4654081e88bd5a0b7c6",
+        "run-model-2026-09-17e": "8299b6c07cc7ec75bb0345996e75374b9b0dda6bdfdf2cd7fbab5e5226a41d11",
+        "run-evidence-2026-09-17e": "478f550b73288a0fe9fe6199605b6a6f380bc2e427e9f98c486e915725de3b46",
+        "run-navigation-2026-09-17e": "e1d6c38a64a422f996bce3e3b74f49083196ca82ccfb1e0ba478a9a6dab473bf",
+        "run-freshness-2026-09-17e": "849d1e57c1761da1d8956667053dacedde29410c487cd0b54a49b658736b0df5",
+        "run-reconciliation-2026-09-17e": "6ddd863adee04e263474a4ebad2f3654f5c8ddf2a0ff0b265da72bf44d59ba7c",
+        "run-accessibility-2026-09-17e": "7e8e96472cf903e990c613ade1326183f98e402d4c1cf07236566a6853988674",
+        "run-performance-2026-09-17e": "2eaeaad709e203424e3c6bbfabdd485b220587a62ca9cbea23c3a133e34ed477",
+        "run-zoom-2026-09-17e": "b75dff448d6f39a1d741039b78987289253ac44fcba77339303703d02f0e3bbe",
+        "run-render-2026-09-17h": "374598cd85e42d58db5365517a9ca5b6b16885369f8f0b7f911aad795777fcae",
+        "run-failures-2026-09-17h": "a613c3114c54700ec79cdbe2504794c44d1b3b8ea36663da7202a4ab1fdb00e3",
+        "run-layers-2026-09-17h": "d5fba884b916636b497badd60ec393902d4b203c93faaa8dff3be804eba3f100",
+        "run-versioning-2026-09-17h": "615ce85234e0487496013d4606a9151985918d573f1e83ac9ddb0e34a9991786",
+        "run-documents-2026-09-17h": "e7f734619a38b910e905d739074a3b795a1c10d19d1175dc7943c22a13aa743c",
+        "run-gate-2026-09-17h": "1e2d561cb39ab8675571b9d9120de525c7d86c384eae0e8b9b054fa0727e9850"
+      },
+      "bindings": {
+        "apply-change": {
+          "path": "src/node.mjs",
+          "digest": "84ac335c0c99a680758b65291b25dfdafb9f3ed9d754602f8183a282e9855414"
+        },
+        "archivarius": {
+          "path": "package.json",
+          "digest": "9d6635fa8d1fe93bb5bb78084c53b12c102eae0539d7aef89f246a6bd5b8e467"
+        },
+        "basis-value": {
+          "path": "src/model/project-digest.mjs",
+          "digest": "2d91ed6800a2998a95a746280f6a4e5d69da546e020067e2c5c33cd9e46198a1"
+        },
+        "change-input": {
+          "path": "src/model/project-authoring.mjs",
+          "digest": "6167a49396d2e581c35d0b4b75e81574d81c2d58ed337e04fb87c9dd67b9dcde"
+        },
+        "check-references": {
+          "path": "src/model/project-contract.mjs",
+          "digest": "d1906838268d4a57dc4227d7ce8837c16507b47c0d3727b0a7215801b7b9312e"
+        },
+        "cli": {
+          "path": "src/cli.mjs",
+          "digest": "7b16f0dfe54dca33f105b4b2a36ed2233f3f4402f91d0a9fff4f52b92ec743b7"
+        },
+        "compute-basis": {
+          "path": "src/model/project-digest.mjs",
+          "digest": "2d91ed6800a2998a95a746280f6a4e5d69da546e020067e2c5c33cd9e46198a1"
+        },
+        "core": {
+          "parts": [
+            {
+              "path": "src/core.mjs",
+              "digest": "e033feca174947767f96039278263379101953ab878ea91696478fc048b0426d"
+            },
+            {
+              "path": "src/model/parse.mjs",
+              "digest": "e31b118e7fffad84529963ba22287ae17798784310496dc4653c56bb9f08e403"
+            },
+            {
+              "path": "src/model/project-contract.mjs",
+              "digest": "d1906838268d4a57dc4227d7ce8837c16507b47c0d3727b0a7215801b7b9312e"
+            },
+            {
+              "path": "src/model/project-architecture.mjs",
+              "digest": "aae94eaedca11b85656aa0c57b21836af89949fd754bd30f085aa885deb37574"
+            },
+            {
+              "path": "src/model/project-analysis.mjs",
+              "digest": "13a7a6977e1a37677c12b0ed2ce3904a9531559092938a11bfc1ece119152389"
+            }
+          ]
+        },
+        "digest": {
+          "path": "src/model/digest.mjs",
+          "digest": "cff43d0d16a94ad4490162347bca9672998b938f594eb0a19413c8afe37fc5f6"
+        },
+        "evidence": {
+          "path": "src/model/evidence.mjs",
+          "digest": "a59ce7340013a6c3d488abd5b5308cd93cd8a894aecb54c78bf6c11dd739af50"
+        },
+        "evidence-artifact": {
+          "path": "src/model/evidence.mjs",
+          "digest": "a59ce7340013a6c3d488abd5b5308cd93cd8a894aecb54c78bf6c11dd739af50"
+        },
+        "graph": {
+          "path": "src/model/graph.mjs",
+          "digest": "56f22e3f8f37ab422a1c89aa3d8767b96457924c96b356bf5544adb6b13d3437"
+        },
+        "hash-evidence": {
+          "path": "src/model/evidence.mjs",
+          "digest": "a59ce7340013a6c3d488abd5b5308cd93cd8a894aecb54c78bf6c11dd739af50"
+        },
+        "hash-record": {
+          "path": "src/ui/ProjectInspector.jsx",
+          "digest": "1b312000a2887365fb896f9fd8d3821683c65d3637fcd2f6a2f3913cc8454d6d"
+        },
+        "index-nodes": {
+          "path": "src/ui/useMapProjection.jsx",
+          "digest": "89f61802336bf3d73f14d8336a7e18f5e328521969e53fa4cd78f0c5267269ee"
+        },
+        "inspect-record": {
+          "path": "src/index.jsx",
+          "digest": "b598ec43909bf715fa80de9fa0f8febbbc5a4ddead0c2ba70a87f5bdc851fa5d"
+        },
+        "inspector": {
+          "parts": [
+            {
+              "path": "src/ui/ProjectInspector.jsx",
+              "digest": "1b312000a2887365fb896f9fd8d3821683c65d3637fcd2f6a2f3913cc8454d6d"
+            },
+            {
+              "path": "src/ui/ImplementationSummary.jsx",
+              "digest": "ccd29e9ec0784ae29c69b3eff4694ea8d3943624663793de037901f71b37c328"
+            },
+            {
+              "path": "src/ui/Inspector.jsx",
+              "digest": "17d5a556d884a5b54ccd8a917441667ffbe83d3b94eb4e49b3067ff15b6c46ed"
+            },
+            {
+              "path": "src/ui/NodePanel.jsx",
+              "digest": "c05ce9d823acefb9e67bbb315f2399844f94903f99326585d5320421ede729a9"
+            },
+            {
+              "path": "src/ui/RelationPanel.jsx",
+              "digest": "63f2aefebcf8d972e1727053eb3e86ea13767b3e6ecf4a0327a9b600c7116a4c"
+            },
+            {
+              "path": "src/ui/Reach.jsx",
+              "digest": "19f9638ef48276891145208929ff02190b5d20903c291b0b556cfe7f864bf192"
+            },
+            {
+              "path": "src/ui/Interactions.jsx",
+              "digest": "3e84864c75f344ab98aec8c7768d61e4cc7a3b48db72b15ea9b6c2ba80a79cc4"
+            },
+            {
+              "path": "src/ui/ProjectOverview.jsx",
+              "digest": "3a763fe9ebe7298841aac338e2e7a4bf0798782f0c51df4e7ae4ed2537ddfc57"
+            },
+            {
+              "path": "src/ui/ProjectDocument.jsx",
+              "digest": "923837a821f91321f35591c41e77e4741ea76dae3c84be6e109cb34613bf9cb6"
+            },
+            {
+              "path": "src/ui/usePanelNavigation.jsx",
+              "digest": "9c7fbe151c50ead975aac10d4104f940760109de7531b8a8a130a8bceda036f5"
+            }
+          ]
+        },
+        "load-model": {
+          "path": "src/ui/load.mjs",
+          "digest": "2a49d0d47803ec30d4dd78e15ba48e25f145e9ee7089067bc1c209f63a3df0f7"
+        },
+        "map": {
+          "parts": [
+            {
+              "path": "src/ui/ArchitectureMap.jsx",
+              "digest": "6760bd2f6946e2df19424afa28e354856ce377369401aafd6484207d0303732a"
+            },
+            {
+              "path": "src/ui/App.jsx",
+              "digest": "ca1636fb9fd0acba2d766c28fff00b70fc7d50e72bc8a9f58bdb228161c86461"
+            },
+            {
+              "path": "src/ui/ArchitectureNode.jsx",
+              "digest": "35581d8324af02c514c6261a649f144952884d571a1de9dde1443ca5650cf242"
+            },
+            {
+              "path": "src/ui/ArchitectureEdge.jsx",
+              "digest": "72f9aefb540a078101c6d4928d28669d65b39aa9436d1bd07ffb4ea14dd917fc"
+            },
+            {
+              "path": "src/ui/MapChrome.jsx",
+              "digest": "8fb71f12b4d8af7d8d51533ac14b8cc7b709fdb47a18f2a3038b3d98643a05b1"
+            },
+            {
+              "path": "src/ui/MapHeader.jsx",
+              "digest": "e69e72db3efd9df22a4fc9fb817e9b408bbdc688b5d3b181bc13526f12a84978"
+            },
+            {
+              "path": "src/ui/MapOverlays.jsx",
+              "digest": "26aec7397834c82e5a50aff4a3e6b0d8a9249e95f9640d10f7bd1f5fbadfbca7"
+            },
+            {
+              "path": "src/ui/Overview.jsx",
+              "digest": "3424c65204922b6102d0cda022a3b9cb28b2aeff9e7b5324711c4c4ffca1c75c"
+            },
+            {
+              "path": "src/ui/Filters.jsx",
+              "digest": "fe1eef67f353c963392ba411288858bb74f60e5ea2e37357357199c4f65b8b53"
+            },
+            {
+              "path": "src/ui/useMapProjection.jsx",
+              "digest": "89f61802336bf3d73f14d8336a7e18f5e328521969e53fa4cd78f0c5267269ee"
+            },
+            {
+              "path": "src/ui/useZoomGesture.jsx",
+              "digest": "912cc065a84c9455f324753114ca41b805f21db8b36489fa219cc024f2f948e2"
+            },
+            {
+              "path": "src/model/zoom.mjs",
+              "digest": "f10a4a3826d5ed568949926c53aaa58af4aba9efab4ab39ceb00deb297469fcb"
             }
           ]
         },

@@ -1567,7 +1567,7 @@
 /* A card reveals its facts together, once the reader's text fits. Container
    queries measure the space after padding and the open-parts action, so larger
    text waits for a larger card without going through partially filled views. */
-@container card-content (min-width: 14rem) and (min-height: 11rem) {
+@container card-content (min-width: 14rem) and (min-height: 10rem) {
   .archivarius .card-copy .node-details {
     display: contents;
   }

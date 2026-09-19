@@ -63,9 +63,9 @@ try {
   });
   await until(() => document.querySelector('#first').clientWidth > 1000);
   await settled(() => window.consumer.first.snapshot().viewport);
-  // A wheel sweep must reveal one complete set of card facts, not a sequence
-  // of meter-only, status-only and half-populated cards. Repeat with less room
-  // and larger text, and observe what is actually painted rather than the DOM.
+  // Zoom has meaningful destinations: one wheel action frames the pointed leaf,
+  // further input stops there, and one outward action returns to the overview.
+  // At every destination, card facts are either compact or complete.
   for (const [width, height, font] of [
     [1440, 1000, 16],
     [390, 844, 16],
@@ -82,13 +82,16 @@ try {
       await window.consumer.first.home();
     }, font);
     await settled(() => window.consumer.first.snapshot().viewport);
-    const point = await b.evaluate(() => {
-      const r = document
-        .querySelector('#first [data-node=screen]')
-        .getBoundingClientRect();
-      return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
-    });
+    const overview = await b.evaluate(
+      () => window.consumer.first.snapshot().viewport,
+    );
     const wheel = async (deltaY) => {
+      const point = await b.evaluate(() => {
+        const r = document
+          .querySelector('#first [data-node=screen]')
+          .getBoundingClientRect();
+        return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+      });
       await b.call('Input.dispatchMouseEvent', {
         type: 'mouseWheel',
         ...point,
@@ -97,53 +100,70 @@ try {
       });
       await settled(() => window.consumer.first.snapshot().viewport);
     };
-    for (let step = 0; step < 5; step++) await wheel(100);
-    for (const delta of [-100, 100]) {
-      const seen = new Set();
-      for (let step = 0; step < 24; step++) {
-        const picture = await b.evaluate(() => {
-          const card = document.querySelector('#first [data-node=screen]');
-          const visible = (element) =>
-            !!element?.getBoundingClientRect().width &&
-            !!element?.getBoundingClientRect().height;
-          const selectors = [
+    const facts = async () => {
+      const picture = await b.evaluate(() => {
+        const card = document.querySelector('#first [data-node=screen]');
+        const visible = (element) =>
+          !!element?.getBoundingClientRect().width &&
+          !!element?.getBoundingClientRect().height;
+        return {
+          facts: [
             '.eyebrow',
             '.node-implementation > span',
             'meter',
             '.signal-badges',
-          ];
-          return {
-            facts: selectors.map((selector) =>
-              visible(card.querySelector(selector)),
-            ),
-            parentFacts: [
-              ...document.querySelectorAll(
-                '#first .node-card.expanded .project-signals',
-              ),
-            ].length,
-          };
-        });
-        const count = picture.facts.filter(Boolean).length;
-        assert(
-          count === 0 || count === 4,
-          'partial card during zoom: ' +
-            JSON.stringify({ width, font, delta, step, picture }),
-        );
-        assert.equal(
-          picture.parentFacts,
-          0,
-          'expanded containers repeat their child facts',
-        );
-        seen.add(count);
-        await wheel(delta);
-      }
-      assert.deepEqual(
-        [...seen].sort(),
-        [0, 4],
-        'the sweep must exercise both card views: ' +
-          JSON.stringify({ width, font, delta }),
+          ].map((selector) => visible(card.querySelector(selector))),
+          parentFacts: document.querySelectorAll(
+            '#first .node-card.expanded .project-signals',
+          ).length,
+        };
+      });
+      const count = picture.facts.filter(Boolean).length;
+      assert(
+        count === 0 || count === 4,
+        'partial card: ' + JSON.stringify({ width, font, picture }),
       );
-    }
+      assert.equal(picture.parentFacts, 0);
+      return count;
+    };
+    await facts();
+    await wheel(-100);
+    const detail = await b.evaluate(
+      () => window.consumer.first.snapshot().viewport,
+    );
+    assert(
+      detail.zoom >= overview.zoom,
+      'zoom in must not shrink an already readable leaf',
+    );
+    assert.equal(
+      await facts(),
+      4,
+      'the final leaf stop must show its facts: ' +
+        JSON.stringify({ width, font, overview, detail }),
+    );
+    for (let step = 0; step < 3; step++) await wheel(-100);
+    await click('#first [data-control=plus]');
+    await settled(() => window.consumer.first.snapshot().viewport);
+    assert.deepEqual(
+      await b.evaluate(() => window.consumer.first.snapshot().viewport),
+      detail,
+      'a leaf must not create more zoom states',
+    );
+    await wheel(100);
+    assert.deepEqual(
+      await b.evaluate(() => window.consumer.first.snapshot().viewport),
+      overview,
+      'one outward gesture returns to the overview',
+    );
+    await wheel(100);
+    await click('#first [data-control=minus]');
+    await settled(() => window.consumer.first.snapshot().viewport);
+    assert.deepEqual(
+      await b.evaluate(() => window.consumer.first.snapshot().viewport),
+      overview,
+      'zoom out must stop at the overview',
+    );
+    await facts();
   }
   await b.call('Emulation.setDeviceMetricsOverride', {
     width: 1440,

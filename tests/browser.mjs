@@ -52,6 +52,8 @@ const keys = {
   ArrowUp: { code: 'ArrowUp', vk: 38 },
   ArrowRight: { code: 'ArrowRight', vk: 39 },
   ArrowDown: { code: 'ArrowDown', vk: 40 },
+  '+': { code: 'Equal', vk: 187, text: '+' },
+  '-': { code: 'Minus', vk: 189, text: '-' },
 };
 const press = async (key, modifiers = 0) => {
   const spec = keys[key];
@@ -889,22 +891,98 @@ try {
   await settled(camera);
   await checkIds();
 
-  for (let i = 0; i < 12 && !(await state()).visible.includes('gateway'); i++) {
-    const point = await b.evaluate(() => {
+  const wheelAt = async (key, deltaY, count = 1) => {
+    const point = await b.evaluate((key) => {
       const r = document
-        .querySelector('#first [data-node=search]')
+        .querySelector('#first [data-node="' + key + '"]')
         .getBoundingClientRect();
       return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
-    });
-    await b.call('Input.dispatchMouseEvent', {
-      type: 'mouseWheel',
-      ...point,
-      deltaX: 0,
-      deltaY: -160,
-    });
+    }, key);
+    for (let i = 0; i < count; i++)
+      await b.call('Input.dispatchMouseEvent', {
+        type: 'mouseWheel',
+        ...point,
+        deltaX: 0,
+        deltaY,
+      });
     await settled(camera);
-  }
+  };
+  const overviewCamera = (await state()).viewport;
+  await wheelAt('search', -40, 8);
+  assert(
+    (await state()).visible.includes('gateway'),
+    'one gesture must reveal the next level',
+  );
+  assert(
+    !(await state()).expanded.includes('engine'),
+    'wheel inertia must not skip a level',
+  );
+  assert.equal((await state()).panel, null, 'zoom must not open the inspector');
+  const searchCamera = (await state()).viewport;
+  // A new gesture enters the nested container in one step.
+  await wheelAt('engine', -40);
+  assert((await state()).visible.includes('query'));
+  await wheelAt('query', 40);
+  assert.deepEqual((await state()).viewport, searchCamera);
+  await click('#first [data-control=minus]');
+  await settled(camera);
+  assert.deepEqual((await state()).viewport, overviewCamera);
+  await click('#first [data-control=minus]');
+  await settled(camera);
+  assert.deepEqual(
+    (await state()).viewport,
+    overviewCamera,
+    'outward zoom stops at home',
+  );
+  // Touch input uses the same stops. Continuing the pinch cannot enter a second level.
+  const touchPoint = await b.evaluate(() => {
+    const r = document
+      .querySelector('#first [data-node=search]')
+      .getBoundingClientRect();
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+  });
+  const touches = (span) =>
+    [-1, 1].map((side, id) => ({
+      x: touchPoint.x + side * span,
+      y: touchPoint.y,
+      id,
+    }));
+  await b.call('Input.dispatchTouchEvent', {
+    type: 'touchStart',
+    touchPoints: touches(15),
+  });
+  await b.call('Input.dispatchTouchEvent', {
+    type: 'touchMove',
+    touchPoints: touches(25),
+  });
+  await settled(camera);
+  await b.call('Input.dispatchTouchEvent', {
+    type: 'touchMove',
+    touchPoints: touches(45),
+  });
+  await b.call('Input.dispatchTouchEvent', {
+    type: 'touchEnd',
+    touchPoints: [],
+  });
+  await settled(camera);
   assert((await state()).visible.includes('gateway'));
+  assert.deepEqual(
+    (await state()).viewport,
+    searchCamera,
+    'one pinch must stop at one level',
+  );
+  await b.evaluate(() =>
+    document.querySelector('#first [data-node=engine]').focus(),
+  );
+  await press('+');
+  await settled(camera);
+  assert(
+    (await state()).visible.includes('query'),
+    'keyboard zoom enters the focused block',
+  );
+  await press('-');
+  await settled(camera);
+  assert.deepEqual((await state()).viewport, searchCamera);
   await b.evaluate(() => window.consumer.first.home());
   await settled(camera);
   await click('#first [data-node=search]', 2);

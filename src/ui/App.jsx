@@ -23,6 +23,7 @@ import { MapChrome } from './MapChrome.jsx';
 import { MapOverlays } from './MapOverlays.jsx';
 import { usePanelNavigation } from './usePanelNavigation.jsx';
 import { useMapProjection } from './useMapProjection.jsx';
+import { useZoomGesture } from './useZoomGesture.jsx';
 import { expandedAt, isVisible } from './view.mjs';
 import {
   addressFailure,
@@ -34,8 +35,8 @@ import {
   writeAddress,
 } from '../model/address.mjs';
 import { failureReport } from '../model/failure.mjs';
-import { expansionThresholds, levelName } from '../model/zoom.mjs';
-import { fitToFrame } from './frame.mjs';
+import { expansionThresholds, levelName, zoomTarget } from '../model/zoom.mjs';
+import { fitToFrame, paneFrame } from './frame.mjs';
 
 const nodeTypes = { architecture: ArchitectureNode },
   edgeTypes = { architecture: ArchitectureEdge };
@@ -85,6 +86,7 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     pendingClick = useRef(null),
     previousExpanded = useRef(new Set()),
     explicitFocus = useRef(null),
+    framed = useRef(null),
     atHome = useRef(true),
     fitting = useRef(0);
   const navigation = usePanelNavigation(
@@ -95,6 +97,7 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
       selected,
       focus,
       atHome: atHome.current,
+      framed: framed.current,
       contextEnabled,
     }),
     (scene) => {
@@ -102,6 +105,7 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
       setFocus(scene.focus);
       explicitFocus.current = scene.focus;
       atHome.current = scene.atHome;
+      framed.current = scene.framed;
       setContextEnabled(scene.contextEnabled);
       flow.setViewport(scene.viewport);
     },
@@ -136,16 +140,6 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
   const clearClick = useCallback(() => {
     clearTimeout(pendingClick.current);
   }, []);
-  const changeZoom = useCallback(
-    (direction) => {
-      atHome.current = false;
-      setContextEnabled(true);
-      return direction > 0
-        ? flow.zoomIn({ duration: duration() })
-        : flow.zoomOut({ duration: duration() });
-    },
-    [flow],
-  );
   useEffect(
     () => () => {
       clearClick();
@@ -153,8 +147,51 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     },
     [clearClick],
   );
+  const nodeCamera = useCallback(
+    (key, frameLeaf = false) => {
+      const leaf = !graph.nodes.get(key).children;
+      const box = layout.nodes[key],
+        n =
+          leaf && !frameLeaf
+            ? box.parent
+              ? layout.nodes[box.parent]
+              : layout.bounds
+            : box,
+        size = {
+          width: pane.current.clientWidth,
+          height: pane.current.clientHeight,
+        };
+      // Framing a container has to leave it legible, or the reader is moved to a
+      // box that then refuses to open. The scale its own threshold asks for is the
+      // floor of the fit, with a hair over it so a rounded pixel cannot close it.
+      const opens = expansionThresholds(n, size).expand;
+      const atLeast =
+        layout.nodes[key]?.parent === n.key || (n === box && !leaf)
+          ? Math.max(opens.width / n.width, opens.height / n.height) * 1.02
+          : 0;
+      return {
+        key: n.key || null,
+        viewport: fitToFrame(size, n, {
+          margin: leaf && frameLeaf ? 1 : 0.92,
+          maxZoom:
+            leaf && frameLeaf
+              ? Math.min(
+                  maxZoom,
+                  (28 *
+                    parseFloat(
+                      getComputedStyle(document.documentElement).fontSize,
+                    )) /
+                    n.width,
+                )
+              : maxZoom,
+          atLeast,
+        }),
+      };
+    },
+    [layout, graph, maxZoom],
+  );
   const fitNode = useCallback(
-    async (key, keepPanel = false) => {
+    async (key, keepPanel = false, frameLeaf = false) => {
       clearClick();
       if (!graph.nodes.has(key)) throw new Error('UNKNOWN_NODE:' + key);
       // A workspace replaces the drawing. Reveal its destination directly; an
@@ -172,35 +209,19 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         requestAnimationFrame(() => requestAnimationFrame(resolve)),
       );
       if (ticket !== fitting.current) return false;
-      const box = layout.nodes[key],
-        n = leaf
-          ? box.parent
-            ? layout.nodes[box.parent]
-            : layout.bounds
-          : box,
-        size = {
-          width: pane.current.clientWidth,
-          height: pane.current.clientHeight,
-        };
-      // Framing a container has to leave it legible, or the reader is moved to a
-      // box that then refuses to open. The scale its own threshold asks for is the
-      // floor of the fit, with a hair over it so a rounded pixel cannot close it.
-      const opens = expansionThresholds(n, size).expand;
-      const atLeast =
-        layout.nodes[key]?.parent === n.key || n === box
-          ? Math.max(opens.width / n.width, opens.height / n.height) * 1.02
-          : 0;
-      return flow.setViewport(
-        fitToFrame(size, n, { margin: 0.92, maxZoom, atLeast }),
-        { duration: animate ? duration() : 0 },
-      );
+      const camera = nodeCamera(key, frameLeaf);
+      framed.current = camera.key;
+      return flow.setViewport(camera.viewport, {
+        duration: animate ? duration() : 0,
+      });
     },
-    [flow, graph, layout, maxZoom, clearClick, openPanel, closePanel],
+    [flow, graph, nodeCamera, clearClick, openPanel, closePanel],
   );
   const home = useCallback(async () => {
     clearClick();
     const ticket = ++fitting.current;
     atHome.current = true;
+    framed.current = null;
     resetPanel(project && !graph.nodes.size ? { type: 'project' } : null);
     setSelected(null);
     setContextEnabled(true);
@@ -323,8 +344,75 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     }
     return result;
   }, [graph, focus, expanded]);
+  const changeZoom = useCallback(
+    (direction, screen) => {
+      clearClick();
+      const rect = pane.current.getBoundingClientRect();
+      const frame = paneFrame(size);
+      const point = flow.screenToFlowPosition(
+        screen || {
+          x: rect.left + frame.centerX,
+          y: rect.top + frame.centerY,
+        },
+      );
+      const boxes = nodes
+        .filter((node) => !node.hidden)
+        .map((node) => layout.nodes[node.id]);
+      const preferred = screen
+        ? null
+        : document.activeElement?.dataset.node ||
+          (selected !== framed.current ? selected : null);
+      let target = zoomTarget({
+        boxes,
+        current: framed.current,
+        direction,
+        point,
+        preferred,
+      });
+      if (target === framed.current) {
+        if (direction < 0 && !atHome.current) return home();
+        return Promise.resolve(false);
+      }
+      // A container may already fill the frame (especially a single-root map).
+      // Skip its redundant camera stop; zoom-in must never make the picture smaller.
+      while (
+        direction > 0 &&
+        target &&
+        nodeCamera(target, true).viewport.zoom <= flow.getViewport().zoom * 1.05
+      ) {
+        const next = zoomTarget({
+          boxes,
+          current: target,
+          direction,
+          point,
+          preferred,
+        });
+        if (next === target) {
+          framed.current = target;
+          explicitFocus.current = target;
+          setSelected(target);
+          setFocus(target);
+          return Promise.resolve(false);
+        }
+        target = next;
+      }
+      return target ? fitNode(target, true, true) : home();
+    },
+    [
+      clearClick,
+      size,
+      flow,
+      nodes,
+      layout,
+      selected,
+      nodeCamera,
+      fitNode,
+      home,
+    ],
+  );
+  useZoomGesture(pane, changeZoom);
   const up = useCallback(() => {
-    const key = path.at(-1),
+    const key = framed.current || path.at(-1),
       parent = key && graph.parents.get(key);
     parent ? fitNode(parent) : home();
   }, [graph, path, fitNode, home]);
@@ -673,7 +761,17 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     setSurfaces(view.open);
     const stand = view.at ?? view.level;
     if (stand) await fitNode(stand, view.panel !== 'node');
-    if (view.zoom) flow.zoomTo(view.zoom, { duration: 0 });
+    if (view.zoom) {
+      if (
+        stand &&
+        !graph.nodes.get(stand).children &&
+        view.zoom > flow.getViewport().zoom * 1.05
+      )
+        framed.current = stand;
+      if (view.zoom > fitToFrame(size, layout.bounds).zoom * 1.05)
+        atHome.current = false;
+      flow.zoomTo(view.zoom, { duration: 0 });
+    }
     if (view.panel === 'relation' && view.edge) {
       const held = bundles.find((entry) =>
         entry.bundle.relations.some((relation) => relation.key === view.edge),
@@ -807,13 +905,6 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         onPointerMoveCapture={(e) => {
           pointer.current = { x: e.clientX, y: e.clientY };
         }}
-        onWheelCapture={(e) => {
-          atHome.current = false;
-          setContextEnabled(true);
-          pointer.current = { x: e.clientX, y: e.clientY };
-          explicitFocus.current = null;
-          clearClick();
-        }}
       >
         <h2 className="region-heading" id={instanceId + '-map-heading'}>
           {copy.mapRegionLabel}
@@ -840,8 +931,8 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
           disableKeyboardA11y
           zoomOnDoubleClick={false}
           panOnScroll={false}
-          zoomOnScroll
-          zoomOnPinch
+          zoomOnScroll={false}
+          zoomOnPinch={false}
           panOnDrag
           preventScrolling
           onInit={() => setFlowReady(true)}

@@ -12,6 +12,7 @@ import {
   namedLevel,
   previousPosition,
   pushPosition,
+  zoomTarget,
 } from '../src/model/zoom.mjs';
 import { expandedAt } from '../src/ui/view.mjs';
 
@@ -135,6 +136,49 @@ test('a container at its boundary keeps the state it already had', () => {
 test('a container with nothing inside never expands', () => {
   const leaves = { ...layout, nodes: { part: layout.nodes.part } };
   assert.deepEqual([...expansionAt({ layout: leaves, zoom: 40, size })], []);
+});
+
+test('zoom steps follow hierarchy and stop at leaves and the overview', () => {
+  const boxes = [
+    ...Object.values(layout.nodes),
+    {
+      key: 'inner',
+      parent: 'part',
+      x: 60,
+      y: 60,
+      width: 60,
+      height: 50,
+      depth: 2,
+    },
+  ];
+  const target = (current, direction, point = { x: 80, y: 80 }, preferred) =>
+    zoomTarget({ boxes, current, direction, point, preferred });
+  assert.equal(
+    target(null, 1),
+    'root',
+    'a deep hit must not skip its ancestors',
+  );
+  assert.equal(target('root', 1), 'part');
+  assert.equal(target('part', 1), 'inner');
+  assert.equal(target('inner', 1), 'inner', 'a leaf cannot grow forever');
+  assert.equal(target('inner', 1, { x: 700, y: 500 }), 'inner');
+  assert.equal(target('part', 1, { x: 700, y: 500 }, 'root'), 'inner');
+  assert.equal(target('inner', -1), 'part');
+  assert.equal(target('part', -1), 'root');
+  assert.equal(target('root', -1), null);
+  assert.equal(target(null, -1), null);
+  assert.equal(target(null, 1, { x: -100, y: -100 }), 'root');
+  assert.equal(target('root', 1, { x: 700, y: 500 }), 'part');
+  assert.equal(target('part', 1, { x: -100, y: -100 }, 'inner'), 'inner');
+  assert.equal(
+    zoomTarget({
+      boxes: [],
+      current: null,
+      direction: 1,
+      point: { x: 0, y: 0 },
+    }),
+    null,
+  );
 });
 
 test('the map surface asks the model for its expansion', () => {

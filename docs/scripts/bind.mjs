@@ -50,6 +50,8 @@ export const files = {
     { path: 'src/ui/Overview.jsx' },
     { path: 'src/ui/Filters.jsx' },
     { path: 'src/ui/useMapProjection.jsx' },
+    { path: 'src/ui/useZoomGesture.jsx' },
+    { path: 'src/model/zoom.mjs' },
   ],
   inspector: [
     { path: 'src/ui/ProjectInspector.jsx' },

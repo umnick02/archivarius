@@ -85,6 +85,44 @@ export function expansionAt({
 }
 
 /**
+ * One zoom action chooses a part to frame, rather than a percentage. A leaf is
+ * the final stop; zooming out returns to its containing level. The drawing
+ * supplies only the boxes its current filters actually show.
+ *
+ * @param {{ boxes: Box[], current: string | null, direction: number,
+ *   point: { x: number, y: number }, preferred?: string | null }} options
+ * @returns {string | null}
+ */
+export function zoomTarget({ boxes, current, direction, point, preferred }) {
+  const held = boxes.find((box) => box.key === current);
+  if (direction < 0) return held?.parent ?? null;
+  const inside = (box) =>
+    point.x >= box.x &&
+    point.x <= box.x + box.width &&
+    point.y >= box.y &&
+    point.y <= box.y + box.height;
+  const hit =
+    boxes.find((box) => box.key === preferred) ||
+    boxes.filter(inside).sort((a, b) => b.depth - a.depth)[0];
+  // Even if several descendants are already drawn, enter only the next part
+  // along the path to the pointer. No wheel gesture skips a hierarchy level.
+  if (hit && hit.key !== current) {
+    let next = hit;
+    let parent = boxes.find((box) => box.key === next.parent);
+    while (parent && parent.key !== current) {
+      next = parent;
+      parent = boxes.find((box) => box.key === next.parent);
+    }
+    if (!current || parent?.key === current) return next.key;
+  }
+  const children = boxes.filter((box) => box.parent === current);
+  const distance = (box) =>
+    (box.x + box.width / 2 - point.x) ** 2 +
+    (box.y + box.height / 2 - point.y) ** 2;
+  return children.sort((a, b) => distance(a) - distance(b))[0]?.key ?? current;
+}
+
+/**
  * The level a reader stands in, given the chain of containers the zoom has
  * opened around their focus. The name is the abstraction the level reveals — the
  * kinds of the parts now on screen — and not the container's own title, so two
