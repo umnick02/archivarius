@@ -2,6 +2,30 @@ import { format, plural, useArchitecture } from './context.jsx';
 import { ImplementationMark } from './ImplementationMark.jsx';
 import { currentRecord } from '../model/project-view.mjs';
 
+function TaskIcon() {
+  return (
+    <svg
+      className="task-icon"
+      viewBox="0 0 16 16"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M6 4h7M6 8h7M6 12h7"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <g fill="currentColor">
+        <circle cx="2.5" cy="4" r="1" />
+        <circle cx="2.5" cy="8" r="1" />
+        <circle cx="2.5" cy="12" r="1" />
+      </g>
+    </svg>
+  );
+}
+
 // The same factual summary on a card and beside the drawing. The bar measures
 // confirmed criteria, never a guessed implementation percentage.
 export function ProjectSignals({ summary }) {
@@ -45,7 +69,7 @@ export function ProjectSignals({ summary }) {
             data-signal="tasks"
             title={diagram.tasksNote}
           >
-            <b aria-hidden="true">□</b>{' '}
+            <TaskIcon />
             {plural(copy, diagram.taskCount, summary.tasks.length)}
           </span>
         )}
@@ -100,7 +124,7 @@ export function ProjectNodeSummary({ recordKey, showRecord }) {
               key={task.key}
               onClick={() => showRecord(task.key)}
             >
-              <span aria-hidden="true">□</span>
+              <TaskIcon />
               {task.title}
               <span aria-hidden="true">↗</span>
             </button>

@@ -1480,6 +1480,12 @@
 .archivarius .signal-badge[data-signal='tasks'] {
   color: var(--text);
 }
+.archivarius .task-icon {
+  display: block;
+  width: 1em;
+  height: 1em;
+  flex: none;
+}
 .archivarius .signal-badge[data-signal='confirmed'] {
   color: var(--good);
 }
@@ -1516,7 +1522,7 @@
 }
 .archivarius .node-task {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.625rem;
   width: 100%;
   text-align: left;
