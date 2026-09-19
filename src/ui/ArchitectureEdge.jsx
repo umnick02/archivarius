@@ -45,9 +45,7 @@ export function ArchitectureEdge({ id, data }) {
       }
     >
       <title>
-        {kinds +
-          ': ' +
-          stands +
+        {stands +
           ' · ' +
           relationCount(copy, data.bundle.relations.length) +
           ' · ' +
@@ -98,12 +96,11 @@ export function ArchitectureEdge({ id, data }) {
             tabIndex={-1}
             aria-label={stands + ' · ' + confirmation}
             style={{
-              color,
               transform: `translate(${data.label.x}px,${data.label.y}px) scale(${1 / zoom}) translate(-50%,-50%)`,
             }}
             onClick={() => data.onOpen(data.bundle)}
           >
-            {stands}
+            {data.labelText}
           </button>
         </EdgeLabelRenderer>
       )}

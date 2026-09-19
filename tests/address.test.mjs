@@ -51,7 +51,7 @@ test('every field of the view survives the round trip', () => {
     panel: 'node',
     record: null,
     edge: null,
-    open: ['neighbours', 'reading'],
+    open: ['neighbours', 'options'],
     filters: { zone: 'application', kind: 'component', relation: 'data' },
   };
   const search = writeAddress('', view, { key: 'first' });
@@ -257,29 +257,33 @@ test('the address never mutates the snapshot or the view it reads', () => {
 // without it hands its receiver a different reading than the sender had.
 test('the surfaces a reader opened are carried by the address', () => {
   assert.deepEqual(emptyView.open, []);
-  assert.deepEqual(surfaceKinds.slice().sort(), surfaceKinds.slice().sort());
-  const view = { ...emptyView, open: ['reading'] };
+  assert.deepEqual(surfaceKinds, ['neighbours', 'options']);
+  assert.deepEqual(
+    parseAddress('first.open=reading', { key: 'first' }).open,
+    [],
+  );
+  const view = { ...emptyView, open: ['options'] };
   const search = writeAddress('', view, { key: 'first' });
-  assert(search.includes('first.open=reading'));
+  assert(search.includes('first.open=options'));
   assert.deepEqual(parseAddress(search, { key: 'first' }), view);
   // Written in one order, read back in one order, so a link is stable.
   assert.deepEqual(
     parseAddress(
       writeAddress(
         '',
-        { ...emptyView, open: ['neighbours', 'reading'] },
+        { ...emptyView, open: ['neighbours', 'options'] },
         {
           key: 'first',
         },
       ),
       { key: 'first' },
     ).open,
-    ['neighbours', 'reading'],
+    ['neighbours', 'options'],
   );
   // A surface this map has no such thing as is not a surface at all.
   assert.deepEqual(
-    parseAddress('first.open=reading,ghost', { key: 'first' }).open,
-    ['reading'],
+    parseAddress('first.open=options,ghost', { key: 'first' }).open,
+    ['options'],
   );
   assert.deepEqual(parseAddress('first.open=', { key: 'first' }).open, []);
   assert.equal(writeAddress('', emptyView, { key: 'first' }), '');

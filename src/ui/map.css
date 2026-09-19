@@ -30,7 +30,7 @@
 }
 
 /* Under the level statement it belongs with, at the top of the pane: the bottom of
-   the pane is the legend's and the camera controls'. Its offsets are the pane's,
+   the pane is reserved for the camera controls. Its offsets are the pane's,
    which already starts below the header — only the chrome above measures itself
    against the header token. The overview keeps the
    same size at every scale — it is the frame of reference, not another view that

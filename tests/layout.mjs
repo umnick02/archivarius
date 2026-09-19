@@ -94,13 +94,7 @@ const read = (mount) =>
         : null,
       headerItems: named('header button, header select, header input'),
       overlays: named(
-        [
-          '[data-control=appearance-legend]',
-          '[data-control=implementation-legend]',
-          '[data-control=overview]',
-          '.hint',
-          '.map-controls',
-        ].join(','),
+        ['[data-control=overview]', '.hint', '.map-controls'].join(','),
       ),
       nodes,
       union,

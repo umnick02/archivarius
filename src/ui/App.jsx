@@ -305,6 +305,7 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     cursor,
     panel,
     showRelation,
+    enterNode: fitNode,
   });
   const neighbours = useMemo(
     () =>

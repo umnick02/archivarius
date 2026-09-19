@@ -1,11 +1,11 @@
-import { format, useArchitecture } from './context.jsx';
+import { format, plural, useArchitecture } from './context.jsx';
 import { ImplementationMark } from './ImplementationMark.jsx';
 import { currentRecord } from '../model/project-view.mjs';
 
 // The same factual summary on a card and beside the drawing. The bar measures
 // confirmed criteria, never a guessed implementation percentage.
 export function ProjectSignals({ summary, compact = false }) {
-  const { projectCopy } = useArchitecture();
+  const { copy, projectCopy } = useArchitecture();
   const diagram = projectCopy.diagram;
   const issue = summary.issues[0];
   return (
@@ -36,7 +36,7 @@ export function ProjectSignals({ summary, compact = false }) {
                   ? '↻'
                   : '?'}
             </b>
-            {issue.keys.length} {diagram.short[issue.kind]}
+            {plural(copy, diagram.counts[issue.kind], issue.keys.length)}
           </span>
         )}
         {!!summary.tasks.length && (
@@ -45,7 +45,8 @@ export function ProjectSignals({ summary, compact = false }) {
             data-signal="tasks"
             title={diagram.tasksNote}
           >
-            <b aria-hidden="true">□</b> {summary.tasks.length} {diagram.tasks}
+            <b aria-hidden="true">□</b>{' '}
+            {plural(copy, diagram.taskCount, summary.tasks.length)}
           </span>
         )}
         {summary.state === 'confirmed' && (
@@ -54,12 +55,6 @@ export function ProjectSignals({ summary, compact = false }) {
           </span>
         )}
       </div>
-      {compact && summary.tasks.length > 0 && (
-        <div className="node-task-preview" title={summary.tasks[0].title}>
-          <span aria-hidden="true">□ </span>
-          {summary.tasks[0].title}
-        </div>
-      )}
     </div>
   );
 }

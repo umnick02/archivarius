@@ -28,6 +28,7 @@ export function useMapProjection({
   cursor,
   panel,
   showRelation,
+  enterNode,
 }) {
   const { model, graph, layout, completion, copy } = useArchitecture();
   // A layer is a view of the snapshot: the parts outside it are absent, and what
@@ -233,6 +234,7 @@ export function useMapProjection({
             box,
             handles,
             expanded: expanded.has(box.key),
+            onEnter: enterNode,
             // A part the camera cannot reach keeps its place and its outline and
             // spends nothing on the detail nobody is looking at.
             mounted: mounted.has(box.key),
@@ -259,12 +261,13 @@ export function useMapProjection({
       connected,
       activeKey,
       inside,
+      enterNode,
     ],
   );
   const edges = useMemo(
     () =>
-      placeEdgeLabels(near, nodes, viewport, size, (bundle) =>
-        bundleSummary(copy, bundle),
+      placeEdgeLabels(near, nodes, viewport, size, (bundle, compact) =>
+        bundleSummary(copy, bundle, compact),
       ).map((edge) => ({
         id: edge.id,
         type: 'architecture',

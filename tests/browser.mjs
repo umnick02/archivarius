@@ -475,11 +475,12 @@ try {
   assert.equal(
     await b.evaluate(
       () =>
-        document.querySelector(
-          '#second [data-control=implementation-legend] summary',
-        ).textContent,
+        !!document.querySelector(
+          '[data-control=appearance-legend], [data-control=implementation-legend]',
+        ),
     ),
-    copy.mapImplementation.label,
+    false,
+    'the map still mounts a separate explanation',
   );
   const other = await state('second');
   await focus('search');
@@ -841,20 +842,23 @@ try {
       control,
     );
   assert.deepEqual(await chrome(), [], 'the first screen opens a surface');
-  await click('#first [data-control=appearance-legend] > summary');
-  await until(
-    () =>
-      document.querySelector('#first [data-control=appearance-legend]').open,
+  // The container offers an explicit one-click action. It enters the same level
+  // as Enter/double-click without also opening the inspector.
+  const enterKey = await b.evaluate(
+    () => document.querySelector('#first [data-enter-node]')?.dataset.enterNode,
   );
-  assert.deepEqual(await chrome(), ['appearance-legend']);
-  await until(() => location.search.includes('open=reading'));
-  await press('Escape');
+  assert(enterKey, 'no visible container offers an open action');
+  await click('#first [data-enter-node="' + enterKey + '"]');
   await until(
-    () =>
-      !document.querySelector('#first [data-control=appearance-legend]').open,
+    (key) =>
+      document.querySelector('#first [data-node="' + key + '"]')?.dataset
+        .expanded === 'true',
+    enterKey,
   );
-  await until(() => !location.search.includes('open='));
-
+  await settled(() => window.consumer.first.snapshot().viewport);
+  assert.equal((await state()).panel, null, 'entering also opened a record');
+  await b.evaluate(() => window.consumer.first.home());
+  await settled(camera);
   // A part's exchanges are a surface like any other: it waits to be opened, and
   // the panel over the drawing is given back before it is.
   await b.evaluate(() => window.consumer.first.inspect('engine'));

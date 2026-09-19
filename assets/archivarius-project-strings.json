@@ -299,7 +299,6 @@
     "browse": "Browse records",
     "criteria": "Criteria confirmed",
     "progress": "{confirmed} of {total} criteria confirmed",
-    "tasks": "tasks",
     "tasksNote": "Tasks whose outcomes are not yet confirmed; this is not an implementation status.",
     "confirmed": "Confirmed",
     "attention": "Needs attention",
@@ -320,18 +319,55 @@
       "unused": "Contract participants missing",
       "architecture": "Architecture missing"
     },
-    "short": {
-      "failed": "failed",
-      "review": "to review",
-      "questions": "open",
-      "evidence": "unverified",
-      "checks": "unchecked",
-      "bindings": "unbound",
-      "definition": "unreviewed",
-      "criteria": "undefined",
-      "prerequisites": "blocked",
-      "unused": "unused",
-      "architecture": "missing"
+    "taskCount": {
+      "one": "{count} task to confirm",
+      "other": "{count} tasks to confirm"
+    },
+    "counts": {
+      "failed": {
+        "one": "{count} failed check run",
+        "other": "{count} failed check runs"
+      },
+      "review": {
+        "one": "{count} record needs review",
+        "other": "{count} records need review"
+      },
+      "questions": {
+        "one": "{count} question or assumption unresolved",
+        "other": "{count} questions or assumptions unresolved"
+      },
+      "evidence": {
+        "one": "{count} check lacks evidence",
+        "other": "{count} checks lack evidence"
+      },
+      "checks": {
+        "one": "{count} record lacks checks",
+        "other": "{count} records lack checks"
+      },
+      "bindings": {
+        "one": "{count} record lacks source bindings",
+        "other": "{count} records lack source bindings"
+      },
+      "definition": {
+        "one": "{count} record needs initial review",
+        "other": "{count} records need initial review"
+      },
+      "criteria": {
+        "one": "{count} record lacks criteria or realization",
+        "other": "{count} records lack criteria or realization"
+      },
+      "prerequisites": {
+        "one": "{count} prerequisite task unconfirmed",
+        "other": "{count} prerequisite tasks unconfirmed"
+      },
+      "unused": {
+        "one": "{count} interface lacks participants",
+        "other": "{count} interfaces lack participants"
+      },
+      "architecture": {
+        "one": "{count} scope lacks architecture",
+        "other": "{count} scopes lack architecture"
+      }
     }
   }
 }

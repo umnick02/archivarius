@@ -282,6 +282,7 @@
 }
 .archivarius .node-card {
   position: relative;
+  container: node-size / size;
   width: 100%;
   height: 100%;
   /* The border is the container tone at full strength: the appearance table
@@ -338,6 +339,75 @@
   width: 100%;
   height: 100%;
 }
+.archivarius .node-implementation[data-labelled='true'] {
+  position: static;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  width: auto;
+  height: auto;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.archivarius .node-implementation[data-labelled='true'] svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+.archivarius .node-card:has([data-labelled='true']) h2 {
+  padding-right: 0;
+}
+.archivarius .node-zone::before {
+  content: '';
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.25rem;
+  border-radius: 50%;
+  background: var(--zone);
+}
+.archivarius .node-actions {
+  container: node-actions / size;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+.archivarius .node-enter {
+  position: absolute;
+  left: var(--pad);
+  bottom: var(--pad);
+  max-width: calc(100% - 2 * var(--pad));
+  pointer-events: auto;
+  border: 1px solid var(--line-strong);
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  font-size: 0.75rem;
+  color: var(--text);
+  background: var(--panel);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.archivarius .node-enter:hover {
+  background: var(--soft-hover);
+}
+.archivarius .node-card[data-enterable='true'] .card-copy {
+  padding-bottom: calc(var(--pad) + 2.25rem);
+}
+/* Enlarged text keeps the name first. Small overview cards use smaller titles
+   and still have room for the explicit action. */
+@container node-size (max-height: 7rem) {
+  .archivarius .node-card[data-labelled='true'] .card-copy {
+    padding-bottom: var(--pad);
+  }
+}
+@container node-actions (max-height: 7rem) {
+  .archivarius .node-actions[data-labelled='true'] .node-enter {
+    display: none;
+  }
+}
 .archivarius .node-card::before {
   content: '';
   position: absolute;
@@ -369,30 +439,6 @@
 }
 .archivarius .node-card h2 {
   padding-right: calc(var(--mark-size) + 0.3125rem);
-}
-/* The implementation key reads the marks on the cards, so it sits inside the key
-   that reads the drawing rather than standing on the drawing itself. */
-.archivarius .implementation-legend {
-  display: grid;
-  gap: 0.3125rem;
-  font-size: 0.6875rem;
-  color: var(--muted);
-}
-.archivarius .implementation-legend > summary {
-  font-weight: 550;
-  cursor: pointer;
-}
-.archivarius .implementation-legend:not([open]) {
-  gap: 0;
-}
-.archivarius .implementation-legend span {
-  display: flex;
-  align-items: center;
-  gap: 0.4375rem;
-}
-.archivarius .implementation-legend svg {
-  width: 0.9375rem;
-  height: 0.9375rem;
 }
 .archivarius .card-interfaces {
   margin-top: var(--gap);
@@ -541,6 +587,7 @@
   border: 1px solid var(--line-soft);
   border-radius: 0.3125rem;
   background: var(--raised-veil);
+  color: var(--text);
   font-size: 0.625rem;
   padding: 4px 0.375rem;
   white-space: nowrap;
@@ -1143,7 +1190,6 @@
       [data-control='inspector'],
       .inspector-navigation,
       .map-controls,
-      .implementation-legend,
       .external-connections,
       .edge-label,
       .hint,
@@ -1151,8 +1197,7 @@
       .implementation,
       .record-values > div,
       .panel-button,
-      .map-overview,
-      .legend
+      .map-overview
     ) {
     background: Canvas;
     color: CanvasText;
@@ -1177,7 +1222,7 @@
   }
   /* The zone tone, the implementation stripe and the muted state are all colour,
      so in a forced palette they are dropped: each is also stated in words on the
-     card and in the panel, and the legend names every one of them. */
+     card and in the panel. */
   .archivarius .node-card {
     border-color: CanvasText;
     background: Canvas;
@@ -1559,7 +1604,12 @@
 /* Screen pixels decide which details are mounted; the actual text budget decides
    which fit, including when the reader doubles the font size. */
 @container card-content (max-height: 12rem) {
-  .archivarius .card-copy :is(.eyebrow, .node-summary, .card-interfaces) {
+  .archivarius .card-copy :is(.node-summary, .card-interfaces) {
+    display: none;
+  }
+}
+@container card-content (max-height: 8rem) {
+  .archivarius .card-copy .eyebrow {
     display: none;
   }
 }
@@ -1618,7 +1668,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
   font-size: inherit;
   color: var(--warn);
 }
@@ -1633,12 +1683,6 @@
 }
 .archivarius .card-copy[data-project-card='true'] > h2 {
   -webkit-line-clamp: 2;
-}
-.archivarius .node-task-preview {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--text);
 }
 .archivarius .card-copy .project-signals {
   flex-shrink: 0;
@@ -1705,12 +1749,13 @@
   padding-top: 0.75rem;
 }
 @container card-content (max-height: 7rem) {
-  .archivarius .card-copy :is(.signal-badges, .node-task-preview) {
+  .archivarius .card-copy .signal-badges {
     display: none;
   }
 }
 @container card-content (max-height: 5rem) {
-  .archivarius .card-copy .project-signals {
+  .archivarius .card-copy .project-signals,
+  .archivarius .card-copy .node-implementation[data-labelled='true'] {
     display: none;
   }
 }

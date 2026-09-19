@@ -1,12 +1,9 @@
 import { useArchitecture } from './context.jsx';
-import { ImplementationMark } from './ImplementationMark.jsx';
-import { Legend } from './Legend.jsx';
 import { Overview } from './Overview.jsx';
 import { relationTones, aggregateRelation } from '../model/appearance.mjs';
 
-// Drawn inside the pane: the constant overview a reader keeps their place in, the
-// key that reads the drawing itself, the legend that reads the implementation
-// marks, what the selected part exchanges with, and the arrow heads the edges
+// Drawn inside the pane: the overview a reader keeps their place in,
+// what the selected part exchanges with, and the arrow heads the edges
 // point with, sized against the current zoom so they hold their apparent size.
 // Markers are namespaced per instance so two maps on one page cannot claim the
 // same definition.
@@ -29,26 +26,6 @@ export function MapOverlays({
   return (
     <>
       {!!graph.nodes.size && <Overview />}
-      {/* The key draws itself from the appearance table, so a value the contract
-          gains appears beside the map without anybody writing a row. */}
-      <Legend
-        open={open.includes('reading')}
-        onToggle={(event) => toggleSurface('reading', event.currentTarget.open)}
-      >
-        <details
-          className="implementation-legend"
-          data-control="implementation-legend"
-          title={copy.implementationUnconfirmed}
-        >
-          <summary>{copy.mapImplementation.label}</summary>
-          {['confirmed', 'partial', 'unconfirmed'].map((state) => (
-            <span key={state}>
-              <ImplementationMark state={state} />
-              {copy.mapImplementation[state]}
-            </span>
-          ))}
-        </details>
-      </Legend>
       {empty && (
         <p className="map-empty" data-control="filter-empty" role="status">
           {copy.filters.empty}

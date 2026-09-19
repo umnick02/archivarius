@@ -1,8 +1,7 @@
 import { useArchitecture } from './context.jsx';
 import { renderDocumentation } from '../model/document.mjs';
 
-// The two panels that only read shipped copy: what the contract guarantees, and
-// what the map is. Neither takes a model fact beyond the document it offers.
+// Contract rules and document export share the inspector shell.
 export function ContractsPanel() {
   const { copy, project, projectCopy, contracts } = useArchitecture();
   return (
@@ -58,13 +57,6 @@ export function AboutPanel() {
         {copy.downloadDocumentation}
       </button>
       <p>{copy.documentationHint}</p>
-      <ul>
-        {copy.aboutSteps.map((text) => (
-          <li key={text}>{text}</li>
-        ))}
-      </ul>
-      <p className="note">{copy.aboutNote}</p>
-      <p className="end">{copy.technicalNote}</p>
     </>
   );
 }

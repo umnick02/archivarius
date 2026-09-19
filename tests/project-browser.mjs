@@ -70,6 +70,22 @@ try {
       () => !!document.querySelector('#first [data-node-facts=writer]'),
     ),
   );
+  const signals = await b.evaluate(() => {
+    const card = document.querySelector('#first [data-node=writer]');
+    return {
+      text: card.innerText,
+      state: card.querySelector('.node-implementation').textContent,
+      tasks: card.querySelector('[data-signal=tasks]')?.textContent,
+      legend: !!document.querySelector(
+        '#first [data-control=appearance-legend]',
+      ),
+      size: [card.clientWidth, card.clientHeight],
+    };
+  });
+  assert(signals.state.trim().length, JSON.stringify(signals));
+  assert.match(signals.tasks, /\d+ tasks? to confirm/);
+  assert(signals.text.includes(copy.diagram.criteria));
+  assert.equal(signals.legend, false);
   assert.equal(
     await b.evaluate(
       () => document.querySelector('#first [data-disclosure=record]').open,

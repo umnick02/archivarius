@@ -275,30 +275,42 @@ export function placeEdgeLabels(edges, nodes, viewport, size, label) {
   return edges.map((edge) => {
     // The box is reserved for the words the arrow actually draws, so a label is
     // never placed where its own text will not fit.
-    const width = label(edge.bundle).length * 5.7 + 18,
-      height = 25;
-    for (const candidate of edge.labelCandidates) {
-      if (candidate.span * zoom < 65) continue;
-      const box = {
-        x: candidate.x * zoom + x - width / 2,
-        y: candidate.y * zoom + y - height / 2,
-        width,
-        height,
-      };
-      if (
-        box.x < 12 ||
-        box.y < 66 ||
-        box.x + width > size.width - 12 ||
-        box.y + height > size.height - 100
-      )
-        continue;
-      if (
-        obstacles.some((n) => overlaps(box, n)) ||
-        labels.some((n) => overlaps(box, n))
-      )
-        continue;
-      labels.push(box);
-      return { ...edge, label: candidate, labelVisible: true };
+    for (const labelText of new Set([
+      label(edge.bundle),
+      label(edge.bundle, true),
+    ])) {
+      const width = labelText.length * 5.7 + 18,
+        height = 25;
+      // A short label can sit just above or beside its stroke when the marker
+      // occupies its midpoint. Every alternative still clears cards and labels.
+      const candidates = edge.labelCandidates.flatMap((point) => [
+        point,
+        { ...point, y: point.y - 18 / zoom },
+        { ...point, y: point.y + 18 / zoom },
+      ]);
+      for (const candidate of candidates) {
+        if (candidate.span * zoom < 65) continue;
+        const box = {
+          x: candidate.x * zoom + x - width / 2,
+          y: candidate.y * zoom + y - height / 2,
+          width,
+          height,
+        };
+        if (
+          box.x < 12 ||
+          box.y < 66 ||
+          box.x + width > size.width - 12 ||
+          box.y + height > size.height - 100
+        )
+          continue;
+        if (
+          obstacles.some((n) => overlaps(box, n)) ||
+          labels.some((n) => overlaps(box, n))
+        )
+          continue;
+        labels.push(box);
+        return { ...edge, label: candidate, labelText, labelVisible: true };
+      }
     }
     return { ...edge, labelVisible: false };
   });

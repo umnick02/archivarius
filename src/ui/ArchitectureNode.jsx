@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Handle, useViewport, useUpdateNodeInternals } from '@xyflow/react';
 import { nodeAppearance } from '../model/appearance.mjs';
-import { format, useArchitecture } from './context.jsx';
+import { format, plural, useArchitecture } from './context.jsx';
 import { cardMetrics, shapeRadii } from './view.mjs';
 import { ImplementationMark } from './ImplementationMark.jsx';
 import { ProjectSignals } from './ImplementationSummary.jsx';
@@ -57,6 +57,18 @@ export function ArchitectureNode({ data }) {
     borderWidth: highlighted ? 2 : 1,
     borderRadius: shapeRadii[look.shape](w, h),
   };
+  const labelled = mounted && !expanded && w > 180 && h > 125;
+  const enterable = mounted && !expanded && item.children && w > 120 && h > 80;
+  const confirmationMark = (
+    <span
+      className="node-implementation"
+      data-labelled={String(labelled)}
+      title={confirmation}
+    >
+      <ImplementationMark state={state} />
+      {labelled && <span>{copy.mapImplementation[state]}</span>}
+    </span>
+  );
   // Focusable from the first paint; which item of the level carries the map's one
   // tab stop is decided in App.jsx and written straight to the attribute.
   return (
@@ -78,20 +90,28 @@ export function ArchitectureNode({ data }) {
         data-implementation-state={state}
         data-incoming={interfaces.incoming.length}
         data-outgoing={interfaces.outgoing.length}
+        data-enterable={String(!!enterable)}
+        data-labelled={String(labelled)}
         role="button"
         tabIndex={-1}
         aria-expanded={item.children ? String(expanded) : undefined}
         aria-label={
           item.title +
           ' · ' +
+          copy.nodeKinds[item.kind] +
+          ' · ' +
+          copy.zones[item.zone] +
+          ' · ' +
           confirmation +
           (summary
             ? ' · ' +
               format(projectCopy.diagram.progress, summary) +
               ' · ' +
-              summary.tasks.length +
-              ' ' +
-              projectCopy.diagram.tasks +
+              plural(
+                copy,
+                projectCopy.diagram.taskCount,
+                summary.tasks.length,
+              ) +
               (summary.issues[0]
                 ? ' · ' + projectCopy.diagram.issues[summary.issues[0].kind]
                 : '')
@@ -100,9 +120,7 @@ export function ArchitectureNode({ data }) {
           (item.children ? copy.expandAction : copy.explainAction)
         }
       >
-        <span className="node-implementation" title={confirmation}>
-          <ImplementationMark state={state} />
-        </span>
+        {!labelled && confirmationMark}
         {!mounted ? null : expanded ? (
           <div
             className="expanded-heading"
@@ -124,9 +142,13 @@ export function ArchitectureNode({ data }) {
         ) : (
           <div className="card-copy" data-project-card={String(!!summary)}>
             {w > 230 && h > 210 && (
-              <div className="eyebrow">{copy.nodeKinds[item.kind]}</div>
+              <div className="eyebrow">
+                {copy.nodeKinds[item.kind]} ·{' '}
+                <span className="node-zone">{copy.zones[item.zone]}</span>
+              </div>
             )}
             <h2 title={item.title}>{item.title}</h2>
+            {labelled && confirmationMark}
             {summary && w > 180 && h > 125 && (
               <ProjectSignals summary={summary} compact />
             )}
@@ -163,26 +185,52 @@ export function ArchitectureNode({ data }) {
                 </p>
               </div>
             )}
-            {w > 180 && h > (summary ? 180 : 115) && (
+            {!item.children && w > 180 && h > (summary ? 180 : 115) && (
               <div className="node-footer">
-                {item.children ? (
-                  format(copy.inside, { count: item.children.length })
-                ) : (
-                  <span className="connection-counts">
-                    {format(copy.inputCount, {
-                      count: interfaces.incoming.length,
-                    })}{' '}
-                    ·{' '}
-                    {format(copy.outputCount, {
-                      count: interfaces.outgoing.length,
-                    })}
-                  </span>
-                )}
+                <span className="connection-counts">
+                  {format(copy.inputCount, {
+                    count: interfaces.incoming.length,
+                  })}{' '}
+                  ·{' '}
+                  {format(copy.outputCount, {
+                    count: interfaces.outgoing.length,
+                  })}
+                </span>
               </div>
             )}
           </div>
         )}
       </div>
+      {enterable && (
+        <div
+          className="node-actions"
+          data-labelled={String(labelled)}
+          style={{
+            width: w,
+            height: h,
+            transform: style.transform,
+            '--pad': text.pad,
+          }}
+        >
+          <button
+            className="node-enter nodrag nopan"
+            data-enter-node={item.key}
+            tabIndex={-1}
+            aria-label={
+              item.title +
+              ' · ' +
+              plural(copy, copy.openParts, item.children.length)
+            }
+            onClick={(event) => {
+              event.stopPropagation();
+              data.onEnter(item.key);
+            }}
+          >
+            {plural(copy, copy.openParts, item.children.length)}{' '}
+            <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      )}
       {handles.map((handle) => (
         <Handle
           key={handle.id}

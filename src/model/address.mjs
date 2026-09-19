@@ -50,7 +50,7 @@ export const panelKinds = Object.freeze([
  * were open, so a link restores the same reading its sender had, and a name this
  * map has no surface for is no surface at all.
  */
-export const surfaceKinds = Object.freeze(['neighbours', 'reading', 'options']);
+export const surfaceKinds = Object.freeze(['neighbours', 'options']);
 
 /**
  * What each filter accepts, read off the contract's own tables so a value is

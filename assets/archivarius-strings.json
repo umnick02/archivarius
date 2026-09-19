@@ -93,7 +93,7 @@
   },
   "example": "Example",
   "rulesButton": "Map contract",
-  "aboutButton": "How to read",
+  "aboutButton": "Export documentation",
   "downloadDocumentation": "Download documentation · Markdown",
   "documentationHint": "The document is generated from the currently loaded JSON model. Edit the model and regenerate the description.",
   "document": {
@@ -123,7 +123,6 @@
   "inspectorLabel": "Selected architecture details",
   "expandAction": "expand",
   "explainAction": "details",
-  "inside": "{count} parts inside ↗",
   "boundary": "Detail boundary",
   "fitBlock": "Explore this block ↗",
   "source": "Source",
@@ -137,12 +136,6 @@
     "other": "{count} interactions"
   },
   "kindSeparator": ", ",
-  "hints": {
-    "zoom": "Scroll to zoom and reveal parts",
-    "pan": "Drag to move",
-    "enter": "Double-click to explore",
-    "edge": "Click an arrow for its contents"
-  },
   "partsNote": "Zoom reveals understood parts. The decomposition is not claimed to be exhaustive.",
   "interpretationNote": "An interpretation of the target architecture. Implementation confirmation covers the entire described block contract.",
   "aggregateNote": "This arrow represents a shared interaction channel. Its original transfers appear below.",
@@ -152,19 +145,7 @@
   "rulesTitle": "What this map means",
   "rulesIntro": "Rules for the data model, views and levels of detail.",
   "incompleteNote": "The map may be incomplete. Node counts and depth do not measure system readiness.",
-  "aboutEyebrow": "Architecture navigation",
-  "aboutSteps": [
-    "Scroll to reveal nested components. Drag to move the map.",
-    "Double-click a block to explore it. Click once for inputs, outputs and rules.",
-    "An arrow shows its original interactions and lets you navigate to their participants.",
-    "A green check means fully confirmed, an amber half circle means partially confirmed, and a gray circle means no confirmation. Marks stay visible on nodes and arrows; open the inspector for details.",
-    "Emphasizing a type keeps other interactions visible in gray.",
-    "Search jumps to any component. Rules and properties appear in its inspector, not as separate components.",
-    "Breadcrumbs, the minimap and the home button return you to context.",
-    "One Tab reaches the map: arrow keys move between the blocks and arrows of the current level, Home and End are its ends, Space opens details, Enter explores a block, Escape closes details and then leaves the block, and + / − zoom."
-  ],
-  "aboutNote": "The map describes an understood target architecture. Detail stops at a known external contract where internals have not been studied.",
-  "technicalNote": "React Flow · ELK.js. Geometry is calculated when a model loads and stays fixed during zoom.",
+  "aboutEyebrow": "Documentation",
   "modelError": "Cannot build the map: {error}",
   "announcements": {
     "loaded": {
@@ -229,6 +210,24 @@
     "aggregate": {
       "label": "Aggregate",
       "word": "Several interactions in one arrow"
+    }
+  },
+  "openParts": {
+    "one": "Open {count} part",
+    "other": "Open {count} parts"
+  },
+  "relationKindCounts": {
+    "data": {
+      "one": "{count} data transfer",
+      "other": "{count} data transfers"
+    },
+    "command": {
+      "one": "{count} command",
+      "other": "{count} commands"
+    },
+    "state": {
+      "one": "{count} state update",
+      "other": "{count} state updates"
     }
   }
 }
