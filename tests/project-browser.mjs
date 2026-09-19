@@ -45,6 +45,63 @@ try {
       new URL('./project.json', document.baseURI),
     );
   });
+  // A project opens on the diagram, whose facts use verified analysis, not a
+  // prose-only project page. Following its task must keep the drawing present.
+  assert.equal(
+    await b.evaluate(
+      () => document.querySelector('#first .map-app').dataset.workspace,
+    ),
+    'false',
+  );
+  assert(
+    await b.evaluate(
+      () => !!document.querySelector('#first [data-node=screen] meter'),
+    ),
+  );
+  await b.evaluate(() => {
+    document.querySelector('#maps').style.gridTemplateColumns = '1fr';
+  });
+  await until(() => document.querySelector('#first').clientWidth > 1000);
+  await settled(() => window.consumer.first.snapshot().viewport);
+  await b.evaluate(() => window.consumer.first.focus('writer'));
+  await settled(() => window.consumer.first.snapshot().viewport);
+  assert(
+    await b.evaluate(
+      () => !!document.querySelector('#first [data-node-facts=writer]'),
+    ),
+  );
+  assert.equal(
+    await b.evaluate(
+      () => document.querySelector('#first [data-disclosure=record]').open,
+    ),
+    false,
+  );
+  await click('#first [data-node-task=implement-export]');
+  assert.equal(
+    await b.evaluate(
+      () => document.querySelector('#first .map-app').dataset.workspace,
+    ),
+    'false',
+  );
+  assert.equal(
+    await b.evaluate(
+      () =>
+        getComputedStyle(document.querySelector('#first .map-pane')).visibility,
+    ),
+    'visible',
+  );
+  await click('#first [data-control=record-back]');
+  assert(
+    await b.evaluate(
+      () => !!document.querySelector('#first [data-node-facts=writer]'),
+    ),
+  );
+  await b.evaluate(() => {
+    document.querySelector('#maps').style.gridTemplateColumns = '';
+  });
+  await until(() => document.querySelector('#first').clientWidth < 780);
+  await settled(() => window.consumer.first.snapshot().viewport);
+  await b.evaluate(() => window.consumer.first.home());
   await click('#first [data-control=project]');
   assert.equal(
     await b.evaluate(
@@ -169,7 +226,8 @@ try {
   assert.deepEqual(after.viewport, before.viewport);
   await b.evaluate(() => window.consumer.first.focus('writer'));
   await settled(() => window.consumer.first.snapshot().viewport);
-  // Relationships are directly available without opening technical metadata.
+  // The diagram's short inspector defers the complete record explicitly.
+  await click('#first [data-disclosure=record] > summary');
   await click('#first [data-disclosure=links-decision] > summary');
   await click('#first .project-links [data-record-link=streaming]');
   assert.equal(
@@ -711,6 +769,8 @@ try {
       ),
       card: document.querySelector('#first .implementation').dataset
         .implementationState,
+      criteria: document.querySelector('#first [data-node=writer] meter')
+        ?.value,
     }));
     assert(status.nodes.length && status.edges.length);
     const analysis = analyzeProject(confirmed, { verifiedResults });
@@ -719,6 +779,7 @@ try {
     for (const item of [...status.nodes, ...status.edges])
       assert.equal(item.mark, item.status);
     assert.equal(status.card, expected);
+    assert.equal(status.criteria, [1, 2, 1, 0][stage]);
     assert.equal(
       status.nodes.find((node) => node.key === 'writer').status,
       expected,
@@ -1149,7 +1210,8 @@ try {
       );
     }),
   );
-  await click('#first [data-workspace-view=work]');
+  await click('#first [data-control=project]');
+  await click('#first [data-project-view=work]');
   assert(
     await b.evaluate(
       () =>
@@ -1186,6 +1248,22 @@ try {
           document.querySelector('#first').clientHeight * 0.65
       );
     }),
+  );
+  await b.evaluate(async (model) => {
+    await window.consumer.first.load(model);
+  }, project);
+  assert.equal(
+    await b.evaluate(
+      () => document.querySelector('#first .map-app').dataset.workspace,
+    ),
+    'false',
+  );
+  assert.equal(
+    await b.evaluate(
+      () =>
+        getComputedStyle(document.querySelector('#first .map-pane')).visibility,
+    ),
+    'visible',
   );
   assert.deepEqual(b.errors, []);
   console.log(

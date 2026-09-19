@@ -294,5 +294,44 @@
   "contextColumn": "Context",
   "statusColumn": "State",
   "connections": "Connections",
-  "absent": "Not present in this revision"
+  "absent": "Not present in this revision",
+  "diagram": {
+    "browse": "Browse records",
+    "criteria": "Criteria confirmed",
+    "progress": "{confirmed} of {total} criteria confirmed",
+    "tasks": "tasks",
+    "tasksNote": "Tasks whose outcomes are not yet confirmed; this is not an implementation status.",
+    "confirmed": "Confirmed",
+    "attention": "Needs attention",
+    "work": "Work to confirm",
+    "moreTasks": "{count} more tasks",
+    "connections": "Connections and impact",
+    "details": "Full record",
+    "issues": {
+      "failed": "Unresolved check failures",
+      "review": "Definitions need review",
+      "questions": "Open questions or assumptions",
+      "evidence": "Check evidence missing",
+      "checks": "Check coverage missing",
+      "bindings": "Source bindings missing",
+      "definition": "Review basis missing",
+      "criteria": "Criteria or realization missing",
+      "prerequisites": "Prerequisite tasks unconfirmed",
+      "unused": "Contract participants missing",
+      "architecture": "Architecture missing"
+    },
+    "short": {
+      "failed": "failed",
+      "review": "to review",
+      "questions": "open",
+      "evidence": "unverified",
+      "checks": "unchecked",
+      "bindings": "unbound",
+      "definition": "unreviewed",
+      "criteria": "undefined",
+      "prerequisites": "blocked",
+      "unused": "unused",
+      "architecture": "missing"
+    }
+  }
 }

@@ -5,6 +5,7 @@ import { bindingParts } from '../model/binding.mjs';
 import { digest } from '../model/digest.mjs';
 import { recordReferences } from '../model/records.mjs';
 import { ImplementationMark } from './ImplementationMark.jsx';
+import { ProjectNodeSummary } from './ImplementationSummary.jsx';
 import {
   claimStanding,
   confirmationGroups,
@@ -337,9 +338,38 @@ export function ProjectInspector({
   fitNode,
   interactions,
   anchor,
+  compact = false,
 }) {
   const { project, analysis, projectCopy: copy } = useArchitecture();
   const record = project.records.find((r) => r.key === recordKey);
+  if (compact && record?.type === 'component')
+    return (
+      <>
+        <div className="eyebrow">{copy.types.component}</div>
+        <h2 data-record-title={record.key}>{record.title}</h2>
+        <p className="node-purpose">{record.summary}</p>
+        <ProjectNodeSummary recordKey={recordKey} showRecord={showRecord} />
+        <button
+          className="panel-button"
+          data-show-map={record.key}
+          onClick={() => fitNode(record.key)}
+        >
+          {copy.map}
+        </button>
+        <details data-disclosure="connections">
+          <summary>{copy.diagram.connections}</summary>
+          {interactions}
+        </details>
+        <details className="node-record-details" data-disclosure="record">
+          <summary>{copy.diagram.details}</summary>
+          <ProjectInspector
+            recordKey={recordKey}
+            showRecord={showRecord}
+            fitNode={fitNode}
+          />
+        </details>
+      </>
+    );
   if (!record) {
     const history = project.history.filter((h) => h.record.key === recordKey);
     return (

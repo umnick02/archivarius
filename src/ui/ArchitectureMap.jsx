@@ -3,6 +3,7 @@ import {
   forwardRef,
   useEffect,
   useId,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -11,6 +12,7 @@ import { App } from './App.jsx';
 import { ArchitectureContext, format, plural } from './context.jsx';
 import { prepareArchitecture, readResources } from './load.mjs';
 import { colors } from './view.mjs';
+import { projectMapSummary } from '../model/project-view.mjs';
 
 class MapBoundary extends Component {
   state = { error: null };
@@ -82,6 +84,20 @@ export const ArchitectureMap = forwardRef(function ArchitectureMap(
   const current =
     state.source === source && state.assetsBaseUrl === assetsBaseUrl;
   const value = current && state.value;
+  const mapSummaries = useMemo(
+    () =>
+      value?.project
+        ? Object.fromEntries(
+            value.project.records
+              .filter((record) => ['component', 'scope'].includes(record.type))
+              .map((record) => [
+                record.key,
+                projectMapSummary(value.project, value.analysis, record.key),
+              ]),
+          )
+        : null,
+    [value],
+  );
   const error = current && state.error;
   const rootColors =
     value &&
@@ -122,7 +138,7 @@ export const ArchitectureMap = forwardRef(function ArchitectureMap(
       ) : value ? (
         <MapBoundary onError={(error) => callbacks.current.onError?.(error)}>
           <ArchitectureContext.Provider
-            value={{ ...value, rootColors, instanceId }}
+            value={{ ...value, rootColors, instanceId, mapSummaries }}
           >
             <ReactFlowProvider>
               <App

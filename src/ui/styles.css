@@ -1286,7 +1286,6 @@
   min-width: 0;
 }
 .archivarius .workspace-navigation {
-  flex-basis: 100%;
   display: flex;
   gap: 0.25rem;
   flex-wrap: wrap;
@@ -1566,6 +1565,152 @@
 }
 @container card-content (max-height: 6rem) {
   .archivarius .card-copy .node-footer {
+    display: none;
+  }
+}
+
+/* The diagram carries the verdict. Long prose belongs to an explicitly opened
+   record, while criteria, work and missing proof share the card's text budget. */
+.archivarius .project-signals {
+  display: grid;
+  gap: 0.5rem;
+  color: var(--text);
+  font-size: 0.75rem;
+  min-width: 0;
+}
+.archivarius .criteria-meter {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.25rem 0.5rem;
+}
+.archivarius .criteria-meter > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+}
+.archivarius .criteria-meter meter {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 0.375rem;
+  border: none;
+  border-radius: 1rem;
+  background: var(--line);
+  overflow: hidden;
+}
+.archivarius .criteria-meter meter::-webkit-meter-bar {
+  background: var(--line);
+  border: none;
+  border-radius: 1rem;
+}
+.archivarius .criteria-meter meter::-webkit-meter-optimum-value {
+  background: var(--good);
+}
+.archivarius .criteria-meter meter::-moz-meter-bar {
+  background: var(--good);
+}
+.archivarius .signal-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+}
+.archivarius .signal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+  font-size: inherit;
+  color: var(--warn);
+}
+.archivarius .signal-badge[data-signal='failed'] {
+  color: var(--error);
+}
+.archivarius .signal-badge[data-signal='tasks'] {
+  color: var(--text);
+}
+.archivarius .signal-badge[data-signal='confirmed'] {
+  color: var(--good);
+}
+.archivarius .card-copy[data-project-card='true'] > h2 {
+  -webkit-line-clamp: 2;
+}
+.archivarius .node-task-preview {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+.archivarius .card-copy .project-signals {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding-top: 0.625rem;
+  gap: 0.375rem;
+  font-size: clamp(0.6875rem, 3.2cqw, 0.875rem);
+}
+.archivarius .expanded-heading .project-signals {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: 36rem;
+  margin-top: 0.375rem;
+}
+.archivarius .expanded-heading .criteria-meter {
+  min-width: 10rem;
+}
+.archivarius .node-facts {
+  margin: 1.25rem 0;
+}
+.archivarius .node-issues > details {
+  margin: 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.archivarius .node-issues summary {
+  padding: 0.625rem 0;
+  font-size: 0.75rem;
+}
+.archivarius .node-issues summary b {
+  float: right;
+}
+.archivarius .node-issues summary span {
+  margin-right: 0.75rem;
+}
+.archivarius .node-issues .record-link,
+.archivarius .node-work .record-link {
+  display: block;
+}
+.archivarius .node-task {
+  display: flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  width: 100%;
+  text-align: left;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin: 0.375rem 0;
+  font-size: 0.75rem;
+}
+.archivarius .node-task > span:last-child {
+  margin-left: auto;
+}
+.archivarius .node-purpose {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.archivarius .node-record-details {
+  border-top: 1px solid var(--line);
+  padding-top: 0.75rem;
+}
+@container card-content (max-height: 7rem) {
+  .archivarius .card-copy :is(.signal-badges, .node-task-preview) {
+    display: none;
+  }
+}
+@container card-content (max-height: 5rem) {
+  .archivarius .card-copy .project-signals {
     display: none;
   }
 }

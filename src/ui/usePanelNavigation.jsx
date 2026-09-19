@@ -36,7 +36,7 @@ export function usePanelNavigation(root, initial, readScene, restoreScene) {
           ? next.workspace ||
             current.current?.view ||
             current.current?.workspace ||
-            'all'
+            'map'
           : undefined;
       if (current.current) stack.current.push(capture());
       else returnFocus.current = document.activeElement;

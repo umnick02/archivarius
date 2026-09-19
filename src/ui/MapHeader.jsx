@@ -49,10 +49,39 @@ export function MapHeader({
             <div className="brand">
               {copy.brand} <span>/</span> {model.title || copy.title}
             </div>
-            <div className="subtitle">{copy.subtitle}</div>
+            {!project && <div className="subtitle">{copy.subtitle}</div>}
           </div>
         </div>
         <div className="header-right">
+          {project && (
+            <nav
+              className="workspace-navigation"
+              aria-label={projectCopy.button}
+            >
+              <button
+                className="quiet"
+                data-workspace-view="map"
+                aria-current={active === 'map' ? 'page' : undefined}
+                onClick={() => {
+                  clearClick();
+                  closePanel();
+                }}
+              >
+                {projectCopy.navigation.map}
+              </button>
+              <button
+                className="quiet"
+                data-control="project"
+                aria-current={workspace ? 'page' : undefined}
+                onClick={() => {
+                  clearClick();
+                  openPanel({ type: 'project', view: 'overview' });
+                }}
+              >
+                {projectCopy.diagram.browse}
+              </button>
+            </nav>
+          )}
           {project ? (
             <input
               data-control="record-search"
@@ -183,33 +212,6 @@ export function MapHeader({
             </div>
           </details>
         </div>
-        {project && (
-          <nav className="workspace-navigation" aria-label={projectCopy.button}>
-            {[
-              'map',
-              'overview',
-              'rules',
-              'work',
-              'confirmation',
-              'documents',
-            ].map((view) => (
-              <button
-                key={view}
-                className="quiet"
-                data-workspace-view={view}
-                data-control={view === 'overview' ? 'project' : undefined}
-                aria-current={active === view ? 'page' : undefined}
-                onClick={() => {
-                  clearClick();
-                  if (view === 'map') closePanel();
-                  else openPanel({ type: 'project', view });
-                }}
-              >
-                {projectCopy.navigation[view]}
-              </button>
-            ))}
-          </nav>
-        )}
       </header>
       {panel && !workspace && (
         <div className="mobile-view-switch">

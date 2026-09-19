@@ -128,7 +128,9 @@ export function parseAddress(search, options = {}) {
     zoom: Number.isFinite(zoom) && zoom > 0 ? zoom : null,
     panel: panelKinds.includes(panel) ? panel : null,
     record: read('record'),
-    view: ['overview', 'all', ...Object.keys(viewTypes)].includes(read('view'))
+    view: ['map', 'overview', 'all', ...Object.keys(viewTypes)].includes(
+      read('view'),
+    )
       ? read('view')
       : null,
     query: read('query'),

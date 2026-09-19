@@ -1,4 +1,72 @@
-import { applicableRequirements, recordReferences } from './records.mjs';
+import {
+  applicableRequirements,
+  descendants,
+  index,
+  recordReferences,
+} from './records.mjs';
+
+// Compact map facts come from the same verdict as the inspector. Missing proof
+// is not a failed check, and a task without proof is not necessarily unstarted.
+export function projectMapSummary(project, analysis, key) {
+  const records = index(project);
+  const item = analysis.completion[key];
+  const targets = descendants(records, key);
+  if (records.get(key).type === 'scope')
+    for (const entry of project.records)
+      if (targets.has(entry.scope)) targets.add(entry.key);
+  let record = records.get(key);
+  while (record) {
+    targets.add(record.key);
+    record = records.get(record.parent || record.scope);
+  }
+  const criteria = new Set(item.progress.criteria);
+  const tasks = project.records.filter(
+    (r) =>
+      r.type === 'task' &&
+      !analysis.completion[r.key].implemented &&
+      r.affects.some((target) => targets.has(target)),
+  );
+  const categories = {
+    failed: ['CHECK_FAILED'],
+    review: [
+      'BASIS_CHANGED',
+      'BASIS_DEFINITIONS_MISMATCH',
+      'DEPENDENCY_CHANGED',
+      'REALIZATION_CHANGED',
+      'CLAIM_AGEING',
+    ],
+    questions: ['UNRESOLVED_SOURCE'],
+    evidence: ['EVIDENCE_MISSING', 'EVIDENCE_UNAVAILABLE'],
+    checks: ['CHECK_MISSING', 'SCENARIO_UNCHECKED', 'INTEGRATION_MISSING'],
+    bindings: ['REALIZATION_UNAVAILABLE'],
+    definition: ['BASIS_MISSING'],
+    criteria: ['CRITERIA_MISSING', 'REQUIREMENT_UNMAPPED'],
+    prerequisites: ['PREREQUISITE_UNCONFIRMED'],
+    unused: ['INTERFACE_UNUSED'],
+    architecture: ['ARCHITECTURE_MISSING'],
+  };
+  const issues = Object.entries(categories).flatMap(([kind, codes]) => {
+    const keys = [
+      ...new Set(
+        item.reasons
+          .filter((r) => codes.includes(r.code))
+          .map((r) =>
+            kind === 'evidence' && records.get(r.key)?.type === 'result'
+              ? records.get(r.key).check
+              : r.key,
+          ),
+      ),
+    ];
+    return keys.length ? [{ kind, keys }] : [];
+  });
+  return {
+    state: item.state,
+    total: criteria.size,
+    confirmed: item.progress.confirmedCriteria.length,
+    tasks,
+    issues,
+  };
+}
 
 export const primaryFields = {
   document: ['stage'],

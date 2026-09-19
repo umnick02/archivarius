@@ -53,6 +53,7 @@ export const files = {
   ],
   inspector: [
     { path: 'src/ui/ProjectInspector.jsx' },
+    { path: 'src/ui/ImplementationSummary.jsx' },
     { path: 'src/ui/Inspector.jsx' },
     { path: 'src/ui/NodePanel.jsx' },
     { path: 'src/ui/RelationPanel.jsx' },

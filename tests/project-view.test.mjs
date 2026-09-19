@@ -4,9 +4,15 @@ import assert from 'node:assert/strict';
 import { analyzeProject } from '../src/model/project-analysis.mjs';
 import {
   confirmationGroups,
+  projectMapSummary,
   searchRecord,
 } from '../src/model/project-view.mjs';
-import { example as project, get as record } from './project-fixture.mjs';
+import {
+  example as project,
+  get as record,
+  ready,
+  receipt,
+} from './project-fixture.mjs';
 
 const copy = JSON.parse(
   await fs.readFile(
@@ -15,6 +21,47 @@ const copy = JSON.parse(
   ),
 );
 const get = (key) => record(project, key);
+
+test('map rolls up assigned work once and does not pull a sibling task through shared criteria', () => {
+  const model = structuredClone(project);
+  record(model, 'implement-export').affects = ['writer', 'export'];
+  const analysis = analyzeProject(model);
+  const tasks = (key) =>
+    projectMapSummary(model, analysis, key).tasks.map((r) => r.key);
+  assert.deepEqual(tasks('export'), ['implement-export']);
+  assert.deepEqual(tasks('writer'), ['implement-export']);
+  assert.deepEqual(tasks('admission'), ['implement-export']);
+  assert.deepEqual(tasks('screen'), []);
+  assert.deepEqual(tasks(model.root), ['implement-export']);
+});
+
+test('map evidence counts checks once, distinguishes missing proof from failure and reflects verification', () => {
+  const model = ready();
+  const run = receipt(model);
+  model.records.push(run);
+  let analysis = analyzeProject(model);
+  let summary = projectMapSummary(model, analysis, 'writer');
+  assert.equal(summary.confirmed, 0);
+  assert.equal(summary.total, 2);
+  assert.equal(
+    summary.issues.some((issue) => issue.kind === 'failed'),
+    false,
+  );
+  assert.deepEqual(
+    summary.issues.find((issue) => issue.kind === 'evidence').keys,
+    ['export-check'],
+  );
+  analysis = analyzeProject(model, { verifiedResults: ['run'] });
+  summary = projectMapSummary(model, analysis, 'writer');
+  assert.equal(summary.confirmed, 2);
+  assert.equal(summary.state, 'confirmed');
+  assert.deepEqual(summary.tasks, []);
+  assert.deepEqual(summary.issues, []);
+  run.outcome = 'fail';
+  summary = projectMapSummary(model, analyzeProject(model), 'writer');
+  assert.equal(summary.issues[0].kind, 'failed');
+  assert.deepEqual(summary.issues[0].keys, ['run']);
+});
 
 test('search finds parameter values, methods, nested content and reference titles', () => {
   assert.equal(

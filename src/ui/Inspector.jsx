@@ -94,6 +94,7 @@ export function Inspector({
         <ProjectInspector
           key={panel.entryId ?? panel.key}
           recordKey={panel.key}
+          compact={panel.type === 'node'}
           anchor={panel.scene ? undefined : panel.anchor}
           showRecord={showRecord}
           fitNode={showOnMap}

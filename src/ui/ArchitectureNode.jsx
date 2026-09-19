@@ -4,9 +4,11 @@ import { nodeAppearance } from '../model/appearance.mjs';
 import { format, useArchitecture } from './context.jsx';
 import { cardMetrics, shapeRadii } from './view.mjs';
 import { ImplementationMark } from './ImplementationMark.jsx';
+import { ProjectSignals } from './ImplementationSummary.jsx';
 
 export function ArchitectureNode({ data }) {
-  const { copy, rootColors, completion } = useArchitecture();
+  const { copy, rootColors, completion, mapSummaries, projectCopy } =
+    useArchitecture();
   const { zoom } = useViewport();
   const {
     item,
@@ -29,6 +31,7 @@ export function ArchitectureNode({ data }) {
   const w = box.width * zoom,
     h = box.height * zoom;
   const state = completion.nodes[item.key].state;
+  const summary = mapSummaries?.[item.key];
   // What a zone or a kind looks like is decided once, in the model's appearance
   // table the generated diagram reads too; this surface adds only the pixels.
   const look = nodeAppearance(item);
@@ -82,6 +85,17 @@ export function ArchitectureNode({ data }) {
           item.title +
           ' · ' +
           confirmation +
+          (summary
+            ? ' · ' +
+              format(projectCopy.diagram.progress, summary) +
+              ' · ' +
+              summary.tasks.length +
+              ' ' +
+              projectCopy.diagram.tasks +
+              (summary.issues[0]
+                ? ' · ' + projectCopy.diagram.issues[summary.issues[0].kind]
+                : '')
+            : '') +
           ' — ' +
           (item.children ? copy.expandAction : copy.explainAction)
         }
@@ -101,15 +115,22 @@ export function ArchitectureNode({ data }) {
             }}
           >
             <h2 title={item.title}>{item.title}</h2>
-            {h > 430 && w > 650 && <p>{item.summary}</p>}
+            {summary && w > 450 && h > 400 ? (
+              <ProjectSignals summary={summary} compact />
+            ) : (
+              !summary && h > 430 && w > 650 && <p>{item.summary}</p>
+            )}
           </div>
         ) : (
-          <div className="card-copy">
+          <div className="card-copy" data-project-card={String(!!summary)}>
             {w > 230 && h > 210 && (
               <div className="eyebrow">{copy.nodeKinds[item.kind]}</div>
             )}
             <h2 title={item.title}>{item.title}</h2>
-            {w > 180 && h > 190 && (
+            {summary && w > 180 && h > 125 && (
+              <ProjectSignals summary={summary} compact />
+            )}
+            {!summary && w > 180 && h > 190 && (
               <p
                 className="node-summary"
                 style={{ WebkitLineClamp: h > 210 ? 3 : 2 }}
@@ -117,7 +138,7 @@ export function ArchitectureNode({ data }) {
                 {item.summary}
               </p>
             )}
-            {w > 460 && h > 330 && !item.children && (
+            {!summary && w > 460 && h > 330 && !item.children && (
               <div className="card-interfaces">
                 {interfaces.incoming.length > 0 && (
                   <p>
@@ -142,7 +163,7 @@ export function ArchitectureNode({ data }) {
                 </p>
               </div>
             )}
-            {w > 180 && h > 115 && (
+            {w > 180 && h > (summary ? 180 : 115) && (
               <div className="node-footer">
                 {item.children ? (
                   format(copy.inside, { count: item.children.length })

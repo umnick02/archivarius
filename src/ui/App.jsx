@@ -112,7 +112,10 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     close: closePanel,
     reset: resetPanel,
   } = navigation;
-  const workspace = !!project && ['project', 'record'].includes(panel?.type);
+  const workspace =
+    !!project &&
+    (panel?.type === 'project' ||
+      (panel?.type === 'record' && panel.workspace !== 'map'));
   useEffect(() => setMobileMap(false), [panel?.entryId]);
   useEffect(() => {
     if (mobileMap) pane.current?.focus({ preventScroll: true });
@@ -198,13 +201,7 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     clearClick();
     const ticket = ++fitting.current;
     atHome.current = true;
-    resetPanel(
-      project &&
-        (!graph.nodes.size ||
-          (!initialized.current && root.current.clientWidth <= 780))
-        ? { type: 'project' }
-        : null,
-    );
+    resetPanel(project && !graph.nodes.size ? { type: 'project' } : null);
     setSelected(null);
     setContextEnabled(true);
     explicitFocus.current = null;
@@ -257,13 +254,17 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         anchor,
         type: 'record',
         key,
+        ...(project?.records.find((record) => record.key === key)?.type ===
+        'document'
+          ? { workspace: 'documents' }
+          : {}),
       });
       if (graph.nodes.has(key)) {
         setSelected(key);
         setContextEnabled(true);
       }
     },
-    [clearClick, openPanel, graph],
+    [clearClick, openPanel, graph, project],
   );
   const showOnMap = useCallback(
     async (key) => {

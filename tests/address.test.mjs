@@ -305,6 +305,14 @@ test('project workspaces restore the search, record filter and document section'
     anchor: 'checks',
   };
   assert.deepEqual(parseAddress(writeAddress('', view)), view);
+  const besideMap = {
+    ...emptyView,
+    at: 'writer',
+    panel: 'record',
+    record: 'implement-export',
+    view: 'map',
+  };
+  assert.deepEqual(parseAddress(writeAddress('', besideMap)), besideMap);
   assert.equal(
     parseAddress('map.view=unknown&map.recordType=unknown').view,
     null,
