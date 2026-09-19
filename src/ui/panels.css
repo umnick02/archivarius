@@ -1,11 +1,3 @@
-/* Three surfaces the map grew: the filters in its header, the refusal it prints
-   when it cannot show what it was asked for, and what the selected part exchanges
-   with. All three float over the drawing, so all three carry their own edge — a
-   forced palette drops every shadow — and all three are measured in text rather
-   than pixels, so a reader who doubles their text size gets bigger words instead
-   of a clipped box (WCAG 1.4.4, 1.4.10). Colours come from the one palette in
-   `styles.css`; nothing here invents a tone. */
-
 .archivarius .map-filters {
   display: flex;
   align-items: center;
@@ -98,55 +90,6 @@
   line-height: 1.55;
   color: var(--text);
 }
-
-/* What the selected part exchanges with, at the top of the pane where the drawing
-   is emptiest. It scrolls rather than growing without limit, and it keeps a
-   padding of its own so the focus ring of a button inside it is never clipped by
-   that scroll (WCAG 2.4.11). */
-.archivarius .map-neighbours {
-  position: absolute;
-  z-index: 32;
-  bottom: 5rem;
-  left: 1rem;
-  width: max-content;
-  max-width: min(30rem, calc(100% - 14rem));
-  max-height: 45%;
-  overflow: auto;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  padding: 0.625rem 0.75rem;
-  background: var(--raised-veil);
-  border: 1px solid var(--line);
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 0.5625rem var(--shadow-soft);
-}
-.archivarius .neighbour-side {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  min-width: 0;
-}
-.archivarius .neighbour-label {
-  font-size: 0.6875rem;
-  color: var(--muted);
-}
-.archivarius .map-neighbours button {
-  display: flex;
-  align-items: baseline;
-  gap: 0.4375rem;
-  text-align: left;
-  margin: 0.125rem 0;
-  max-width: 100%;
-}
-.archivarius .neighbour-kind {
-  font-size: 0.625rem;
-  color: var(--muted);
-  flex-shrink: 0;
-}
-
-/* One column: the pane is narrow, so the two of these that float in it stop being
-   centred cards and become full-width strips the reader scrolls. */
 @container (max-width: 780px) {
   .archivarius .map-filters select {
     max-width: 7.5rem;
@@ -155,13 +98,6 @@
     top: 0.5rem;
     width: calc(100% - 1rem);
     padding: 0.75rem 0.875rem;
-  }
-  .archivarius .map-neighbours {
-    top: auto;
-    left: 0.5rem;
-    width: calc(100% - 1rem);
-    max-width: calc(100% - 13rem);
-    max-height: 35%;
   }
   .archivarius .map-empty {
     width: calc(100% - 1rem);
@@ -172,20 +108,14 @@
    restates its own edge in the reader's colours rather than becoming text lying on
    the drawing (WCAG 1.4.8). */
 @media (forced-colors: active) {
-  .archivarius :is(.map-failure, .map-empty, .map-neighbours) {
+  .archivarius :is(.map-failure, .map-empty) {
     background: Canvas;
     color: CanvasText;
     border-color: CanvasText;
     border-width: 1px;
     border-style: solid;
   }
-  .archivarius
-    :is(
-      .map-failure dt,
-      .map-failure .failure-issues,
-      .neighbour-label,
-      .neighbour-kind
-    ) {
+  .archivarius :is(.map-failure dt, .map-failure .failure-issues) {
     color: CanvasText;
   }
 }
@@ -261,11 +191,5 @@
   .archivarius .claim-standing[data-ageing='true'] dd {
     color: CanvasText;
     text-decoration: underline;
-  }
-}
-
-@container (max-width: 520px) {
-  .archivarius .map-neighbours {
-    max-width: calc(100% - 1rem);
   }
 }

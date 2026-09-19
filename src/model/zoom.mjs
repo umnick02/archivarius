@@ -1,15 +1,14 @@
 /**
  * Named levels of abstraction, the thresholds that open and close a container,
- * and the positions a reader can return to. Zoom is a decision about the model,
+ * and the hierarchy destinations a reader can move to. Zoom is a decision about the model,
  * so it is decided here and only drawn in `ui/`: the map surface asks this module
  * which containers are open, what the level it stands in is called, and where
- * "back" leads.
+ * zoom leads.
  *
  * @typedef {{ key: string, parent: string | null, x: number, y: number,
  *   width: number, height: number, depth: number }} Box
  * @typedef {{ nodes: Record<string, Box> }} Layout
  * @typedef {{ width: number, height: number }} Size
- * @typedef {{ x: number, y: number, zoom: number }} Position
  * @typedef {{ id: string, depth: number, container: string | null,
  *   kinds: string[] }} Level
  */
@@ -159,37 +158,4 @@ export function levelName(copy, level) {
   return level.id === 'system'
     ? copy.wholeSystem
     : copy.nodeKinds[level.id] || copy.wholeSystem;
-}
-
-const samePosition = (a, b) =>
-  Math.abs(a.x - b.x) < 1 &&
-  Math.abs(a.y - b.y) < 1 &&
-  Math.abs(a.zoom / b.zoom - 1) < 0.005;
-
-/**
- * A settled position added to the return path. Two positions a reader cannot
- * tell apart are one position, so drift never fills the stack with places that
- * are already here, and the stack is bounded: an old enough position is not a
- * place anybody remembers.
- *
- * @param {Position[]} history
- * @param {Position} position
- * @param {{ limit?: number }} [options]
- * @returns {Position[]}
- */
-export function pushPosition(history, position, { limit = 8 } = {}) {
-  const last = history.at(-1);
-  if (last && samePosition(last, position)) return history;
-  return [...history, position].slice(-limit);
-}
-
-/**
- * The position before the one the map is at, or nothing when there is no way
- * back yet.
- *
- * @param {Position[]} history
- * @returns {Position | null}
- */
-export function previousPosition(history) {
-  return history.length > 1 ? history[history.length - 2] : null;
 }

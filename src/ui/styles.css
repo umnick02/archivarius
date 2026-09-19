@@ -562,16 +562,6 @@
 .archivarius .react-flow__edgelabel-renderer {
   z-index: 30;
 }
-.archivarius .react-flow__minimap {
-  width: 10.625rem;
-  height: 6.5rem;
-  border: 1px solid var(--line);
-  border-radius: 0.625rem;
-  overflow: hidden;
-  bottom: 1.5625rem;
-  left: 0.5rem;
-  box-shadow: none;
-}
 .archivarius .react-flow__attribution {
   background: transparent;
   font-size: 0.5625rem;
@@ -581,90 +571,6 @@
 .archivarius .marker-definitions {
   position: absolute;
   pointer-events: none;
-}
-.archivarius [data-control='breadcrumbs'] {
-  position: absolute;
-  top: calc(var(--header-height) + 1.125rem);
-  left: 1.5rem;
-  right: 1.5rem;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5625rem;
-  width: fit-content;
-  max-width: calc(100% - 3rem);
-  padding: 0.5rem 0.625rem;
-  background: var(--raised-veil);
-  border: 1px solid var(--line);
-  border-radius: 0.5rem;
-  font-size: 0.75rem;
-  z-index: 30;
-}
-.archivarius [data-control='breadcrumbs'] button {
-  border: 0;
-  background: none;
-  padding: 0;
-}
-.archivarius [data-control='breadcrumbs'] button:hover {
-  color: var(--link-hover);
-  text-decoration: underline;
-}
-.archivarius [data-control='breadcrumbs'] span {
-  color: var(--faint);
-}
-.archivarius .hint {
-  position: absolute;
-  bottom: 1.9375rem;
-  left: 13.4375rem;
-  font-size: 0.6875rem;
-  line-height: 1.85;
-  color: var(--muted);
-  background: var(--surface-veil);
-  pointer-events: none;
-  padding: 3px 0.4375rem;
-  border-radius: 0.3125rem;
-}
-.archivarius .hint strong {
-  font-weight: 550;
-  color: var(--text);
-}
-.archivarius .map-controls {
-  position: absolute;
-  right: 1.5rem;
-  bottom: 1.625rem;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  height: 2.875rem;
-  padding: 4px;
-  border: 1px solid var(--line);
-  background: var(--raised);
-  border-radius: 0.5625rem;
-  z-index: 30;
-  box-shadow: 0 2px 0.5625rem var(--shadow-soft);
-}
-.archivarius .map-controls button {
-  width: 2.125rem;
-  height: 2.125rem;
-  border: 0;
-  background: none;
-  border-radius: 0.3125rem;
-  font-size: 1.3125rem;
-}
-.archivarius .map-controls button:hover {
-  background: var(--soft-hover);
-}
-.archivarius .map-controls span {
-  min-width: 3rem;
-  text-align: center;
-  font-size: 0.75rem;
-  color: var(--muted);
-}
-.archivarius .map-controls i {
-  height: 1.25rem;
-  width: 1px;
-  background: var(--line-soft);
-  margin: 0 3px;
 }
 .archivarius [data-control='inspector'] {
   position: absolute;
@@ -822,43 +728,9 @@
   .archivarius .quiet {
     padding: 0.4375rem 0.625rem;
   }
-  .archivarius [data-control='breadcrumbs'] {
-    top: calc(var(--header-height) + 0.8125rem);
-    left: 0.75rem;
-    right: 0.75rem;
-    max-width: calc(100% - 1.5rem);
-    font-size: 0.625rem;
-    gap: 0.375rem;
-  }
-  .archivarius .hint {
-    display: none;
-  }
-  .archivarius .react-flow__minimap {
-    width: 5.75rem;
-    height: 4.25rem;
-    left: -4px;
-    bottom: 1.25rem;
-  }
   .archivarius .react-flow__attribution {
     margin-left: 0.75rem;
     font-size: 0.5rem;
-  }
-  .archivarius .map-controls {
-    right: 0.75rem;
-    bottom: 1.125rem;
-    gap: 0;
-    height: 2.625rem;
-  }
-  .archivarius .map-controls button {
-    width: 1.75rem;
-    height: 1.875rem;
-  }
-  .archivarius .map-controls span {
-    min-width: 2.6875rem;
-    font-size: 0.625rem;
-  }
-  .archivarius .map-controls i {
-    margin: 0 2px;
   }
   .archivarius [data-control='inspector'] {
     top: calc(var(--header-height) + 3.25rem);
@@ -1026,44 +898,12 @@
 .archivarius .node-card[data-muted='true'] .expanded-heading {
   opacity: 0.4;
 }
-.archivarius .map-context {
-  position: absolute;
-  top: calc(var(--header-height) + 3.625rem);
-  left: 1.5rem;
-  z-index: 30;
-  max-width: 18.125rem;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.5rem;
-}
-.archivarius .external-connections {
-  border: 1px solid var(--line);
-  background: var(--panel);
-  border-radius: 0.5rem;
-  padding: 0.625rem;
-  font-size: 0.75rem;
-  max-height: 14.375rem;
-  overflow: auto;
-}
-.archivarius .external-connections .record-link {
-  display: block;
-}
 .archivarius .mobile-view-switch {
   display: none;
 }
 @container (min-width: 781px) {
   .archivarius [data-panel-open='true'] .map-pane {
     right: var(--inspector-width);
-  }
-  .archivarius [data-panel-open='true'] .map-controls {
-    right: calc(var(--inspector-width) + 1rem);
-  }
-  .archivarius [data-panel-open='true'] [data-control='breadcrumbs'] {
-    max-width: calc(100% - var(--inspector-width) - 3rem);
-  }
-  .archivarius [data-panel-open='true'] .hint {
-    right: calc(var(--inspector-width) + 1rem);
   }
 }
 @container (max-width: 780px) {
@@ -1078,21 +918,10 @@
   .archivarius .mobile-view-switch [aria-pressed='true'] {
     background: var(--soft-hover);
   }
-  .archivarius [data-panel-open='true'] [data-control='breadcrumbs'] {
-    top: calc(var(--header-height) + 3.25rem);
+  .archivarius [data-panel-open='true'] .map-pane {
+    top: calc(var(--header-height) + 3rem);
   }
-  .archivarius [data-panel-open='true'] .map-context {
-    top: calc(var(--header-height) + 5.75rem);
-  }
-  .archivarius .map-context {
-    left: 0.75rem;
-    top: calc(var(--header-height) + 3.25rem);
-    max-width: calc(100% - 1.5rem);
-  }
-  .archivarius [data-mobile-reading='true'] .map-pane,
-  .archivarius [data-mobile-reading='true'] [data-control='breadcrumbs'],
-  .archivarius [data-mobile-reading='true'] .map-context,
-  .archivarius [data-mobile-reading='true'] .map-controls {
+  .archivarius [data-mobile-reading='true'] .map-pane {
     visibility: hidden;
   }
   .archivarius .inspector-navigation {
@@ -1149,18 +978,13 @@
 @media (forced-colors: active) {
   .archivarius
     :is(
-      [data-control='breadcrumbs'],
       [data-control='inspector'],
       .inspector-navigation,
-      .map-controls,
-      .external-connections,
       .edge-label,
-      .hint,
       .note,
       .implementation,
       .record-values > div,
-      .panel-button,
-      .map-overview
+      .panel-button
     ) {
     background: Canvas;
     color: CanvasText;
@@ -1174,13 +998,11 @@
       .end,
       .interface-count,
       .faint,
-      .map-controls span,
       .record-count
     ) {
     color: CanvasText;
   }
-  .archivarius .record-link,
-  .archivarius [data-control='breadcrumbs'] button {
+  .archivarius .record-link {
     color: LinkText;
   }
   /* The zone tone, the implementation stripe and the muted state are all colour,
@@ -1263,10 +1085,7 @@
 }
 
 /* Project work uses the whole reading surface; the live map keeps its camera. */
-.archivarius .map-chrome {
-  display: contents;
-}
-.archivarius [data-workspace='true'] :is(.map-pane, .map-chrome) {
+.archivarius [data-workspace='true'] .map-pane {
   visibility: hidden;
   pointer-events: none;
 }

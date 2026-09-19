@@ -261,7 +261,6 @@ try {
       return {
         inspector: of('[data-control="inspector"]'),
         brand: of('.brand'),
-        breadcrumbs: of('[data-control="breadcrumbs"]'),
         control: of('[data-control="contracts"]'),
         header: box('header'),
         pane: box('.map-pane'),
@@ -286,14 +285,14 @@ try {
   });
   console.log(
     '  text zoom 200%: ' +
-      ['inspector', 'brand', 'breadcrumbs', 'control']
+      ['inspector', 'brand', 'control']
         .map(
           (name) =>
             name + ' ' + zoomed.before[name] + '→' + zoomed.after[name] + 'px',
         )
         .join(', '),
   );
-  for (const name of ['inspector', 'brand', 'breadcrumbs', 'control'])
+  for (const name of ['inspector', 'brand', 'control'])
     assert(
       zoomed.after[name] >= zoomed.before[name] * 1.8,
       'text zoom: ' +
@@ -391,7 +390,6 @@ try {
       header: of(' header'),
       panel: of(' [data-control="inspector"]'),
       card: of(' [data-node]'),
-      breadcrumbs: of(' [data-control="breadcrumbs"]'),
     };
   });
   const system = new Set(Object.values(forced.colors));
@@ -421,7 +419,7 @@ try {
   );
   // A forced palette drops every shadow, and the panel and the overlays float over
   // the map: without a border of their own they become text lying on the drawing.
-  for (const name of ['panel', 'breadcrumbs'])
+  for (const name of ['panel'])
     assert(
       forced[name] &&
         forced[name].borderWidth >= 1 &&
@@ -499,7 +497,7 @@ try {
     cards: document.querySelectorAll('#first [data-node]').length,
     inside: [
       ...document.querySelectorAll(
-        '#first :is(header, [data-control="breadcrumbs"], .map-controls, [data-control="inspector"])',
+        '#first :is(header, [data-control="inspector"])',
       ),
     ]
       .filter((element) =>

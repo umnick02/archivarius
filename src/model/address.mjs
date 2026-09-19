@@ -50,7 +50,7 @@ export const panelKinds = Object.freeze([
  * were open, so a link restores the same reading its sender had, and a name this
  * map has no surface for is no surface at all.
  */
-export const surfaceKinds = Object.freeze(['neighbours', 'options']);
+export const surfaceKinds = Object.freeze(['options']);
 
 /**
  * What each filter accepts, read off the contract's own tables so a value is
@@ -370,39 +370,4 @@ export function filterView(model, graph, filters) {
     for (const key of [...parts]) if (!touched.has(key)) parts.delete(key);
   }
   return { filtered: true, parts, relations };
-}
-
-/**
- * What a selected part relates to, in the filtered view: the parts it receives
- * from and the parts it sends to, each entry naming the kind of exchange and the
- * interactions it stands for so the reader can follow one. Two exchanges of the
- * same kind with the same part are one neighbour carrying two interactions,
- * because that is one thing to follow, not two.
- * @param {{ incoming?: object[], outgoing?: object[] }} interfaces from `ArchitectureGraph.describe`
- * @param {typeof emptyView.filters} filters
- */
-export function neighbourhood(interfaces, filters) {
-  const side = (list, end) => {
-    const groups = new Map();
-    for (const relation of list ?? []) {
-      if (!keepsRelation(filters, relation)) continue;
-      const part = relation[end];
-      const id = part + '\u0000' + relation.kind;
-      const entry = groups.get(id) ?? {
-        part,
-        kind: relation.kind,
-        relations: [],
-      };
-      entry.relations.push(relation.key);
-      groups.set(id, entry);
-    }
-    return [...groups.values()].sort(
-      (one, other) =>
-        one.part.localeCompare(other.part) ||
-        one.kind.localeCompare(other.kind),
-    );
-  };
-  const incoming = side(interfaces?.incoming, 'from');
-  const outgoing = side(interfaces?.outgoing, 'to');
-  return { incoming, outgoing, total: incoming.length + outgoing.length };
 }

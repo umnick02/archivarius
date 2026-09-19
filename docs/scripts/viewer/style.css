@@ -12,21 +12,6 @@ body {
   background: #f5f6f2;
 }
 
-header {
-  display: flex;
-  align-items: baseline;
-  gap: 16px;
-  padding: 12px 20px;
-  font-weight: 600;
-  border-bottom: 1px solid #dde3d7;
-}
-
-header span {
-  color: #657060;
-  font-size: 14px;
-  font-weight: 400;
-}
-
 #documentation {
   flex: 1;
   min-height: 0;

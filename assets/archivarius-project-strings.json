@@ -44,7 +44,6 @@
   "coverageLink": "Explore confirmation gaps",
   "workNote": "Tasks awaiting confirmation. Open a task to see its dependencies and checks.",
   "emptyWork": "No unconfirmed tasks in this snapshot. This does not confirm complete implementation.",
-  "external": "Connections outside the selected block",
   "clearFocus": "Show all connections",
   "views": {
     "overview": "Project overview",

@@ -28,6 +28,15 @@ const evidenceDirectory = new URL(
 const click = clicker(b);
 const until = waiter(b);
 const settled = settler(b);
+const zoomKey = async (key) => {
+  await b.evaluate(() => document.querySelector('#first .map-pane').focus());
+  for (const type of ['keyDown', 'keyUp'])
+    await b.call('Input.dispatchKeyEvent', {
+      type,
+      key,
+      code: key === '+' ? 'Equal' : 'Minus',
+    });
+};
 try {
   await b.call('Emulation.setDeviceMetricsOverride', {
     width: 1440,
@@ -142,7 +151,7 @@ try {
         JSON.stringify({ width, font, overview, detail }),
     );
     for (let step = 0; step < 3; step++) await wheel(-100);
-    await click('#first [data-control=plus]');
+    await zoomKey('+');
     await settled(() => window.consumer.first.snapshot().viewport);
     assert.deepEqual(
       await b.evaluate(() => window.consumer.first.snapshot().viewport),
@@ -156,7 +165,7 @@ try {
       'one outward gesture returns to the overview',
     );
     await wheel(100);
-    await click('#first [data-control=minus]');
+    await zoomKey('-');
     await settled(() => window.consumer.first.snapshot().viewport);
     assert.deepEqual(
       await b.evaluate(() => window.consumer.first.snapshot().viewport),
@@ -685,11 +694,7 @@ try {
       () => document.querySelectorAll('#first [data-muted=true]').length > 0,
     ),
   );
-  assert(
-    await b.evaluate(
-      () => !!document.querySelector('#first [data-external-node=screen]'),
-    ),
-  );
+  await click('#first [data-control=map-options] > summary');
   await click('#first [data-control=clear-focus]');
   const cleared = await b.evaluate(() => window.consumer.first.snapshot());
   assert.deepEqual(focused.nodeGeometry, cleared.nodeGeometry);
@@ -1313,24 +1318,15 @@ try {
   );
   await click('#first [data-node=screen]');
   await until(
-    () => !!document.querySelector('#first [data-control=neighbours]'),
+    () => !!document.querySelector('#first [data-node-facts=screen]'),
   );
-  await click('#first [data-control=neighbours] > summary');
-  assert(
-    await b.evaluate(() => {
-      const neighbours = document
-        .querySelector('#first [data-control=neighbours]')
-        .getBoundingClientRect();
-      const overview = document
-        .querySelector('#first [data-control=overview]')
-        .getBoundingClientRect();
-      return (
-        neighbours.right <= overview.left ||
-        neighbours.left >= overview.right ||
-        neighbours.bottom <= overview.top ||
-        neighbours.top >= overview.bottom
-      );
-    }),
+  assert.equal(
+    await b.evaluate(() =>
+      document.querySelector(
+        '#first :is(.map-controls, .map-overview, .map-context, .map-neighbours, [data-control=breadcrumbs])',
+      ),
+    ),
+    null,
   );
   await click('#first [data-control=project]');
   await click('#first [data-project-view=work]');

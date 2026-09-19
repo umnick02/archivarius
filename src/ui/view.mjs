@@ -82,37 +82,6 @@ export function expandedAt(layout, zoom, size, previous = new Set()) {
   return expansionAt({ layout, zoom, size, previous });
 }
 
-// The overview is drawn from the layout rather than from what is mounted, so it
-// keeps showing the whole snapshot while the detail mounts a screenful of it.
-// `box` is the little view's own pixels; the window is the part of the snapshot
-// the detail is currently showing, in those same pixels.
-export function overviewFrame(bounds, viewport, size, box) {
-  const scale = Math.min(box.width / bounds.width, box.height / bounds.height);
-  const offsetX = (box.width - bounds.width * scale) / 2 - bounds.x * scale;
-  const offsetY = (box.height - bounds.height * scale) / 2 - bounds.y * scale;
-  return {
-    scale,
-    offsetX,
-    offsetY,
-    window: {
-      x: offsetX + (-viewport.x / viewport.zoom) * scale,
-      y: offsetY + (-viewport.y / viewport.zoom) * scale,
-      width: (size.width / viewport.zoom) * scale,
-      height: (size.height / viewport.zoom) * scale,
-    },
-  };
-}
-
-// The inverse: a point a reader touched inside the overview becomes the position
-// the detail moves to, centred on what they pointed at.
-export function overviewViewport(frame, point, size, zoom) {
-  return {
-    x: size.width / 2 - ((point.x - frame.offsetX) / frame.scale) * zoom,
-    y: size.height / 2 - ((point.y - frame.offsetY) / frame.scale) * zoom,
-    zoom,
-  };
-}
-
 export function isVisible(key, graph, expanded) {
   let parent = graph.parents.get(key);
   while (parent !== null) {

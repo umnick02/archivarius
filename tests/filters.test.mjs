@@ -1,7 +1,4 @@
-// Filter, then relate. A filter removes what is out of scope from the view
-// instead of dimming it, and a selected part's neighbours are the relations a
-// reader can follow next. Both are decisions about the snapshot, so both are
-// measured here without a browser.
+// Filters project the snapshot before the map draws it.
 import fs from 'node:fs/promises';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -12,7 +9,6 @@ import {
   filterView,
   keepsPart,
   keepsRelation,
-  neighbourhood,
 } from '../src/model/address.mjs';
 import { relationKinds, zones } from '../src/model/projection.mjs';
 import { kindOrder } from '../src/model/zoom.mjs';
@@ -26,7 +22,6 @@ const model = JSON.parse(
 const graph = ArchitectureGraph.validate(model);
 const keys = (list) => [...list].sort();
 const filters = (over = {}) => ({ ...emptyView.filters, ...over });
-const describe = (key) => ArchitectureGraph.describe(model, graph, key);
 
 // The vocabularies are read off the contract's own tables, never listed twice.
 test('a filter offers exactly the values the contract states', () => {
@@ -105,75 +100,4 @@ test('the filter never mutates the model it reads', () => {
   const before = JSON.stringify(model);
   filterView(model, graph, filters({ zone: 'pure', relation: 'data' }));
   assert.equal(JSON.stringify(model), before);
-});
-
-// Relate: what a selected part exchanges with, in both directions, so a relation
-// can be followed without reading every box on the map.
-test('the neighbours of a part are its exchanges, by direction and end', () => {
-  const around = neighbourhood(describe('gateway'), filters());
-  assert.deepEqual(
-    around.incoming.map((entry) => [entry.part, entry.kind]),
-    [
-      ['portal', 'command'],
-      ['ranking', 'data'],
-    ],
-  );
-  assert.deepEqual(
-    around.outgoing.map((entry) => [entry.part, entry.kind]),
-    [
-      ['portal', 'data'],
-      ['query', 'data'],
-      ['ranking', 'data'],
-    ],
-  );
-  // Every entry names the interactions it stands for, so the reader can open one.
-  assert.deepEqual(
-    around.outgoing.find((entry) => entry.part === 'query').relations,
-    ['query-input'],
-  );
-  assert.equal(around.total, 5);
-});
-
-test('a part with no exchange in the filtered view has no neighbours', () => {
-  const around = neighbourhood(
-    describe('gateway'),
-    filters({ relation: 'state' }),
-  );
-  assert.deepEqual(around.incoming, []);
-  assert.deepEqual(around.outgoing, []);
-  assert.equal(around.total, 0);
-  // The filter decides which relations count, so the same part relates
-  // differently in a command view.
-  const commands = neighbourhood(
-    describe('gateway'),
-    filters({ relation: 'command' }),
-  );
-  assert.deepEqual(
-    commands.incoming.map((entry) => entry.part),
-    ['portal'],
-  );
-  assert.deepEqual(commands.outgoing, []);
-});
-
-test('two exchanges with the same end and kind are one neighbour', () => {
-  const around = neighbourhood(
-    {
-      incoming: [],
-      outgoing: [
-        { key: 'first', from: 'a', to: 'b', kind: 'data' },
-        { key: 'second', from: 'a', to: 'b', kind: 'data' },
-        { key: 'third', from: 'a', to: 'b', kind: 'command' },
-      ],
-      internal: [],
-    },
-    filters(),
-  );
-  assert.deepEqual(
-    around.outgoing.map((entry) => [entry.part, entry.kind, entry.relations]),
-    [
-      ['b', 'command', ['third']],
-      ['b', 'data', ['first', 'second']],
-    ],
-  );
-  assert.equal(around.total, 2);
 });

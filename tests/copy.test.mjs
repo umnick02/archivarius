@@ -18,6 +18,9 @@ for (const name of [
   // node.mjs hands strings.json to the document renderer, so it reads the same
   // copy object the browser surface does.
   'src/model/document.mjs',
+  // Level names still use shipped copy in screen-reader announcements, even
+  // though the visible breadcrumb and level badge have been removed.
+  'src/model/zoom.mjs',
 ])
   readers.set(name, await fs.readFile(new URL(name, root), 'utf8'));
 

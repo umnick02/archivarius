@@ -19,7 +19,6 @@ import { ArchitectureEdge } from './ArchitectureEdge.jsx';
 import { Failure } from './Failure.jsx';
 import { Inspector } from './Inspector.jsx';
 import { MapHeader } from './MapHeader.jsx';
-import { MapChrome } from './MapChrome.jsx';
 import { MapOverlays } from './MapOverlays.jsx';
 import { usePanelNavigation } from './usePanelNavigation.jsx';
 import { useMapProjection } from './useMapProjection.jsx';
@@ -30,7 +29,6 @@ import {
   addressKey,
   addressSnapshot,
   emptyView,
-  neighbourhood,
   parseAddress,
   writeAddress,
 } from '../model/address.mjs';
@@ -309,7 +307,6 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     bundles,
     nodes,
     edges,
-    outside,
     level,
     ring,
     anchor,
@@ -328,13 +325,6 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     showRelation,
     enterNode: fitNode,
   });
-  const neighbours = useMemo(
-    () =>
-      selected && interfaces.has(selected)
-        ? neighbourhood(interfaces.get(selected), filters)
-        : null,
-    [selected, interfaces, filters],
-  );
   const path = useMemo(() => {
     const result = [];
     let key = focus;
@@ -893,6 +883,11 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         clearClick={clearClick}
         openPanel={openPanel}
         closePanel={closePanel}
+        contextActive={!!activeKey}
+        clearFocus={() => {
+          setSelected(null);
+          setContextEnabled(false);
+        }}
         fitNode={fitNode}
       />
       <div
@@ -943,6 +938,11 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
               atHome.current = false;
             }
           }}
+          onPaneClick={() => {
+            clearClick();
+            setSelected(null);
+            setContextEnabled(false);
+          }}
           onNodeClick={(_, n) => {
             clearClick();
             pendingClick.current = setTimeout(() => showNode(n.id), 320);
@@ -955,30 +955,9 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         </ReactFlow>
         <MapOverlays
           zoom={viewport.zoom}
-          neighbours={neighbours}
-          follow={fitNode}
           empty={scope.filtered && scope.parts.size === 0}
-          open={surfaces}
-          toggleSurface={toggleSurface}
         />
         <Failure report={failure} dismiss={() => setFailure(null)} />
-      </div>
-      <div className="map-chrome" inert={workspace ? true : undefined}>
-        <MapChrome
-          path={path}
-          home={home}
-          up={up}
-          fitNode={fitNode}
-          changeZoom={changeZoom}
-          zoom={viewport.zoom}
-          overviewZoom={overviewZoom}
-          activeKey={activeKey}
-          outside={outside}
-          clearFocus={() => {
-            setSelected(null);
-            setContextEnabled(false);
-          }}
-        />
       </div>
       <Inspector
         panel={panel}

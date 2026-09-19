@@ -93,18 +93,10 @@ const read = (mount) =>
           }
         : null,
       headerItems: named('header button, header select, header input'),
-      overlays: named(
-        ['[data-control=overview]', '.hint', '.map-controls'].join(','),
-      ),
+      overlays: named('.map-failure, .map-empty'),
       nodes,
       union,
       cards,
-      // The words, to catch a control that repeats another one.
-      level:
-        root.querySelector('[data-control=level]')?.textContent.trim() ?? '',
-      crumbs: [
-        ...root.querySelectorAll('[data-control=breadcrumbs] button'),
-      ].map((button) => button.textContent.trim()),
       searchPlaceholder:
         root.querySelector('[data-control=node-search]')?.placeholder ?? '',
       searchOptions: [
@@ -264,22 +256,6 @@ try {
       ),
       [],
       mount + ': the result list repeats the search placeholder as an option',
-    );
-    // A line that names the level the reader is on is worth a corner of the pane
-    // only while it says something the crumb beside it does not.
-    const words = (text) =>
-      text
-        .toLowerCase()
-        .replace(/[^a-z ]/g, ' ')
-        .split(/\s+/)
-        .filter(Boolean)
-        .filter((word) => word !== 'level');
-    assert.deepEqual(
-      view.crumbs.filter(
-        (crumb) => words(crumb).join(' ') === words(view.level).join(' '),
-      ),
-      [],
-      mount + ': the level line repeats the breadcrumb beside it',
     );
   }
   assert.deepEqual(b.errors, []);

@@ -14,11 +14,6 @@
     "all": "All",
     "empty": "Nothing in the model matches this combination. Widen a filter to see the map again."
   },
-  "neighbours": {
-    "label": "What the selected component exchanges with",
-    "incoming": "Receives from",
-    "outgoing": "Sends to"
-  },
   "reach": {
     "label": "Where a change here reaches",
     "downstream": "Reaches, at any depth",
@@ -109,14 +104,7 @@
     "channel": "Channel"
   },
   "wholeSystem": "Whole system",
-  "wholeArchitecture": "Whole architecture",
-  "positionLabel": "Position in the architecture",
-  "previousPosition": "Back to where you were",
-  "minimapLabel": "Architecture overview",
   "mapRegionLabel": "Architecture map",
-  "zoomIn": "Zoom in",
-  "zoomOut": "Zoom out",
-  "up": "Up one level",
   "close": "Close inspector",
   "inspectorLabel": "Selected architecture details",
   "expandAction": "expand",

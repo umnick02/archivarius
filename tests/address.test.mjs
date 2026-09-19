@@ -51,7 +51,7 @@ test('every field of the view survives the round trip', () => {
     panel: 'node',
     record: null,
     edge: null,
-    open: ['neighbours', 'options'],
+    open: ['options'],
     filters: { zone: 'application', kind: 'component', relation: 'data' },
   };
   const search = writeAddress('', view, { key: 'first' });
@@ -257,9 +257,9 @@ test('the address never mutates the snapshot or the view it reads', () => {
 // without it hands its receiver a different reading than the sender had.
 test('the surfaces a reader opened are carried by the address', () => {
   assert.deepEqual(emptyView.open, []);
-  assert.deepEqual(surfaceKinds, ['neighbours', 'options']);
+  assert.deepEqual(surfaceKinds, ['options']);
   assert.deepEqual(
-    parseAddress('first.open=reading', { key: 'first' }).open,
+    parseAddress('first.open=reading,neighbours', { key: 'first' }).open,
     [],
   );
   const view = { ...emptyView, open: ['options'] };
@@ -271,14 +271,14 @@ test('the surfaces a reader opened are carried by the address', () => {
     parseAddress(
       writeAddress(
         '',
-        { ...emptyView, open: ['neighbours', 'options'] },
+        { ...emptyView, open: ['options'] },
         {
           key: 'first',
         },
       ),
       { key: 'first' },
     ).open,
-    ['neighbours', 'options'],
+    ['options'],
   );
   // A surface this map has no such thing as is not a surface at all.
   assert.deepEqual(

@@ -301,22 +301,11 @@ export function useMapProjection({
       })),
     [near, nodes, viewport, size, panel, showRelation, activeKey, inside, copy],
   );
-  // Connections that leave the focused subtree, so a reader sees what it touches
-  // without the map having to draw the whole neighbourhood.
-  const outside = activeKey
-    ? [
-        ...new Set([
-          ...(interfaces.get(activeKey)?.incoming || []).map((r) => r.from),
-          ...(interfaces.get(activeKey)?.outgoing || []).map((r) => r.to),
-        ]),
-      ].filter((key) => !inside(key, activeKey))
-    : [];
   return {
     interfaces,
     bundles,
     nodes,
     edges,
-    outside,
     level,
     named,
     projection,

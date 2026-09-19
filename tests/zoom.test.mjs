@@ -1,6 +1,6 @@
 // Zoom is a decision before it is a picture: which containers are open at a given
-// scale, what the level the reader stands in is called, and which positions the
-// map can send them back to. All three live in `model/zoom.mjs`, so they are
+// scale, what the level is called, and which hierarchy destination to frame.
+// These decisions live in `model/zoom.mjs`, so they are
 // provable without a browser.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -10,8 +10,6 @@ import {
   expansionThresholds,
   levelName,
   namedLevel,
-  previousPosition,
-  pushPosition,
   zoomTarget,
 } from '../src/model/zoom.mjs';
 import { expandedAt } from '../src/ui/view.mjs';
@@ -228,29 +226,4 @@ test('a level is named after the abstraction it reveals', () => {
       'string',
       key,
     );
-});
-
-test('positions accumulate into a return path that never repeats itself', () => {
-  const a = { x: 0, y: 0, zoom: 1 };
-  const b = { x: 300, y: 120, zoom: 4 };
-  assert.deepEqual(pushPosition([], a), [a]);
-  assert.deepEqual(pushPosition([a], a), [a]);
-  // A sub-pixel drift is the same position, not a new one to return to.
-  assert.deepEqual(pushPosition([a], { x: 0.4, y: -0.3, zoom: 1.001 }), [a]);
-  assert.deepEqual(pushPosition([a], b), [a, b]);
-  assert.equal(previousPosition([]), null);
-  assert.equal(previousPosition([a]), null);
-  assert.equal(previousPosition([a, b]), a);
-  // The stack is bounded, and it is the oldest position that is given up.
-  const many = Array.from({ length: 12 }, (_, i) => ({
-    x: i * 100,
-    y: 0,
-    zoom: 1 + i,
-  }));
-  const stack = many.reduce(
-    (history, position) => pushPosition(history, position, { limit: 5 }),
-    [],
-  );
-  assert.equal(stack.length, 5);
-  assert.deepEqual(stack, many.slice(-5));
 });

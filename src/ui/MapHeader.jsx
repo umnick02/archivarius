@@ -19,6 +19,8 @@ export function MapHeader({
   openPanel,
   replacePanel,
   closePanel,
+  contextActive,
+  clearFocus,
   fitNode,
 }) {
   const { model, project, projectCopy, copy, graph, instanceId } =
@@ -160,6 +162,19 @@ export function MapHeader({
               )}
             </summary>
             <div className="map-options-body">
+              {contextActive && (
+                <button
+                  className="quiet"
+                  data-control="clear-focus"
+                  onClick={() => {
+                    clearFocus();
+                    toggleOptions(false);
+                  }}
+                >
+                  {projectCopy.clearFocus}
+                </button>
+              )}
+
               <label>
                 {copy.layerLabel}
                 <select

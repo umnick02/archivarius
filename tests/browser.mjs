@@ -585,9 +585,6 @@ try {
       'contracts',
       'about',
       'clear-focus',
-      'minus',
-      'plus',
-      'home',
       'close',
       'panel-button',
       'summary',
@@ -837,12 +834,6 @@ try {
         .filter((d) => d.open)
         .map((d) => d.dataset.control),
     );
-  const opened = (control) =>
-    b.evaluate(
-      (control) =>
-        document.querySelector('#first [data-control=' + control + ']').open,
-      control,
-    );
   assert.deepEqual(await chrome(), [], 'the first screen opens a surface');
   // The container offers an explicit one-click action. It enters the same level
   // as Enter/double-click without also opening the inspector.
@@ -868,23 +859,17 @@ try {
   assert.deepEqual(await chrome(), [], 'selecting a part opens a surface');
   await press('Escape');
   await until(() => window.consumer.first.snapshot().panel === null);
-  await click('#first [data-control=neighbours] > summary');
-  await until(
-    () => document.querySelector('#first [data-control=neighbours]').open,
-  );
-  await b.evaluate(() => window.consumer.first.inspect('engine'));
-  await until(() => window.consumer.first.snapshot().panel === 'node');
-  await press('Escape');
-  await until(() => window.consumer.first.snapshot().panel === null);
   assert.equal(
-    await opened('neighbours'),
-    true,
-    'one Escape took the panel and the surface at once',
+    await b.evaluate(() =>
+      document.querySelector(
+        '#first :is(.map-controls, .map-overview, .map-context, .map-neighbours, [data-control=breadcrumbs])',
+      ),
+    ),
+    null,
+    'peripheral controls must not return after selecting a component',
   );
+  await click('#first [data-control=map-options] > summary');
   await press('Escape');
-  await until(
-    () => !document.querySelector('#first [data-control=neighbours]').open,
-  );
   assert.deepEqual(await chrome(), []);
 
   await b.evaluate(() => window.consumer.first.home());
@@ -924,10 +909,12 @@ try {
   assert((await state()).visible.includes('query'));
   await wheelAt('query', 40);
   assert.deepEqual((await state()).viewport, searchCamera);
-  await click('#first [data-control=minus]');
+  await b.evaluate(() => document.querySelector('#first .map-pane').focus());
+  await press('-');
   await settled(camera);
   assert.deepEqual((await state()).viewport, overviewCamera);
-  await click('#first [data-control=minus]');
+  await b.evaluate(() => document.querySelector('#first .map-pane').focus());
+  await press('-');
   await settled(camera);
   assert.deepEqual(
     (await state()).viewport,

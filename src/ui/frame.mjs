@@ -1,30 +1,15 @@
-// Where the drawing is allowed to be. The pane is not empty space: its own chrome
-// stands on it - the position line and the level at the top, the overview and the
-// implementation key on the right, the appearance key and the camera controls
-// along the bottom - and a drawing centred in the pane lands underneath them.
-//
-// So every camera move fits the drawing into the pane less these strips, and the
-// numbers are stated once here rather than sprinkled through the callbacks as bare
-// pixels. They are read against the measured chrome by `tests/layout.mjs`: an
-// overlay that grows past its strip fails there instead of silently covering a
-// part.
-export const chromeInsets = (size) =>
-  size.width <= 520
-    ? // A phone-width pane drops the overview entirely, so nothing stands on its
-      // right side and the drawing gets the width back.
-      { top: 48, right: 16, bottom: 64, left: 16 }
-    : { top: 52, right: 196, bottom: 68, left: 16 };
+// The canvas has no peripheral controls. Keep a small, symmetric inset so
+// node outlines and focus rings stay inside the drawing surface.
+const canvasInset = 16;
 
-// The rectangle left for the drawing, in pane coordinates. A pane too small for
-// the chrome keeps a usable middle rather than collapsing to nothing.
+// The drawing rectangle in pane coordinates, including very small embeds.
 export function paneFrame(size) {
   const room = (extent, near, far) =>
     extent - near - far > 96
       ? { start: near, length: extent - near - far }
       : { start: extent * 0.1, length: Math.max(48, extent * 0.8) };
-  const insets = chromeInsets(size);
-  const across = room(size.width, insets.left, insets.right);
-  const down = room(size.height, insets.top, insets.bottom);
+  const across = room(size.width, canvasInset, canvasInset);
+  const down = room(size.height, canvasInset, canvasInset);
   return {
     width: across.length,
     height: down.length,
