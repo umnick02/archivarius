@@ -4,7 +4,7 @@ import { clicker, settler, waiter } from './cdp.mjs';
 import { startHarness } from './harness.mjs';
 import { analyzeProject } from '../src/model/project-analysis.mjs';
 import { contractDigest } from '../src/model/project-digest.mjs';
-import { hashBytes } from '../src/model/digest.mjs';
+import { digest, hashBytes } from '../src/model/digest.mjs';
 import { executeProjectCheck } from '../src/node.mjs';
 
 const project = JSON.parse(
@@ -169,9 +169,7 @@ try {
   assert.deepEqual(after.viewport, before.viewport);
   await b.evaluate(() => window.consumer.first.focus('writer'));
   await settled(() => window.consumer.first.snapshot().viewport);
-  // The related records are one level down now, so the way to them is the panel's
-  // single disclosure and then the group.
-  await click('#first [data-disclosure=more] > summary');
+  // Relationships are directly available without opening technical metadata.
   await click('#first [data-disclosure=links-decision] > summary');
   await click('#first .project-links [data-record-link=streaming]');
   assert.equal(
@@ -182,25 +180,25 @@ try {
     ),
     'streaming',
   );
-  // Two levels in a record panel: the first screen answers what the record is and
-  // what needs attention, and the rest of it — the remaining fields, the related
-  // records, the basis and every past revision — is one disclosure away. Nothing
-  // anywhere in the panel is a serialized record.
+  // Meaning and relationships are visible; receipts and definition history have
+  // separate named disclosures. No panel prints a serialized record.
   const panelReading = await b.evaluate(() => {
     const panel = document.querySelector('#first [data-control=inspector]');
     const deferred = (selector) =>
       [...panel.querySelectorAll(selector)].length > 0 &&
       [...panel.querySelectorAll(selector)].every((element) =>
-        element.closest('[data-disclosure=more]'),
+        element.closest(
+          '[data-disclosure=technical], [data-disclosure=history]',
+        ),
       );
     return {
       title: panel.querySelector('[data-record-title]')?.dataset.recordTitle,
       answered: panel.querySelectorAll('.record-primary .record-field').length,
       disclosures: panel.querySelectorAll('[data-disclosure=more]').length,
       basisDeferred: deferred('.record-technical'),
-      linksDeferred: deferred('.project-links'),
-      historyDeferred: deferred(
-        '[data-field=realization], .record-secondary h3',
+      linksVisible: !panel.querySelector('.project-links').closest('details'),
+      historyDeferred: [...panel.querySelectorAll('.record-history')].every(
+        (element) => element.matches('details:not([open])'),
       ),
       unnamed: [...panel.querySelectorAll('.record-field > h3')].filter((h) =>
         /^[a-z][A-Za-z]*$/.test(h.textContent.trim()),
@@ -214,8 +212,14 @@ try {
   assert(panelReading.answered > 0, 'the first screen answers nothing');
   assert.equal(panelReading.disclosures, 1, 'the panel defers past one level');
   assert(panelReading.basisDeferred, 'the basis sits on the first screen');
-  assert(panelReading.linksDeferred, 'related records sit on the first screen');
-  assert(panelReading.historyDeferred, 'the history sits on the first screen');
+  assert(
+    panelReading.linksVisible,
+    'related records are hidden behind technical details',
+  );
+  assert(
+    panelReading.historyDeferred,
+    'definition comparisons must be in history',
+  );
   assert.equal(panelReading.unnamed, 0, 'a field reached the reader as a key');
   assert.equal(panelReading.serialized, 0, 'the panel printed a record');
 
@@ -240,6 +244,8 @@ try {
     }),
   );
   await b.capture('project-mobile');
+  await b.evaluate(() => window.consumer.first.focus('writer'));
+  await settled(() => window.consumer.first.snapshot().viewport);
   const mobileBefore = await b.evaluate(() => window.consumer.first.snapshot());
   const cardScroll = await b.evaluate(() => {
     const panel = document.querySelector('#first [data-control=inspector]');
@@ -270,6 +276,7 @@ try {
     ),
     cardScroll,
   );
+  await click('#first [data-control=map-options] > summary');
   await click('#first [data-control=about]');
   assert(
     await b.evaluate(
@@ -347,6 +354,45 @@ try {
     assert.equal(restored.errors, undefined);
   }
 
+  const restoredWorkspace = await b.evaluate(async (model) => {
+    const container = document.createElement('div');
+    container.id = 'linked-plan';
+    container.style.cssText = 'width:1200px;height:900px';
+    document.body.append(container);
+    const search = new URLSearchParams(location.search);
+    for (const [key, value] of Object.entries({
+      panel: 'project',
+      view: 'all',
+      query: '1000',
+      recordType: 'requirement',
+    }))
+      search.set('linked-plan.' + key, value);
+    history.replaceState(history.state, '', location.pathname + '?' + search);
+    const map = window.consumer.mountArchitectureMap(container, {
+      source: model,
+    });
+    try {
+      await map.ready;
+      return {
+        workspace: container.querySelector('.map-app').dataset.workspace,
+        query: container.querySelector('[data-control=record-search]').value,
+        filter: container.querySelector('[data-control=record-type]').value,
+        records: [...container.querySelectorAll('[data-record]')].map(
+          (r) => r.dataset.record,
+        ),
+      };
+    } finally {
+      map.destroy();
+      container.remove();
+    }
+  }, project);
+  assert.deepEqual(restoredWorkspace, {
+    workspace: 'true',
+    query: '1000',
+    filter: 'requirement',
+    records: ['row-limit'],
+  });
+
   assert.deepEqual(b.errors, []);
   // Use the full host width to exercise docking independently of the small
   // embedded-container presentation used above.
@@ -372,7 +418,11 @@ try {
       const panel = document
         .querySelector('#first [data-control=inspector]')
         .getBoundingClientRect();
-      return pane.right <= panel.left;
+      return (
+        panel.width >= pane.width &&
+        getComputedStyle(document.querySelector('#first .map-pane'))
+          .visibility === 'hidden'
+      );
     }),
   );
   await b.capture('project-overview-desktop');
@@ -434,8 +484,8 @@ try {
     code: 'F6',
   });
   assert.equal(
-    await b.evaluate(() => document.activeElement.className),
-    'map-pane',
+    await b.evaluate(() => document.activeElement.dataset.control),
+    'inspector',
   );
   await b.call('Input.dispatchKeyEvent', {
     type: 'keyDown',
@@ -444,7 +494,7 @@ try {
   });
   assert.equal(
     await b.evaluate(() => document.activeElement.dataset.control),
-    'inspector',
+    'record-search',
   );
   await b.evaluate(() => window.consumer.first.focus('writer'));
   const focused = await b.evaluate(() => window.consumer.first.snapshot());
@@ -749,23 +799,42 @@ try {
       ),
     ),
   );
+  const previousDocument = structuredClone(
+    withDocuments.records.find((r) => r.key === 'doc-rules'),
+  );
+  withDocuments.history.push({
+    digest: digest(previousDocument),
+    record: previousDocument,
+  });
+  withDocuments.records
+    .find((r) => r.key === 'doc-rules')
+    .blocks.push({
+      kind: 'paragraph',
+      lines: [
+        [
+          '**Owns:** `export` [Routing](routing.json) [Context](#other-context) <img src=x onerror=alert(1)> [outside](https://example.com)',
+        ],
+      ],
+    });
   await b.evaluate(async (model) => {
     await window.consumer.first.load(model);
     window.consumer.first.inspect('doc-rules');
   }, withDocuments);
   await until(
     () =>
-      document.querySelectorAll('#first .project-document > details').length ===
-      2,
+      document.querySelectorAll(
+        '#first [data-control=inspector] > .project-document [data-document-section]',
+      ).length === 3,
   );
   assert.equal(
     await b.evaluate(
       () =>
-        document.querySelectorAll('#first .project-document > details').length,
+        document.querySelectorAll(
+          '#first [data-control=inspector] > .project-document details',
+        ).length,
     ),
-    2,
+    0,
   );
-  await click('#first [data-disclosure=document-doc-rules-1] summary');
   assert(
     await b.evaluate(() =>
       document
@@ -773,9 +842,7 @@ try {
         .textContent.includes('maxRows'),
     ),
   );
-  await click(
-    '#first [data-disclosure=document-doc-rules-1] [data-record-link=within-limit]',
-  );
+  await click('#first .project-document [data-record-link=within-limit]');
   assert.equal(
     await b.evaluate(
       () =>
@@ -785,7 +852,73 @@ try {
     'within-limit',
   );
   await b.capture('consumer-structured-documents');
+  await click('#first [data-control=record-back]');
+  assert(
+    await b.evaluate(() => {
+      const doc = document.querySelector('#first .project-document');
+      return (
+        !!doc.querySelector('strong') &&
+        !!doc.querySelector('code') &&
+        !doc.querySelector('img, a[href], script') &&
+        doc.textContent.includes('<img src=x onerror=alert(1)>')
+      );
+    }),
+  );
+  for (let visit = 0; visit < 2; visit++) {
+    await b.evaluate(() => {
+      document.querySelector('#first aside').scrollTop = 0;
+    });
+    await click(
+      '#first [data-control=inspector] > .project-document [data-record-link=doc-rules]',
+    );
+    await until(
+      () => document.activeElement.dataset.documentAnchor === 'other-context',
+    );
+  }
+  const documentScroll = await b.evaluate(() => {
+    document
+      .querySelector(
+        '#first [data-control=inspector] > .project-document [data-record-link=doc-routing]',
+      )
+      .scrollIntoView({ block: 'nearest' });
+    return document.querySelector('#first aside').scrollTop;
+  });
+  await click('#first .project-document [data-record-link=doc-routing]');
+  assert.equal(
+    await b.evaluate(
+      () =>
+        document.querySelector('#first [data-record-title]').dataset
+          .recordTitle,
+    ),
+    'doc-routing',
+  );
+  await click('#first [data-control=record-back]');
+  assert.equal(
+    await b.evaluate(
+      () =>
+        document.querySelector('#first [data-record-title]').dataset
+          .recordTitle,
+    ),
+    'doc-rules',
+  );
 
+  assert.equal(
+    await b.evaluate(() => document.querySelector('#first aside').scrollTop),
+    documentScroll,
+  );
+  await click('#first [data-disclosure=history] > summary');
+  await click('#first .record-history > details > summary');
+  assert(
+    await b.evaluate(() => {
+      const comparison = document.querySelector('#first .revision-comparison');
+      return (
+        comparison.querySelectorAll('.project-document').length === 2 &&
+        !comparison.children[0].textContent.includes('Owns:') &&
+        comparison.children[1].textContent.includes('Owns:') &&
+        !comparison.querySelector('img, script, a[href]')
+      );
+    }),
+  );
   // A question is a record, not a footnote. Every source stated as a question is
   // listed as open on the project surface, in the order the model states them,
   // and a project that asks nothing says so rather than hiding the list.
@@ -965,6 +1098,95 @@ try {
     'a claim inside its life is reported ageing',
   );
 
+  // A long title must leave the card's connection footer inside its bounds.
+  const cramped = structuredClone(project);
+  cramped.records.find((r) => r.key === 'screen').title =
+    'Streaming output writer with explicit cancellation and bounded memory';
+  await b.call('Emulation.setDeviceMetricsOverride', {
+    width: 1024,
+    height: 768,
+    deviceScaleFactor: 1,
+    mobile: false,
+  });
+  await b.evaluate(async (model) => {
+    await window.consumer.first.load(model);
+    await window.consumer.first.home();
+  }, cramped);
+  await settled(() => window.consumer.first.snapshot().viewport);
+  assert.deepEqual(
+    await b.evaluate(() =>
+      [
+        ...document.querySelectorAll('#first .node-card:not(.expanded)'),
+      ].flatMap((card) => {
+        const footer = card.querySelector('.node-footer');
+        return footer &&
+          footer.getBoundingClientRect().bottom >
+            card.getBoundingClientRect().bottom + 1
+          ? [card.dataset.node]
+          : [];
+      }),
+    ),
+    [],
+  );
+  await click('#first [data-node=screen]');
+  await until(
+    () => !!document.querySelector('#first [data-control=neighbours]'),
+  );
+  await click('#first [data-control=neighbours] > summary');
+  assert(
+    await b.evaluate(() => {
+      const neighbours = document
+        .querySelector('#first [data-control=neighbours]')
+        .getBoundingClientRect();
+      const overview = document
+        .querySelector('#first [data-control=overview]')
+        .getBoundingClientRect();
+      return (
+        neighbours.right <= overview.left ||
+        neighbours.left >= overview.right ||
+        neighbours.bottom <= overview.top ||
+        neighbours.top >= overview.bottom
+      );
+    }),
+  );
+  await click('#first [data-workspace-view=work]');
+  assert(
+    await b.evaluate(
+      () =>
+        document.querySelector('#first aside').clientWidth >
+        document.querySelector('#first').clientWidth * 0.9,
+    ),
+  );
+  await click('#first [data-control=map-options] > summary');
+  await b.call('Input.dispatchKeyEvent', {
+    type: 'keyDown',
+    key: 'Escape',
+    code: 'Escape',
+  });
+  assert(
+    await b.evaluate(
+      () =>
+        !document.querySelector('#first [data-control=map-options]').open &&
+        document.querySelector('#first .map-app').dataset.workspace === 'true',
+    ),
+  );
+  await b.call('Emulation.setDeviceMetricsOverride', {
+    width: 390,
+    height: 844,
+    deviceScaleFactor: 1,
+    mobile: true,
+  });
+  await until(() => document.querySelector('#first').clientWidth <= 390);
+  assert(
+    await b.evaluate(() => {
+      const panel = document.querySelector('#first aside');
+      return (
+        panel.scrollWidth === panel.clientWidth &&
+        panel.clientHeight >
+          document.querySelector('#first').clientHeight * 0.65
+      );
+    }),
+  );
   assert.deepEqual(b.errors, []);
   console.log(
     'PASS: project views, uncovered requirements, trace links, fixed map geometry, mobile controls, plain-text rendering, the open-questions list and claim attribution.',

@@ -14,6 +14,7 @@
 // reader is better served by a stated refusal than by a silently different view.
 import { ArchitectureError, explainDiagnostics } from './errors.mjs';
 import { relationKinds, zones } from './projection.mjs';
+import { primaryFields, viewTypes } from './project-view.mjs';
 import { kindOrder } from './zoom.mjs';
 
 /** The address fields, in the order the address writes them. */
@@ -23,6 +24,10 @@ export const addressFields = Object.freeze([
   'zoom',
   'panel',
   'record',
+  'view',
+  'query',
+  'recordType',
+  'anchor',
   'edge',
   'open',
   'zone',
@@ -45,7 +50,7 @@ export const panelKinds = Object.freeze([
  * were open, so a link restores the same reading its sender had, and a name this
  * map has no surface for is no surface at all.
  */
-export const surfaceKinds = Object.freeze(['neighbours', 'reading']);
+export const surfaceKinds = Object.freeze(['neighbours', 'reading', 'options']);
 
 /**
  * What each filter accepts, read off the contract's own tables so a value is
@@ -67,6 +72,10 @@ export const emptyView = Object.freeze({
   zoom: null,
   panel: null,
   record: null,
+  view: null,
+  query: null,
+  recordType: null,
+  anchor: null,
   edge: null,
   open: Object.freeze([]),
   filters: Object.freeze({ zone: 'all', kind: 'all', relation: 'all' }),
@@ -119,6 +128,14 @@ export function parseAddress(search, options = {}) {
     zoom: Number.isFinite(zoom) && zoom > 0 ? zoom : null,
     panel: panelKinds.includes(panel) ? panel : null,
     record: read('record'),
+    view: ['overview', 'all', ...Object.keys(viewTypes)].includes(read('view'))
+      ? read('view')
+      : null,
+    query: read('query'),
+    recordType: Object.keys(primaryFields).includes(read('recordType'))
+      ? read('recordType')
+      : null,
+    anchor: read('anchor'),
     edge: read('edge'),
     // One order in, one order out: the surfaces are read in the order this module
     // lists them, so two links to the same reading are the same link.
@@ -162,6 +179,8 @@ export function writeAddress(search, view, options = {}) {
   );
   set('panel', view?.panel, null);
   set('record', view?.record, null);
+  for (const field of ['view', 'query', 'recordType', 'anchor'])
+    set(field, view?.[field], null);
   set('edge', view?.edge, null);
   const open = surfaceKinds.filter((name) => view?.open?.includes(name));
   set('open', open.length ? open.join(',') : null, null);

@@ -217,3 +217,51 @@ export function validateDocuments(model, issue) {
         issue('DOCUMENT_TABLE', document.key);
   }
 }
+
+/**
+ * Presentation-only inline tokens. Only known document destinations become
+ * navigation: HTML, images, external URLs and unknown paths remain plain text.
+ * No token carries an href or executable markup.
+ * @param {string} text
+ * @param {any} document
+ * @param {any[]} records
+ * @returns {Array<{kind: string, text: string, record?: string, anchor?: string}>}
+ */
+export function documentInline(text, document, records) {
+  const tokens = [];
+  const pattern =
+    /`([^`\n]+)`|\*\*([^*\n]+)\*\*|(?<!!)\[([^\]\n]+)\]\(([^\s)]+)\)/g;
+  let end = 0;
+  for (const match of text.matchAll(pattern)) {
+    if (match.index > end)
+      tokens.push({ kind: 'text', text: text.slice(end, match.index) });
+    let token = { kind: 'text', text: match[0] };
+    if (match[1]) token = { kind: 'code', text: match[1] };
+    else if (match[2]) token = { kind: 'strong', text: match[2] };
+    else if (!/^(?:[a-z][a-z\d+.-]*:|[\\/])/i.test(match[4])) {
+      try {
+        const base = new URL(document.path, 'https://document.invalid/');
+        const target = new URL(match[4], base);
+        const found = records.find(
+          (record) =>
+            record.type === 'document' &&
+            new URL(record.path, 'https://document.invalid/').pathname ===
+              target.pathname,
+        );
+        if (found && target.origin === base.origin && !target.search)
+          token = {
+            kind: 'reference',
+            text: match[3],
+            record: found.key,
+            anchor: decodeURIComponent(target.hash.slice(1)),
+          };
+      } catch {
+        /* An invalid destination remains literal text. */
+      }
+    }
+    tokens.push(token);
+    end = match.index + match[0].length;
+  }
+  if (end < text.length) tokens.push({ kind: 'text', text: text.slice(end) });
+  return tokens;
+}

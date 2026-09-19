@@ -100,7 +100,7 @@ export function ArchitectureNode({ data }) {
               paddingTop: 'min(' + text.pad + ', ' + h * 0.035 + 'px)',
             }}
           >
-            <h2>{item.title}</h2>
+            <h2 title={item.title}>{item.title}</h2>
             {h > 430 && w > 650 && <p>{item.summary}</p>}
           </div>
         ) : (
@@ -108,8 +108,8 @@ export function ArchitectureNode({ data }) {
             {w > 230 && h > 210 && (
               <div className="eyebrow">{copy.nodeKinds[item.kind]}</div>
             )}
-            <h2>{item.title}</h2>
-            {w > 180 && h > 135 && (
+            <h2 title={item.title}>{item.title}</h2>
+            {w > 180 && h > 190 && (
               <p
                 className="node-summary"
                 style={{ WebkitLineClamp: h > 210 ? 3 : 2 }}

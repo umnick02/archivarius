@@ -85,7 +85,7 @@ const summary = (record) => ({
 
 // Identity is the record key and content is the definition, exactly as digests and
 // receipts already read them, so accepting a record again is never a change to it.
-function movedFields(before, after) {
+export function movedFields(before, after) {
   const from = definition(before),
     to = definition(after);
   return [...new Set([...Object.keys(from), ...Object.keys(to)])]

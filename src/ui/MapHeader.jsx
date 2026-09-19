@@ -3,22 +3,21 @@ import { useArchitecture } from './context.jsx';
 import { Filters } from './Filters.jsx';
 import { searchArchitecture } from '../model/search.mjs';
 
-// The chrome above the map: identity, the ways in, and the reading/map switch a
-// narrow screen needs. Every control reports to the map, and the only state it
-// keeps is presentation: what the reader typed and which match they are on. The
-// matching itself belongs to `model/search.mjs`, which answers every accepted
-// contract version.
 export function MapHeader({
+  optionsOpen,
+  toggleOptions,
   layer,
   setLayer,
   filters,
   setFilters,
   panel,
+  workspace,
   mobileMap,
   setMobileMap,
   pane,
   clearClick,
   openPanel,
+  replacePanel,
   closePanel,
   fitNode,
 }) {
@@ -35,6 +34,12 @@ export function MapHeader({
     setHighlighted(key);
     fitNode(key);
   };
+  const active = workspace
+    ? panel.view || panel.workspace || 'overview'
+    : 'map';
+  const activeOptions =
+    Object.values(filters).filter((value) => value !== 'all').length +
+    Number(layer !== 'all');
   return (
     <>
       <header>
@@ -48,126 +53,165 @@ export function MapHeader({
           </div>
         </div>
         <div className="header-right">
-          {project && (
-            <button
-              className="quiet"
-              data-control="project"
-              onClick={() => {
+          {project ? (
+            <input
+              data-control="record-search"
+              type="search"
+              aria-label={projectCopy.search}
+              placeholder={projectCopy.search}
+              value={panel?.type === 'project' ? panel.query || '' : ''}
+              onChange={(e) => {
                 clearClick();
-                openPanel({ type: 'project' });
-              }}
-            >
-              {projectCopy.button}
-            </button>
-          )}
-          {project && (
-            <button
-              className="quiet"
-              data-control="project-search"
-              onClick={() =>
-                openPanel({
+                const next = {
                   type: 'project',
                   view: 'all',
+                  query: e.target.value,
                   focusSearch: true,
-                })
-              }
-            >
-              {projectCopy.search}
-            </button>
+                  filter: panel?.view === 'all' ? panel.filter || 'all' : 'all',
+                  scroll: 0,
+                };
+                if (panel?.type === 'project') replacePanel(next);
+                else openPanel(next);
+              }}
+            />
+          ) : (
+            !!graph.nodes.size && (
+              <>
+                <input
+                  data-control="node-search"
+                  type="search"
+                  aria-label={copy.findNode}
+                  placeholder={copy.findNode}
+                  aria-controls={
+                    results.length
+                      ? instanceId + '-node-search-results'
+                      : undefined
+                  }
+                  value={query}
+                  onChange={(e) => {
+                    clearClick();
+                    setQuery(e.target.value);
+                    setHighlighted('');
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      show(highlighted || results[0]?.key);
+                    }
+                  }}
+                />
+                {!!results.length && (
+                  <select
+                    data-control="node-search-results"
+                    id={instanceId + '-node-search-results'}
+                    aria-label={copy.nodeMatches}
+                    value={highlighted || results[0].key}
+                    onChange={(e) => show(e.target.value)}
+                  >
+                    {results.map((result) => (
+                      <option key={result.key} value={result.key}>
+                        {result.title}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </>
+            )
           )}
-          {!!graph.nodes.size && (
-            <>
-              <input
-                data-control="node-search"
-                type="search"
-                aria-label={copy.findNode}
-                placeholder={copy.findNode}
-                // The list only exists while there are matches, so the field only
-                // claims to control it then: an aria-controls pointing at nothing
-                // is an invalid value, not a hint.
-                aria-controls={
-                  results.length
-                    ? instanceId + '-node-search-results'
-                    : undefined
-                }
-                value={query}
-                onChange={(e) => {
-                  clearClick();
-                  setQuery(e.target.value);
-                  setHighlighted('');
-                }}
-                onKeyDown={(e) => {
-                  if (e.key !== 'Enter') return;
-                  e.preventDefault();
-                  show(highlighted || results[0]?.key);
-                }}
-              />
-              {/* The matches, and only when there are matches. A list that is
-                  always there - carrying the search field's own placeholder as a
-                  disabled first option - reads as a second search field beside the
-                  first one. */}
-              {!!results.length && (
+          <details
+            className="map-options"
+            data-control="map-options"
+            open={optionsOpen}
+            onToggle={(e) => toggleOptions(e.currentTarget.open)}
+          >
+            <summary>
+              {projectCopy.options}
+              {activeOptions > 0 && (
+                <span className="active-options"> · {activeOptions}</span>
+              )}
+            </summary>
+            <div className="map-options-body">
+              <label>
+                {copy.layerLabel}
                 <select
-                  data-control="node-search-results"
-                  id={instanceId + '-node-search-results'}
-                  aria-label={copy.nodeMatches}
-                  value={highlighted || results[0].key}
-                  onChange={(e) => show(e.target.value)}
+                  data-control="layer"
+                  aria-label={copy.layerLabel}
+                  value={layer}
+                  onChange={(e) => {
+                    clearClick();
+                    setLayer(e.target.value);
+                    closePanel();
+                  }}
                 >
-                  {results.map((result) => (
-                    <option key={result.key} value={result.key}>
-                      {result.title}
+                  {Object.entries(copy.layers).map(([key, label]) => (
+                    <option key={key} value={key}>
+                      {label}
                     </option>
                   ))}
                 </select>
+              </label>
+              {!!graph.nodes.size && (
+                <Filters
+                  filters={filters}
+                  setFilter={(field, value) => {
+                    clearClick();
+                    setFilters({ ...filters, [field]: value });
+                  }}
+                />
               )}
-            </>
-          )}
-          <select
-            data-control="layer"
-            aria-label={copy.layerLabel}
-            value={layer}
-            onChange={(e) => {
-              clearClick();
-              setLayer(e.target.value);
-              closePanel();
-            }}
-          >
-            {Object.entries(copy.layers).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </select>
-          {!!graph.nodes.size && (
-            <Filters
-              filters={filters}
-              setFilter={(field, value) => {
-                clearClick();
-                setFilters({ ...filters, [field]: value });
-              }}
-            />
-          )}
-          <button
-            className="quiet"
-            data-control="contracts"
-            onClick={() => {
-              clearClick();
-              openPanel({ type: 'contracts' });
-            }}
-          >
-            {copy.rulesButton}
-          </button>
-          <button
-            className="quiet"
-            data-control="about"
-            onClick={() => openPanel({ type: 'about' })}
-          >
-            {copy.aboutButton}
-          </button>
+              <button
+                className="quiet"
+                data-control="contracts"
+                onClick={() => {
+                  clearClick();
+                  toggleOptions(false);
+                  openPanel({ type: 'contracts' });
+                }}
+              >
+                {copy.rulesButton}
+              </button>
+              <button
+                className="quiet"
+                data-control="about"
+                onClick={() => {
+                  toggleOptions(false);
+                  openPanel({ type: 'about' });
+                }}
+              >
+                {copy.aboutButton}
+              </button>
+            </div>
+          </details>
         </div>
+        {project && (
+          <nav className="workspace-navigation" aria-label={projectCopy.button}>
+            {[
+              'map',
+              'overview',
+              'rules',
+              'work',
+              'confirmation',
+              'documents',
+            ].map((view) => (
+              <button
+                key={view}
+                className="quiet"
+                data-workspace-view={view}
+                data-control={view === 'overview' ? 'project' : undefined}
+                aria-current={active === view ? 'page' : undefined}
+                onClick={() => {
+                  clearClick();
+                  if (view === 'map') closePanel();
+                  else openPanel({ type: 'project', view });
+                }}
+              >
+                {projectCopy.navigation[view]}
+              </button>
+            ))}
+          </nav>
+        )}
       </header>
-      {panel && (
+      {panel && !workspace && (
         <div className="mobile-view-switch">
           <button
             className="quiet"

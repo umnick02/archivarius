@@ -32,7 +32,9 @@ export function Inspector({
       for (const detail of target.querySelectorAll('details[data-disclosure]'))
         detail.open = panel.disclosures.includes(detail.dataset.disclosure);
     (panel.focusSearch
-      ? target.querySelector('[data-control="record-search"]')
+      ? target
+          .closest('.map-app')
+          ?.querySelector('[data-control="record-search"]')
       : target
     )?.focus({ preventScroll: true });
     if (changed) target.scrollTop = panel.scroll || 0;
@@ -66,17 +68,15 @@ export function Inspector({
             ← {projectCopy.navigationBack}
           </button>
         )}
-        {project &&
-          (panel.type !== 'project' ||
-            (panel.view && panel.view !== 'overview')) && (
-            <button
-              className="quiet"
-              data-control="project-back"
-              onClick={overview}
-            >
-              {projectCopy.back}
-            </button>
-          )}
+        {project && panel.type !== 'project' && (
+          <button
+            className="quiet"
+            data-control="project-back"
+            onClick={overview}
+          >
+            {projectCopy.back}
+          </button>
+        )}
         <button data-control="close" aria-label={copy.close} onClick={close}>
           ×
         </button>
@@ -92,8 +92,9 @@ export function Inspector({
       )}
       {project && ['node', 'record'].includes(panel.type) && (
         <ProjectInspector
-          key={panel.key}
+          key={panel.entryId ?? panel.key}
           recordKey={panel.key}
+          anchor={panel.scene ? undefined : panel.anchor}
           showRecord={showRecord}
           fitNode={showOnMap}
           interactions={

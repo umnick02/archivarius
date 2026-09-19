@@ -112,6 +112,7 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     close: closePanel,
     reset: resetPanel,
   } = navigation;
+  const workspace = !!project && ['project', 'record'].includes(panel?.type);
   useEffect(() => setMobileMap(false), [panel?.entryId]);
   useEffect(() => {
     if (mobileMap) pane.current?.focus({ preventScroll: true });
@@ -153,6 +154,9 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     async (key, keepPanel = false) => {
       clearClick();
       if (!graph.nodes.has(key)) throw new Error('UNKNOWN_NODE:' + key);
+      // A workspace replaces the drawing. Reveal its destination directly; an
+      // animation from an invisible camera can be interrupted by the pane resize.
+      const animate = getComputedStyle(pane.current).visibility !== 'hidden';
       const leaf = !graph.nodes.get(key).children;
       const ticket = ++fitting.current;
       atHome.current = false;
@@ -185,7 +189,7 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
           : 0;
       return flow.setViewport(
         fitToFrame(size, n, { margin: 0.92, maxZoom, atLeast }),
-        { duration: duration() },
+        { duration: animate ? duration() : 0 },
       );
     },
     [flow, graph, layout, maxZoom, clearClick, openPanel, closePanel],
@@ -247,9 +251,13 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     [],
   );
   const showRecord = useCallback(
-    (key) => {
+    (key, anchor) => {
       clearClick();
-      openPanel({ type: 'record', key });
+      openPanel({
+        anchor,
+        type: 'record',
+        key,
+      });
       if (graph.nodes.has(key)) {
         setSelected(key);
         setContextEnabled(true);
@@ -259,11 +267,12 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
   );
   const showOnMap = useCallback(
     async (key) => {
+      openPanel({ type: 'node', key });
       await fitNode(key, true);
       setMobileMap(true);
       pane.current?.focus({ preventScroll: true });
     },
-    [fitNode],
+    [fitNode, openPanel],
   );
   let zoomScope = focus;
   while (zoomScope && !expanded.has(zoomScope))
@@ -483,7 +492,12 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         // Escape closes what is open, topmost first: the panel, then the surfaces
         // the reader opened beside the drawing, and only then does it step out of
         // the container the reader is standing in.
-        if (panel) {
+        if (surfaces.includes('options')) {
+          setSurfaces((held) => held.filter((name) => name !== 'options'));
+          root.current
+            .querySelector('[data-control=map-options] > summary')
+            ?.focus();
+        } else if (panel) {
           closePanel();
           // The panel took the focus, so closing it has to give it back.
           if (anchor) seek(anchor.type, anchor.id);
@@ -494,7 +508,12 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         const inspector = root.current.querySelector(
           '[data-control="inspector"]',
         );
-        if (root.current.clientWidth <= 780 && panel)
+        if (workspace) {
+          (inspector?.contains(document.activeElement)
+            ? root.current.querySelector('[data-control=record-search]')
+            : inspector
+          )?.focus();
+        } else if (root.current.clientWidth <= 780 && panel)
           setMobileMap((value) => !value);
         else if (
           inspector &&
@@ -503,7 +522,10 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         )
           inspector.focus();
         else pane.current.focus();
-      } else if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName))
+      } else if (
+        workspace ||
+        ['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)
+      )
         return;
       // Standing on an item of the ring, the arrows and the ends belong to it;
       // otherwise Home still means the overview.
@@ -538,6 +560,7 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     home,
     panel,
     surfaces,
+    workspace,
     up,
     closePanel,
     changeZoom,
@@ -613,6 +636,10 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
       zoom: viewport.zoom,
       panel: panel?.type ?? null,
       record: panel?.type === 'record' ? panel.key : null,
+      view: panel?.view || panel?.workspace || null,
+      query: panel?.query || null,
+      recordType: panel?.filter && panel.filter !== 'all' ? panel.filter : null,
+      anchor: panel?.anchor || null,
       edge:
         panel?.type === 'relation'
           ? (panel.bundle.relations[0]?.key ?? null)
@@ -651,13 +678,23 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
       );
       if (held) showRelation(held.bundle);
     } else if (view.panel === 'record' && (view.record || view.at))
-      showRecord(view.record || view.at);
+      openPanel({
+        type: 'record',
+        key: view.record || view.at,
+        workspace: view.view || 'all',
+        anchor: view.anchor,
+      });
     else if (
       view.panel === 'project' ||
       view.panel === 'contracts' ||
       view.panel === 'about'
     )
-      openPanel({ type: view.panel });
+      openPanel({
+        type: view.panel,
+        view: view.view || undefined,
+        query: view.query || '',
+        filter: view.recordType || 'all',
+      });
   };
   const api = useMemo(
     () => ({
@@ -678,14 +715,9 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
     [home, fitNode, project, graph, showRecord, showNode],
   );
   useImperativeHandle(ref, () => api, [api]);
+  const hasSize = size.width > 0 && size.height > 0;
   useEffect(() => {
-    if (
-      !flowReady ||
-      initialized.current ||
-      size.width <= 0 ||
-      size.height <= 0
-    )
-      return;
+    if (!flowReady || initialized.current || !hasSize) return;
     let active = true;
     const timer = setTimeout(
       () =>
@@ -694,6 +726,11 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
             if (!active) return;
             initialized.current = true;
             await restore.current?.();
+            // Readiness includes the restored workspace's committed DOM, so a
+            // host can query its search/filter controls as soon as ready resolves.
+            await new Promise((resolve) =>
+              requestAnimationFrame(() => requestAnimationFrame(resolve)),
+            );
           })
           .then(() => {
             if (active) readyCallback.current?.(api);
@@ -704,7 +741,7 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
       active = false;
       clearTimeout(timer);
     };
-  }, [flowReady, home, api, size.width, size.height]);
+  }, [flowReady, home, api, hasSize]);
   // Writing waits a beat so a pan or a zoom leaves one address behind, not one
   // per frame.
   useEffect(() => {
@@ -732,7 +769,8 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
       aria-label={model.title || copy.title}
       data-engine="react-flow"
       data-layout="elkjs"
-      data-panel-open={String(!!panel)}
+      data-panel-open={String(!!panel && !workspace)}
+      data-workspace={String(workspace)}
       data-mobile-reading={String(!!panel && !mobileMap)}
       onPointerDownCapture={(e) => {
         if (!e.target.closest('button,input,select,textarea,summary,a'))
@@ -745,6 +783,10 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         filters={filters}
         setFilters={setFilters}
         panel={panel}
+        workspace={workspace}
+        replacePanel={navigation.replace}
+        optionsOpen={surfaces.includes('options')}
+        toggleOptions={(open) => toggleSurface('options', open)}
         mobileMap={mobileMap}
         setMobileMap={setMobileMap}
         pane={pane}
@@ -758,6 +800,7 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         ref={pane}
         tabIndex={-1}
         role="region"
+        inert={workspace ? true : undefined}
         aria-labelledby={instanceId + '-map-heading'}
         onPointerMoveCapture={(e) => {
           pointer.current = { x: e.clientX, y: e.clientY };
@@ -827,21 +870,23 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         />
         <Failure report={failure} dismiss={() => setFailure(null)} />
       </div>
-      <MapChrome
-        path={path}
-        home={home}
-        up={up}
-        fitNode={fitNode}
-        changeZoom={changeZoom}
-        zoom={viewport.zoom}
-        overviewZoom={overviewZoom}
-        activeKey={activeKey}
-        outside={outside}
-        clearFocus={() => {
-          setSelected(null);
-          setContextEnabled(false);
-        }}
-      />
+      <div className="map-chrome" inert={workspace ? true : undefined}>
+        <MapChrome
+          path={path}
+          home={home}
+          up={up}
+          fitNode={fitNode}
+          changeZoom={changeZoom}
+          zoom={viewport.zoom}
+          overviewZoom={overviewZoom}
+          activeKey={activeKey}
+          outside={outside}
+          clearFocus={() => {
+            setSelected(null);
+            setContextEnabled(false);
+          }}
+        />
+      </div>
       <Inspector
         panel={panel}
         interfaces={panel?.key ? interfaces.get(panel.key) : null}
@@ -852,7 +897,7 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         overview={() => openPanel({ type: 'project' })}
         close={closePanel}
         navigation={navigation}
-        hidden={mobileMap && root.current?.clientWidth <= 780}
+        hidden={!workspace && mobileMap && root.current?.clientWidth <= 780}
       />
     </div>
   );

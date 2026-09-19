@@ -31,9 +31,16 @@ export function usePanelNavigation(root, initial, readScene, restoreScene) {
   }, [root]);
   const open = useCallback(
     (next) => {
+      const workspace =
+        next.type === 'record'
+          ? next.workspace ||
+            current.current?.view ||
+            current.current?.workspace ||
+            'all'
+          : undefined;
       if (current.current) stack.current.push(capture());
       else returnFocus.current = document.activeElement;
-      commit({ ...next, scroll: 0, entryId: ++sequence.current });
+      commit({ ...next, workspace, scroll: 0, entryId: ++sequence.current });
     },
     [capture, commit],
   );

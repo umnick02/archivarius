@@ -1,9 +1,25 @@
-import { Fragment } from 'react';
-import { documentValue, renderDocument } from '../model/documents.mjs';
+import { Fragment, useEffect, useRef } from 'react';
+import {
+  documentValue,
+  renderDocument,
+  documentInline,
+} from '../model/documents.mjs';
 import { useArchitecture } from './context.jsx';
 
-export function ProjectDocument({ document, showRecord }) {
+export function ProjectDocument({ document, showRecord, anchor }) {
   const { project, projectCopy: copy } = useArchitecture();
+  const element = useRef(null);
+  useEffect(() => {
+    if (!anchor) return;
+    const frame = requestAnimationFrame(() => {
+      const target = [
+        ...(element.current?.querySelectorAll('[data-document-anchor]') || []),
+      ].find((item) => item.dataset.documentAnchor === anchor);
+      target?.scrollIntoView({ block: 'start' });
+      target?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [document.key, anchor]);
   const records = new Map(
     project.records.map((record) => [record.key, record]),
   );
@@ -19,7 +35,34 @@ export function ProjectDocument({ document, showRecord }) {
   const line = (parts) =>
     parts.map((part, i) =>
       typeof part === 'string' ? (
-        part
+        <Fragment key={i}>
+          {documentInline(part, document, project.records).map((token, j) =>
+            token.kind === 'strong' ? (
+              <strong key={j}>{token.text}</strong>
+            ) : token.kind === 'code' ? (
+              <code key={j}>{token.text}</code>
+            ) : token.kind === 'reference' ? (
+              <button
+                key={j}
+                className="record-link"
+                data-record-link={token.record}
+                onClick={() => showRecord(token.record, token.anchor)}
+              >
+                {documentInline(token.text, document, []).map((part, k) =>
+                  part.kind === 'code' ? (
+                    <code key={k}>{part.text}</code>
+                  ) : part.kind === 'strong' ? (
+                    <strong key={k}>{part.text}</strong>
+                  ) : (
+                    part.text
+                  ),
+                )}
+              </button>
+            ) : (
+              token.text
+            ),
+          )}
+        </Fragment>
       ) : (
         <button
           key={i}
@@ -108,76 +151,74 @@ export function ProjectDocument({ document, showRecord }) {
         return null;
     }
   };
-  const tree = { level: 0, blocks: [], children: [] },
-    stack = [tree];
-  for (const [index, item] of document.blocks.entries()) {
-    if (item.kind === 'heading') {
-      while (stack.at(-1).level >= item.level) stack.pop();
-      const section = {
-        index,
-        level: item.level,
-        title: item.content,
-        blocks: [],
-        children: [],
-      };
-      stack.at(-1).children.push(section);
-      stack.push(section);
-    } else stack.at(-1).blocks.push(item);
-  }
-  const section = (item) => {
-    const links = [
-      ...new Set(
-        item.title
-          .filter((part) => typeof part === 'object')
-          .map((part) => part.record),
-      ),
-    ];
-    return (
-      <details
-        key={item.index}
-        data-disclosure={`document-${document.key}-${item.index}`}
-      >
-        <summary>
-          {item.title
-            .map((part) =>
-              typeof part === 'string' ? part : documentValue(records, part),
-            )
-            .join('')}
-        </summary>
-        {links.map((key) => (
-          <p key={key}>
-            <button
-              className="record-link"
-              data-record-link={key}
-              onClick={() => showRecord(key)}
-            >
-              {copy.openRecord}: {records.get(key).title}
-            </button>
-          </p>
-        ))}
-        {item.blocks.map(block)}
-        {item.children.map(section)}
-      </details>
+  const headings = document.blocks.flatMap((item, index) =>
+    item.kind === 'heading' ? [{ ...item, index }] : [],
+  );
+  const headingText = (item) =>
+    item.content
+      .map((part) =>
+        typeof part === 'string' ? part : documentValue(records, part),
+      )
+      .join('');
+  const slug = (item) =>
+    headingText(item)
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}\s-]/gu, '')
+      .trim()
+      .replace(/\s+/g, '-');
+  const jump = (index) => {
+    const target = element.current?.querySelector(
+      `[data-document-section="${index}"]`,
     );
+    target?.scrollIntoView({ block: 'start' });
+    target?.focus({ preventScroll: true });
   };
   return (
-    <div className="project-document">
-      {tree.blocks.map(block)}
-      {tree.children.map((item) =>
-        item.level === 1 ? (
-          <Fragment key={item.index}>
-            {!!item.blocks.length && (
-              <details data-disclosure={`document-${document.key}-intro`}>
-                <summary>{copy.documentIntro}</summary>
-                {item.blocks.map(block)}
-              </details>
-            )}
-            {item.children.map(section)}
-          </Fragment>
-        ) : (
-          section(item)
-        ),
+    <div className="project-document" ref={element}>
+      {headings.length > 1 && (
+        <nav className="document-contents" aria-label={copy.contents}>
+          <strong>{copy.contents}</strong>
+          {headings
+            .filter(
+              (item) =>
+                item.level <= 2 &&
+                !(item.level === 1 && headingText(item) === document.title),
+            )
+            .map((item) => (
+              <button
+                key={item.index}
+                className="record-link"
+                onClick={() => jump(item.index)}
+              >
+                {headingText(item)}
+              </button>
+            ))}
+        </nav>
       )}
+      {document.blocks.map((item, index) => {
+        if (item.kind !== 'heading') return block(item, index);
+        if (item.level === 1 && headingText(item) === document.title)
+          return (
+            <span
+              key={index}
+              data-document-section={index}
+              data-document-anchor={slug(item)}
+              tabIndex={-1}
+            />
+          );
+        const Heading = `h${Math.min(6, Math.max(2, item.level + 1))}`;
+        return (
+          <Heading
+            key={index}
+            className="document-section"
+            data-document-section={index}
+            data-document-anchor={slug(item)}
+            tabIndex={-1}
+          >
+            {line(item.content)}
+          </Heading>
+        );
+      })}
     </div>
   );
 }

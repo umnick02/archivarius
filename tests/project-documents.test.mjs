@@ -500,3 +500,53 @@ test('the reference lists the open questions instead of filing them as facts', a
     'still claims none are open',
   );
 });
+
+test('document inline navigation only resolves known model documents and keeps active content inert', async () => {
+  const { documentInline } = await import('../src/model/documents.mjs');
+  const document = { key: 'guide', type: 'document', path: 'docs/guide.md' };
+  const other = {
+    key: 'rules',
+    type: 'document',
+    path: 'requirements/rules.md',
+  };
+  assert.deepEqual(
+    documentInline(
+      '**Owns:** `path` [Rules](../requirements/rules.md#limits)',
+      document,
+      [document, other],
+    ),
+    [
+      { kind: 'strong', text: 'Owns:' },
+      { kind: 'text', text: ' ' },
+      { kind: 'code', text: 'path' },
+      { kind: 'text', text: ' ' },
+      { kind: 'reference', text: 'Rules', record: 'rules', anchor: 'limits' },
+    ],
+  );
+  for (const text of [
+    '<img src=x onerror=alert(1)>',
+    '[bad](javascript:alert)',
+    '[remote](https://example.com)',
+    '[missing](missing.md)',
+    '![image](guide.md)',
+    '[invalid](guide.md#%ZZ)',
+    '[query](guide.md?q=x)',
+    '[absolute](/docs/guide.md)',
+  ]) {
+    assert.equal(
+      documentInline(text, document, [document])
+        .map((token) => token.text)
+        .join(''),
+      text,
+    );
+    assert(
+      documentInline(text, document, [document]).every(
+        (token) => token.kind === 'text',
+      ),
+    );
+  }
+  assert.deepEqual(documentInline('[Here](#intro)', document, [document]), [
+    { kind: 'reference', text: 'Here', record: 'guide', anchor: 'intro' },
+  ]);
+  assert.deepEqual(documentInline('', document, [document]), []);
+});

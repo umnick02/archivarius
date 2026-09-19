@@ -44,6 +44,7 @@ test('an absent address is the view the map opens with', () => {
 
 test('every field of the view survives the round trip', () => {
   const view = {
+    ...emptyView,
     at: 'query',
     level: 'engine',
     zoom: 1.25,
@@ -292,4 +293,24 @@ test('the surfaces a reader opened are carried by the address', () => {
       ).open,
       [name],
     );
+});
+
+test('project workspaces restore the search, record filter and document section', () => {
+  const view = {
+    ...emptyView,
+    panel: 'project',
+    view: 'work',
+    query: 'export rows',
+    recordType: 'task',
+    anchor: 'checks',
+  };
+  assert.deepEqual(parseAddress(writeAddress('', view)), view);
+  assert.equal(
+    parseAddress('map.view=unknown&map.recordType=unknown').view,
+    null,
+  );
+  assert.equal(
+    parseAddress('map.view=unknown&map.recordType=unknown').recordType,
+    null,
+  );
 });

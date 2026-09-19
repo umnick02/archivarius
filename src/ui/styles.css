@@ -121,7 +121,7 @@
    rather than clipping or scrolling what does not fit, and its height is
    published as `--header-height` by the app that measures it. */
 .archivarius header {
-  min-height: var(--header-height);
+  min-height: 3.5rem;
   position: relative;
   z-index: 50;
   background: var(--raised);
@@ -472,7 +472,20 @@
 .archivarius .node-card.expanded {
   background: color-mix(in srgb, var(--accent) 3%, var(--soft));
 }
+.archivarius .card-copy > h2 {
+  flex-shrink: 1;
+  min-height: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.archivarius .card-interfaces {
+  min-height: 0;
+  overflow: hidden;
+}
 .archivarius .card-copy {
+  container: card-content / size;
   padding: var(--pad);
   height: 100%;
   display: flex;
@@ -499,13 +512,15 @@
   margin: var(--gap) 0 0;
 }
 .archivarius .node-summary {
-  flex-shrink: 0;
+  min-height: 0;
+  flex-shrink: 1;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 .archivarius .node-footer {
+  flex-shrink: 0;
   margin-top: auto;
   padding-top: var(--gap);
   font-size: var(--small);
@@ -1237,4 +1252,320 @@
 }
 .archivarius .reach-arrow {
   color: var(--muted);
+}
+
+/* Project work uses the whole reading surface; the live map keeps its camera. */
+.archivarius .map-chrome {
+  display: contents;
+}
+.archivarius [data-workspace='true'] :is(.map-pane, .map-chrome) {
+  visibility: hidden;
+  pointer-events: none;
+}
+.archivarius [data-workspace='true'] [data-control='inspector'] {
+  left: 0;
+  right: 0;
+  top: var(--header-height);
+  bottom: 0;
+  width: auto;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0 clamp(1rem, 5%, 5rem) 3rem;
+}
+.archivarius [data-workspace='true'] .inspector-navigation {
+  padding-top: 0.75rem;
+}
+.archivarius input {
+  font: inherit;
+  color: var(--text);
+  background: var(--field-strong);
+  border: 1px solid var(--line);
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  min-width: 0;
+}
+.archivarius .workspace-navigation {
+  flex-basis: 100%;
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+.archivarius .workspace-navigation button {
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.875rem;
+}
+.archivarius .workspace-navigation [aria-current] {
+  color: var(--link);
+  background: var(--soft);
+  box-shadow: inset 0 -2px var(--link);
+}
+.archivarius .map-options {
+  position: relative;
+  margin: 0;
+}
+.archivarius .map-options > summary {
+  padding: 0.5rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.archivarius .map-options-body {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  width: min(24rem, calc(100cqw - 2rem));
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--raised);
+  box-shadow: 0 4px 14px var(--shadow-soft);
+  display: grid;
+  gap: 0.75rem;
+}
+.archivarius .map-options-body label {
+  display: grid;
+  gap: 0.375rem;
+}
+.archivarius .map-options-body :is(select, .map-filters) {
+  width: 100%;
+  max-width: none;
+}
+.archivarius .map-options-body .map-filters {
+  display: grid;
+}
+.archivarius .project-filters select {
+  width: auto;
+  min-width: 12rem;
+}
+.archivarius .project-list-heading,
+.archivarius .record-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(9rem, 0.65fr);
+  gap: 1.5rem;
+  align-items: center;
+}
+.archivarius .project-list-heading {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--line-strong);
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.archivarius .project-result {
+  border-bottom: 1px solid var(--line);
+  position: relative;
+}
+.archivarius .record-row {
+  width: 100%;
+  margin: 0;
+  padding: 0.875rem 1rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  text-align: left;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+.archivarius .record-row:hover {
+  background: var(--soft);
+}
+.archivarius .record-row-title {
+  display: grid;
+  gap: 0.125rem;
+}
+.archivarius .record-row-title small {
+  font-size: 0.6875rem;
+}
+.archivarius .record-row-context,
+.archivarius .record-excerpt {
+  color: var(--muted);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+.archivarius .record-excerpt {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.archivarius .record-status {
+  width: fit-content;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+}
+.archivarius .record-status[data-state='confirmed'] {
+  color: var(--good);
+}
+.archivarius .project-result > .record-link {
+  margin: 0 1rem 0.5rem;
+}
+.archivarius [data-workspace='true'] .project-questions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.75rem;
+}
+.archivarius [data-workspace='true'] .project-purpose {
+  max-width: 72ch;
+}
+.archivarius .record-primary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  column-gap: 2rem;
+}
+.archivarius
+  .record-primary
+  > :is(
+    [data-field='change'],
+    [data-field='rule'],
+    [data-field='summary'],
+    [data-field='method'],
+    [data-field='choice'],
+    [data-field='assertion']
+  ) {
+  grid-column: 1 / -1;
+}
+.archivarius .record-primary .field-value {
+  max-width: 80ch;
+}
+.archivarius .record-primary .record-links,
+.archivarius .project-links .record-links {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+.archivarius .record-primary .record-link,
+.archivarius .project-links .record-link {
+  padding: 0.25rem 0.625rem;
+  border: 1px solid var(--line);
+  border-radius: 0.375rem;
+  margin: 0;
+  text-decoration: none;
+}
+.archivarius .record-standing {
+  display: flex;
+  gap: 0.75rem 1.5rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 0;
+  border-block: 1px solid var(--line);
+}
+.archivarius .record-standing div {
+  display: grid;
+  gap: 0.25rem;
+}
+.archivarius .record-standing dt {
+  color: var(--muted);
+  font-size: 0.6875rem;
+}
+.archivarius .record-standing dd {
+  margin: 0;
+  font-size: 0.8125rem;
+}
+.archivarius .project-links {
+  margin-block: 1.5rem;
+}
+.archivarius .revision-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+.archivarius .revision-comparison > div {
+  min-width: 0;
+}
+.archivarius .document-contents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  padding: 0.75rem 0;
+  border-block: 1px solid var(--line);
+}
+.archivarius .document-contents strong {
+  flex-basis: 100%;
+}
+.archivarius .document-section {
+  scroll-margin-top: 4rem;
+  margin-block: 2rem;
+}
+.archivarius .project-document :is(p, li, blockquote) {
+  max-width: 85ch;
+}
+.archivarius .project-document code {
+  font-size: 0.875em;
+  padding: 0.125rem 0.25rem;
+  background: var(--soft);
+  border-radius: 0.25rem;
+}
+@container (max-width: 780px) {
+  .archivarius header {
+    padding: 0.5rem 0.75rem;
+    gap: 0.5rem;
+  }
+  .archivarius header .subtitle {
+    display: none;
+  }
+  .archivarius .header-right {
+    flex: 1 1 100%;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .archivarius .header-right > input {
+    flex: 1;
+    width: 8rem;
+    max-width: none;
+  }
+  .archivarius .workspace-navigation {
+    gap: 0;
+  }
+  .archivarius .workspace-navigation button {
+    padding: 0.4375rem;
+    font-size: 0.75rem;
+  }
+  .archivarius .project-list-heading {
+    display: none;
+  }
+  .archivarius .record-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem;
+    padding: 0.875rem 0.25rem;
+  }
+  .archivarius .record-row-context {
+    grid-row: 2;
+  }
+  .archivarius .record-status {
+    max-width: 9rem;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+  .archivarius .revision-comparison {
+    grid-template-columns: 1fr;
+  }
+}
+
+.archivarius [data-workspace='true'] .record-row {
+  min-height: 3.5rem;
+  padding-block: 0.65rem;
+}
+.archivarius [data-workspace='true'] .work-note {
+  display: inline;
+  margin-right: 1rem;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+.archivarius [data-workspace='true'] .project-filters:empty {
+  display: none;
+}
+
+/* Screen pixels decide which details are mounted; the actual text budget decides
+   which fit, including when the reader doubles the font size. */
+@container card-content (max-height: 12rem) {
+  .archivarius .card-copy :is(.eyebrow, .node-summary, .card-interfaces) {
+    display: none;
+  }
+}
+@container card-content (max-height: 6rem) {
+  .archivarius .card-copy .node-footer {
+    display: none;
+  }
 }

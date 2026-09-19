@@ -331,6 +331,7 @@ const checkDownload = async (data, name = 'first') => {
     behavior: 'allow',
     downloadPath: downloads.pathname,
   });
+  await click('#' + name + ' [data-control=map-options] > summary');
   await click('#' + name + ' [data-control=about]');
   await click('#' + name + ' [data-control=download-docs]');
   let text;
@@ -566,7 +567,9 @@ try {
   );
 
   // Now the reading surface: the inspector, its close control and its disclosures.
+  await click('#first [data-control=map-options] > summary');
   await auditRings('reading');
+  await click('#first [data-control=map-options] > summary');
   // Together the two passes have to have covered every control the surface owns,
   // or the audit above proves nothing about the ones it never focused.
   assert.deepEqual(
@@ -684,7 +687,9 @@ try {
   );
   assert.deepEqual(await tabStops(), [overview[0]]);
   await b.evaluate(() =>
-    document.querySelector('#first [data-control=about]').focus(),
+    document
+      .querySelector('#first [data-control=map-options] > summary')
+      .focus(),
   );
   await tab();
   assert.equal(await spot(), 'node:' + overview[0]);
@@ -913,6 +918,7 @@ try {
   assert.equal((await state()).relations.length, interactions);
   assert.equal((await state()).layer, 'data');
   assert.equal((await state('second')).layer, 'all');
+  await click('#first [data-control=map-options] > summary');
   await click('#first [data-control=contracts]');
   assert.equal(
     await b.evaluate(
@@ -996,7 +1002,9 @@ try {
   assert.deepEqual((await state()).visible, ['archive']);
   assert.deepEqual(await tabStops(), ['archive']);
   await b.evaluate(() =>
-    document.querySelector('#first [data-control=about]').focus(),
+    document
+      .querySelector('#first [data-control=map-options] > summary')
+      .focus(),
   );
   await tab();
   assert.equal(await spot(), 'node:archive');

@@ -1,9 +1,13 @@
-import { useMemo } from 'react';
+import { Fragment, useMemo } from 'react';
 import { useArchitecture, format } from './context.jsx';
-import { ProjectConfirmation } from './ProjectInspector.jsx';
+import { ProjectConfirmation, readingTime } from './ProjectInspector.jsx';
 import { digest } from '../model/digest.mjs';
 import { openQuestions } from '../model/project-questions.mjs';
-import { searchRecord, viewTypes } from '../model/project-view.mjs';
+import {
+  claimStanding,
+  searchRecord,
+  viewTypes,
+} from '../model/project-view.mjs';
 
 // An unanswered question must not read as a fact, so the overview states the open
 // list where the project states its outcome — including when it is empty, because
@@ -48,40 +52,43 @@ export function ProjectOverview({
   showRecord,
   fitNode,
 }) {
-  const { project, projectCopy: copy, analysis } = useArchitecture();
+  const {
+    project,
+    projectCopy: copy,
+    copy: mapCopy,
+    analysis,
+  } = useArchitecture();
   const { view = 'overview', query = '', filter = 'all' } = panel;
   const root = project.records.find((r) => r.key === project.root);
+  const snapshot = useMemo(() => digest(project), [project]);
+  const titles = useMemo(
+    () => new Map(project.records.map((r) => [r.key, r.title])),
+    [project],
+  );
   const records = useMemo(
     () =>
-      project.records.flatMap((record) => {
-        if (viewTypes[view] && !viewTypes[view].includes(record.type))
-          return [];
-        if (view === 'work' && analysis.completion[record.key].implemented)
-          return [];
-        if (filter !== 'all' && record.type !== filter) return [];
-        const match = searchRecord(project, record, query, copy);
-        return match ? [{ record, match }] : [];
-      }),
+      project.records
+        .flatMap((record) => {
+          if (viewTypes[view] && !viewTypes[view].includes(record.type))
+            return [];
+          if (view === 'work' && analysis.completion[record.key].implemented)
+            return [];
+          if (filter !== 'all' && record.type !== filter) return [];
+          const match = searchRecord(project, record, query, copy);
+          return match ? [{ record, match }] : [];
+        })
+        .sort((a, b) =>
+          view === 'all'
+            ? Object.keys(copy.types).indexOf(a.record.type) -
+              Object.keys(copy.types).indexOf(b.record.type)
+            : 0,
+        ),
     [project, analysis, copy, view, query, filter],
   );
   const choose = (view) => navigate({ type: 'project', view });
   const search = (
     <div className="project-filters" key="search">
-      <input
-        data-control="record-search"
-        type="search"
-        aria-label={copy.search}
-        placeholder={copy.search}
-        value={query}
-        onChange={(e) =>
-          update({
-            query: e.target.value,
-            view: view === 'overview' ? 'all' : view,
-            scroll: 0,
-          })
-        }
-      />
-      {view !== 'overview' && (
+      {view !== 'overview' && viewTypes[view]?.length !== 1 && (
         <select
           data-control="record-type"
           aria-label={copy.all}
@@ -100,8 +107,10 @@ export function ProjectOverview({
   );
   return (
     <>
-      <div className="eyebrow">{copy.views[view]}</div>
-      <h2>{project.title}</h2>
+      <div className="eyebrow">
+        {view === 'overview' ? copy.views[view] : project.title}
+      </div>
+      <h2>{view === 'overview' ? project.title : copy.views[view]}</h2>
       {view === 'overview' && <p className="project-purpose">{root.purpose}</p>}
       {search}
       {view === 'overview' ? (
@@ -138,12 +147,11 @@ export function ProjectOverview({
             <ProjectConfirmation
               recordKey={project.root}
               showRecord={showRecord}
-              expanded
             />
           )}
           {view === 'work' && (
             <>
-              <p>{copy.workNote}</p>
+              <p className="work-note">{copy.workNote}</p>
               <button
                 className="record-link"
                 onClick={() => choose('confirmation')}
@@ -159,31 +167,84 @@ export function ProjectOverview({
             })}
           </p>
           <div className="project-records">
-            {records.map(({ record: r, match }) => (
-              <div className="project-result" key={r.key}>
-                <button
-                  className="panel-button"
-                  data-record={r.key}
-                  onClick={() => showRecord(r.key)}
-                >
-                  <small>{copy.types[r.type]}</small>
-                  <strong>{r.title}</strong>
-                  <span>
-                    {query.trim() && match.field ? `${match.field}: ` : ''}
-                    {match.snippet || match.text}
-                  </span>
-                </button>
-                {r.type === 'component' && (
-                  <button
-                    className="record-link"
-                    data-show-map={r.key}
-                    onClick={() => fitNode(r.key)}
-                  >
-                    {copy.map}
-                  </button>
-                )}
-              </div>
-            ))}
+            <div className="project-list-heading" aria-hidden="true">
+              <span>{copy.recordColumn}</span>
+              <span>{copy.contextColumn}</span>
+              <span>{copy.statusColumn}</span>
+            </div>
+            {records.map(({ record: r, match }, index) => {
+              const completion = analysis.completion[r.key];
+              const freshness = analysis.freshness[r.key];
+              const status =
+                r.type === 'document'
+                  ? copy.values[r.stage]
+                  : r.type === 'result'
+                    ? copy.values[r.outcome]
+                    : ['source', 'decision'].includes(r.type)
+                      ? freshness.current &&
+                        !claimStanding(project, r.key, readingTime)?.ageing
+                        ? copy.definitionCurrent
+                        : copy.definitionReview
+                      : mapCopy.mapImplementation[completion.state];
+              const context =
+                r.affects ||
+                r.targets ||
+                r.appliesTo ||
+                r.covers ||
+                (r.requirement ? [r.requirement] : r.check ? [r.check] : []);
+              return (
+                <Fragment key={r.key}>
+                  {view === 'all' &&
+                    records[index - 1]?.record.type !== r.type && (
+                      <h3 className="record-group" data-record-group={r.type}>
+                        {copy.types[r.type]}
+                      </h3>
+                    )}
+                  <div className="project-result">
+                    <button
+                      className="record-row"
+                      data-record={r.key}
+                      onClick={() => showRecord(r.key)}
+                    >
+                      <span className="record-row-title">
+                        {view !== 'all' && viewTypes[view]?.length !== 1 && (
+                          <small>{copy.types[r.type]}</small>
+                        )}
+                        <strong>{r.title}</strong>
+                        {query.trim() && (
+                          <span className="record-excerpt">
+                            {match.field ? `${match.field}: ` : ''}
+                            {match.snippet || match.text}
+                          </span>
+                        )}
+                      </span>
+                      <span className="record-row-context">
+                        {context
+                          .slice(0, 2)
+                          .map((key) => titles.get(key) || key)
+                          .join(' · ')}
+                        {context.length > 2 ? ` +${context.length - 2}` : ''}
+                      </span>
+                      <span
+                        className="record-status"
+                        data-state={completion?.state}
+                      >
+                        {status}
+                      </span>
+                    </button>
+                    {r.type === 'component' && (
+                      <button
+                        className="record-link"
+                        data-show-map={r.key}
+                        onClick={() => fitNode(r.key)}
+                      >
+                        {copy.map}
+                      </button>
+                    )}
+                  </div>
+                </Fragment>
+              );
+            })}
           </div>
           {!records.length && (
             <p>{view === 'work' ? copy.emptyWork : copy.empty}</p>
@@ -195,7 +256,7 @@ export function ProjectOverview({
         <p>{copy.basisNote}</p>
         <p>{copy.conservative}</p>
         <code className="record-technical">
-          {copy.snapshot}: {digest(project)}
+          {copy.snapshot}: {snapshot}
         </code>
       </details>
     </>

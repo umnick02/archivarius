@@ -1,5 +1,7 @@
 import { ProjectDocument } from './ProjectDocument.jsx';
 import { useArchitecture, format } from './context.jsx';
+import { movedFields } from '../model/project-diff.mjs';
+import { bindingParts } from '../model/binding.mjs';
 import { digest } from '../model/digest.mjs';
 import { recordReferences } from '../model/records.mjs';
 import { ImplementationMark } from './ImplementationMark.jsx';
@@ -15,7 +17,7 @@ import {
 
 // The one clock read outside a render: the instant this surface was loaded, which
 // is the instant every claim's age is read against.
-const loaded = Date.now();
+export const readingTime = Date.now();
 
 // What a claim's receipt says about itself: the author, the day it was written,
 // the life it was given and where that life was stated. The model computes all of
@@ -30,7 +32,7 @@ function ClaimStanding({ standing }) {
     [
       copy.claimLife,
       standing.life === null
-        ? copy.claimUnbounded
+        ? null
         : format(copy.claimLifeDays, { life: standing.life }),
     ],
     [
@@ -89,7 +91,7 @@ export function ProjectConfirmation({
   // never reads a clock itself and never ticks one: an age is stated in days, and
   // the reading instant is the visit. An ageing claim is then reported as ageing
   // and is not offered as current, whatever the clockless verdict said.
-  const standing = claimStanding(project, recordKey, loaded);
+  const standing = claimStanding(project, recordKey, readingTime);
   const ageing = !!standing?.ageing;
   const reasons =
     ageing &&
@@ -122,7 +124,13 @@ export function ProjectConfirmation({
           )}
         </b>
       </p>
-      <ClaimStanding standing={standing} />
+      {standing?.claimed &&
+        (standing.author || standing.writtenAt || standing.life !== null) && (
+          <details data-disclosure={`${recordKey}-claim`}>
+            <summary>{copy.claim}</summary>
+            <ClaimStanding standing={standing} />
+          </details>
+        )}
       {applicable && item.progress.criteria.length > 0 && (
         <div className="implementation-progress">
           <p>
@@ -154,6 +162,7 @@ export function ProjectConfirmation({
           {applicable && <p>{copy.confirmationNote}</p>}
           {groups.map((group) => (
             <details
+              open={groups.length === 1}
               className="reason-group"
               key={group.code}
               data-reason={group.code}
@@ -275,7 +284,11 @@ function RecordField({ record, field, showRecord }) {
   return (
     <section className="record-field" data-field={field}>
       <h3>{fieldName(copy, field)}</h3>
-      {links.length ? (
+      {value === undefined ? (
+        <p>{copy.absent}</p>
+      ) : ['blocks', 'data'].includes(field) && record.type === 'document' ? (
+        <ProjectDocument document={record} showRecord={showRecord} />
+      ) : links.length ? (
         <RecordLinks
           keys={links.map((ref) => ref.key)}
           showRecord={showRecord}
@@ -323,8 +336,9 @@ export function ProjectInspector({
   showRecord,
   fitNode,
   interactions,
+  anchor,
 }) {
-  const { project, projectCopy: copy } = useArchitecture();
+  const { project, analysis, projectCopy: copy } = useArchitecture();
   const record = project.records.find((r) => r.key === recordKey);
   if (!record) {
     const history = project.history.filter((h) => h.record.key === recordKey);
@@ -342,6 +356,9 @@ export function ProjectInspector({
       </>
     );
   }
+  const bindings = project.bindings[record.key]
+    ? bindingParts(project.bindings[record.key])
+    : [];
   const present = (field) => stated(record, field);
   const renderField = (field) =>
     present(field) && (
@@ -362,9 +379,52 @@ export function ProjectInspector({
   );
   return (
     <>
-      <div className="eyebrow">{copy.types[record.type]}</div>
+      <div className="eyebrow">
+        {copy.types[record.type]}
+        {record.type === 'document' ? ` · ${copy.values[record.stage]}` : ''}
+      </div>
       <h2 data-record-title={record.key}>{record.title}</h2>
-      <div className="record-primary">{primary.map(renderField)}</div>
+      {record.type !== 'document' && (
+        <dl className="record-standing">
+          <div>
+            <dt>{copy.definition}</dt>
+            <dd>
+              {analysis.freshness[record.key]?.current &&
+              !claimStanding(project, record.key, readingTime)?.ageing
+                ? copy.definitionCurrent
+                : copy.definitionReview}
+            </dd>
+          </div>
+          <div>
+            <dt>{copy.bindings}</dt>
+            <dd>
+              {bindings.length ? (
+                <details>
+                  <summary>
+                    {new Set(bindings.map((binding) => binding.path)).size}
+                  </summary>
+                  {bindings.map((binding) => (
+                    <code
+                      key={`${binding.path}:${binding.from || 0}:${binding.to || 0}`}
+                    >
+                      {binding.path}
+                      {binding.from
+                        ? `:${binding.from}${binding.to ? `–${binding.to}` : ''}`
+                        : ''}
+                      <br />
+                    </code>
+                  ))}
+                </details>
+              ) : (
+                copy.noBindings
+              )}
+            </dd>
+          </div>
+        </dl>
+      )}
+      {record.type !== 'document' && (
+        <div className="record-primary">{primary.map(renderField)}</div>
+      )}
       {record.type === 'component' && (
         <>
           <button
@@ -377,16 +437,36 @@ export function ProjectInspector({
           {interactions}
         </>
       )}
+      {record.type === 'result' && (
+        <section className="record-evidence">
+          <h3>{copy.fields.evidence}</h3>
+          <ul>
+            {record.evidence.flatMap(bindingParts).map((binding, i) => (
+              <li key={i}>
+                <code>{binding.path}</code>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {record.type === 'document' ? (
-        <ProjectDocument document={record} showRecord={showRecord} />
+        <ProjectDocument
+          document={record}
+          showRecord={showRecord}
+          anchor={anchor}
+        />
       ) : (
         <ProjectConfirmation recordKey={record.key} showRecord={showRecord} />
       )}
-      <details className="record-secondary" data-disclosure="more">
-        <summary>{copy.more}</summary>
-        {secondary.map(renderField)}
-        <ProjectLinks recordKey={record.key} showRecord={showRecord} />
-        <h3>{copy.details}</h3>
+      <ProjectLinks recordKey={record.key} showRecord={showRecord} />
+      {!!secondary.length && (
+        <details className="record-secondary" data-disclosure="more">
+          <summary>{copy.more}</summary>
+          {secondary.map(renderField)}
+        </details>
+      )}
+      <details className="record-provenance" data-disclosure="technical">
+        <summary>{copy.details}</summary>
         <code className="record-technical">
           {record.key} · {digest(record)}
         </code>
@@ -418,19 +498,56 @@ export function ProjectInspector({
               })}
             </details>
           ))}
-        <h3>{copy.history}</h3>
-        {project.history
-          .filter((h) => h.record.key === record.key)
-          .map((h) => (
-            <details key={h.digest}>
-              <summary>
-                {h.record.title} · {h.digest.slice(0, 12)}
-              </summary>
-              <p>{copy.historical}</p>
-              <RecordFields record={h.record} showRecord={showRecord} />
-            </details>
-          ))}
       </details>
+      {!!project.history.some((h) => h.record.key === record.key) && (
+        <details className="record-history" data-disclosure="history">
+          <summary>{copy.history}</summary>
+          {project.history
+            .filter((h) => h.record.key === record.key)
+            .map((h, i) => {
+              const fields = movedFields(h.record, record).filter(
+                (field) => !['key', 'type'].includes(field),
+              );
+              return (
+                <details key={h.digest}>
+                  <summary>
+                    {format(copy.revision, { number: i + 1 })} ·{' '}
+                    {h.record.title}
+                  </summary>
+                  <p>{copy.historical}</p>
+                  {fields.length ? (
+                    <div className="revision-comparison">
+                      <div>
+                        <h3>{copy.before}</h3>
+                        {fields.map((field) => (
+                          <RecordField
+                            key={field}
+                            record={h.record}
+                            field={field}
+                            showRecord={showRecord}
+                          />
+                        ))}
+                      </div>
+                      <div>
+                        <h3>{copy.after}</h3>
+                        {fields.map((field) => (
+                          <RecordField
+                            key={field}
+                            record={record}
+                            field={field}
+                            showRecord={showRecord}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <p>{copy.unchangedDefinition}</p>
+                  )}
+                </details>
+              );
+            })}
+        </details>
+      )}
     </>
   );
 }

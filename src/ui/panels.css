@@ -106,11 +106,10 @@
 .archivarius .map-neighbours {
   position: absolute;
   z-index: 32;
-  top: 4.25rem;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 5rem;
+  left: 1rem;
   width: max-content;
-  max-width: min(30rem, calc(100% - 1.5rem));
+  max-width: min(30rem, calc(100% - 14rem));
   max-height: 45%;
   overflow: auto;
   display: flex;
@@ -158,9 +157,10 @@
     padding: 0.75rem 0.875rem;
   }
   .archivarius .map-neighbours {
-    top: 3.5rem;
+    top: auto;
+    left: 0.5rem;
     width: calc(100% - 1rem);
-    max-width: calc(100% - 1rem);
+    max-width: calc(100% - 13rem);
     max-height: 35%;
   }
   .archivarius .map-empty {
@@ -261,5 +261,11 @@
   .archivarius .claim-standing[data-ageing='true'] dd {
     color: CanvasText;
     text-decoration: underline;
+  }
+}
+
+@container (max-width: 520px) {
+  .archivarius .map-neighbours {
+    max-width: calc(100% - 1rem);
   }
 }
