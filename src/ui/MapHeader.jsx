@@ -17,7 +17,6 @@ export function MapHeader({
   setMobileMap,
   pane,
   openPanel,
-  replacePanel,
   closePanel,
   contextActive,
   clearFocus,
@@ -34,85 +33,40 @@ export function MapHeader({
   const show = (key) => {
     if (!key) return;
     setHighlighted(key);
-    fitNode(key);
+    toggleOptions(false);
+    if (graph.nodes.get(key)?.children)
+      pane.current?.focus({ preventScroll: true });
+    fitNode(key, false, true);
   };
-  const active = workspace
-    ? panel.view || panel.workspace || 'overview'
-    : 'map';
   const activeOptions =
     Object.values(filters).filter((value) => value !== 'all').length +
     Number(layer !== 'all');
   return (
     <>
       <header>
-        <div className="identity">
-          {navigation.canBack && (
-            <button
-              className="quiet"
-              data-control="navigation-back"
-              onClick={navigation.back}
-            >
-              ← {projectCopy.navigationBack}
-            </button>
-          )}
-          <div className="logo">↗</div>
-          <div>
-            <div className="brand">
-              {copy.brand} <span>/</span> {model.title || copy.title}
-            </div>
-            {!project && <div className="subtitle">{copy.subtitle}</div>}
-          </div>
-        </div>
-        <div className="header-right">
-          {project && (
-            <nav
-              className="workspace-navigation"
-              aria-label={projectCopy.button}
-            >
-              <button
-                className="quiet"
-                data-workspace-view="map"
-                aria-current={active === 'map' ? 'page' : undefined}
-                onClick={() => {
-                  closePanel();
-                }}
-              >
-                {projectCopy.navigation.map}
-              </button>
-              <button
-                className="quiet"
-                data-control="project"
-                aria-current={workspace ? 'page' : undefined}
-                onClick={() => {
-                  openPanel({ type: 'project', view: 'overview' });
-                }}
-              >
-                {projectCopy.diagram.browse}
-              </button>
-            </nav>
-          )}
-          {project ? (
-            <input
-              data-control="record-search"
-              type="search"
-              aria-label={projectCopy.search}
-              placeholder={projectCopy.search}
-              value={panel?.type === 'project' ? panel.query || '' : ''}
-              onChange={(e) => {
-                const next = {
-                  type: 'project',
-                  view: 'all',
-                  query: e.target.value,
-                  focusSearch: true,
-                  filter: panel?.view === 'all' ? panel.filter || 'all' : 'all',
-                  scroll: 0,
-                };
-                if (panel?.type === 'project') replacePanel(next);
-                else openPanel(next);
-              }}
-            />
-          ) : (
-            !!graph.nodes.size && (
+        {navigation.canBack && (
+          <button
+            className="quiet"
+            data-control="navigation-back"
+            onClick={navigation.back}
+          >
+            ← {projectCopy.navigationBack}
+          </button>
+        )}
+        <details
+          className="map-options"
+          data-control="map-options"
+          open={optionsOpen}
+          onToggle={(e) => toggleOptions(e.currentTarget.open)}
+        >
+          <summary>
+            {copy.menu}
+            {activeOptions > 0 && (
+              <span className="active-options"> · {activeOptions}</span>
+            )}
+          </summary>
+          <div className="map-options-body">
+            {!!graph.nodes.size && (
               <>
                 <input
                   data-control="node-search"
@@ -152,83 +106,80 @@ export function MapHeader({
                   </select>
                 )}
               </>
-            )
-          )}
-          <details
-            className="map-options"
-            data-control="map-options"
-            open={optionsOpen}
-            onToggle={(e) => toggleOptions(e.currentTarget.open)}
-          >
-            <summary>
-              {projectCopy.options}
-              {activeOptions > 0 && (
-                <span className="active-options"> · {activeOptions}</span>
-              )}
-            </summary>
-            <div className="map-options-body">
-              {contextActive && (
-                <button
-                  className="quiet"
-                  data-control="clear-focus"
-                  onClick={() => {
-                    clearFocus();
-                    toggleOptions(false);
-                  }}
-                >
-                  {projectCopy.clearFocus}
-                </button>
-              )}
+            )}
+            {project && (
+              <button
+                className="quiet"
+                data-control="project"
+                onClick={() => {
+                  toggleOptions(false);
+                  openPanel({ type: 'project', view: 'overview' });
+                }}
+              >
+                {projectCopy.diagram.browse}
+              </button>
+            )}
+            {contextActive && (
+              <button
+                className="quiet"
+                data-control="clear-focus"
+                onClick={() => {
+                  clearFocus();
+                  toggleOptions(false);
+                }}
+              >
+                {projectCopy.clearFocus}
+              </button>
+            )}
 
-              <label>
-                {copy.layerLabel}
-                <select
-                  data-control="layer"
-                  aria-label={copy.layerLabel}
-                  value={layer}
-                  onChange={(e) => {
-                    setLayer(e.target.value);
-                    closePanel();
-                  }}
-                >
-                  {Object.entries(copy.layers).map(([key, label]) => (
-                    <option key={key} value={key}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {!!graph.nodes.size && (
-                <Filters
-                  filters={filters}
-                  setFilter={(field, value) => {
-                    setFilters({ ...filters, [field]: value });
-                  }}
-                />
-              )}
-              <button
-                className="quiet"
-                data-control="contracts"
-                onClick={() => {
-                  toggleOptions(false);
-                  openPanel({ type: 'contracts' });
+            <label>
+              {copy.layerLabel}
+              <select
+                data-control="layer"
+                aria-label={copy.layerLabel}
+                value={layer}
+                onChange={(e) => {
+                  setLayer(e.target.value);
+                  closePanel();
                 }}
               >
-                {copy.rulesButton}
-              </button>
-              <button
-                className="quiet"
-                data-control="about"
-                onClick={() => {
-                  toggleOptions(false);
-                  openPanel({ type: 'about' });
+                {Object.entries(copy.layers).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {!!graph.nodes.size && (
+              <Filters
+                filters={filters}
+                setFilter={(field, value) => {
+                  setFilters({ ...filters, [field]: value });
                 }}
-              >
-                {copy.aboutButton}
-              </button>
-            </div>
-          </details>
-        </div>
+              />
+            )}
+            <button
+              className="quiet"
+              data-control="contracts"
+              onClick={() => {
+                toggleOptions(false);
+                openPanel({ type: 'contracts' });
+              }}
+            >
+              {copy.rulesButton}
+            </button>
+            <button
+              className="quiet"
+              data-control="about"
+              onClick={() => {
+                toggleOptions(false);
+                openPanel({ type: 'about' });
+              }}
+            >
+              {copy.aboutButton}
+            </button>
+          </div>
+        </details>
       </header>
       {panel && !workspace && (
         <div className="mobile-view-switch">

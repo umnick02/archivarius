@@ -64,6 +64,46 @@ try {
       new URL('./project.json', document.baseURI),
     );
   });
+  assert.equal(
+    await b.evaluate(() =>
+      document.querySelector('#first header').innerText.trim(),
+    ),
+    'Menu',
+  );
+  assert.equal(
+    await b.evaluate(
+      () =>
+        !!document.querySelector('#first header [data-control=record-search]'),
+    ),
+    false,
+  );
+  await click('#first [data-control=map-options] > summary');
+  await click('#first [data-control=node-search]');
+  await b.call('Input.insertText', { text: 'writer' });
+  for (const type of ['keyDown', 'keyUp'])
+    await b.call('Input.dispatchKeyEvent', {
+      type,
+      key: 'Enter',
+      code: 'Enter',
+      windowsVirtualKeyCode: 13,
+    });
+  await settled(() => window.consumer.first.snapshot().viewport);
+  assert.equal(
+    await b.evaluate(
+      () => document.querySelector('#first [data-control=map-options]').open,
+    ),
+    false,
+  );
+  assert.equal(
+    await b.evaluate(() =>
+      document
+        .querySelector('#first [data-node=writer]')
+        .classList.contains('highlighted'),
+    ),
+    true,
+  );
+  await b.evaluate(() => window.consumer.first.home());
+  await settled(() => window.consumer.first.snapshot().viewport);
   // A project opens on the diagram, whose facts use verified analysis, not a
   // prose-only project page. Following its task must keep the drawing present.
   assert.equal(
@@ -283,6 +323,7 @@ try {
   await until(() => document.querySelector('#first').clientWidth < 780);
   await settled(() => window.consumer.first.snapshot().viewport);
   await b.evaluate(() => window.consumer.first.home());
+  await click('#first [data-control=map-options] > summary');
   await click('#first [data-control=project]');
   assert.equal(
     await b.evaluate(
@@ -471,6 +512,7 @@ try {
   await until(() =>
     Boolean(document.querySelector('#first [data-control=project]')),
   );
+  await click('#first [data-control=map-options] > summary');
   await click('#first [data-control=project]');
   await click('#first [data-project-view=work]');
   await click('#first [data-record=implement-export]');
@@ -656,6 +698,7 @@ try {
       new URL('./project.json', document.baseURI),
     );
   });
+  await click('#first [data-control=map-options] > summary');
   await click('#first [data-control=project]');
   assert(
     await b.evaluate(() => {
@@ -1185,6 +1228,7 @@ try {
     async (model) => await window.consumer.first.load(model),
     asked,
   );
+  await click('#first [data-control=map-options] > summary');
   await click('#first [data-control=project]');
   await until(() =>
     Boolean(document.querySelector('#first [data-open-questions]')),
@@ -1232,6 +1276,7 @@ try {
     async (model) => await window.consumer.first.load(model),
     project,
   );
+  await click('#first [data-control=map-options] > summary');
   await click('#first [data-control=project]');
   await until(() =>
     Boolean(document.querySelector('#first [data-open-questions]')),
@@ -1384,6 +1429,7 @@ try {
     ),
     null,
   );
+  await click('#first [data-control=map-options] > summary');
   await click('#first [data-control=project]');
   await click('#first [data-project-view=work]');
   assert(

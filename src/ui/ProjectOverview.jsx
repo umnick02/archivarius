@@ -88,6 +88,21 @@ export function ProjectOverview({
   const choose = (view) => navigate({ type: 'project', view });
   const search = (
     <div className="project-filters" key="search">
+      <input
+        data-control="record-search"
+        type="search"
+        aria-label={copy.search}
+        placeholder={copy.search}
+        value={query}
+        onChange={(event) =>
+          update({
+            view: view === 'overview' ? 'all' : view,
+            query: event.target.value,
+            focusSearch: true,
+            scroll: 0,
+          })
+        }
+      />
       {view !== 'overview' && viewTypes[view]?.length !== 1 && (
         <select
           data-control="record-type"

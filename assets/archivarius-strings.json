@@ -1,8 +1,11 @@
 {
   "locale": "en",
-  "brand": "Archivarius",
   "title": "Architecture",
-  "subtitle": "Target architecture · components and interactions",
+  "fileOpen": {
+    "oneJSON": "Drop or paste one JSON file at a time.",
+    "unreadable": "The copied file could not be read. Drag the file onto the map instead.",
+    "dismiss": "Dismiss"
+  },
   "layerLabel": "Emphasize interaction type",
   "findNode": "Find a component…",
   "nodeMatches": "Matches",
@@ -215,5 +218,6 @@
       "one": "{count} state update",
       "other": "{count} state updates"
     }
-  }
+  },
+  "menu": "Menu"
 }

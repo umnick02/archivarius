@@ -35,9 +35,14 @@ const read = (mount) =>
     };
     // A box inside a closed disclosure is laid out but never painted, so it is not
     // chrome standing on the drawing: what a reader cannot see is not measured.
-    const shown = (element) =>
-      element.getClientRects().length &&
-      !element.parentElement?.closest('details:not([open])');
+    const shown = (element) => {
+      const closed = element.parentElement?.closest('details:not([open])');
+      return (
+        element.getClientRects().length &&
+        (!closed ||
+          (element.tagName === 'SUMMARY' && element.parentElement === closed))
+      );
+    };
     const named = (selector, label) =>
       [...root.querySelectorAll(selector)].filter(shown).map((element) => ({
         label:
@@ -48,8 +53,7 @@ const read = (mount) =>
         ...box(element),
       }));
     const pane = root.querySelector('.map-pane');
-    const identity = root.querySelector('.identity');
-    const controls = root.querySelector('.header-right');
+    const controls = root.querySelector('header');
     const nodes = [...root.querySelectorAll('[data-node]')]
       .filter((element) => element.getClientRects().length)
       .map((element) => ({ label: element.dataset.node, ...box(element) }));
@@ -84,7 +88,6 @@ const read = (mount) =>
     return {
       root: box(root),
       pane: pane ? box(pane) : null,
-      identity: identity ? box(identity) : null,
       controls: controls
         ? {
             ...box(controls),
@@ -92,7 +95,9 @@ const read = (mount) =>
             clientWidth: controls.clientWidth,
           }
         : null,
-      headerItems: named('header button, header select, header input'),
+      headerItems: named(
+        'header button, header select, header input, header > details > summary',
+      ),
       overlays: named('.map-failure, .map-empty'),
       nodes,
       union,
@@ -128,14 +133,10 @@ try {
     const view = await read(mount);
     assert(view, 'no map mounted in ' + mount);
 
-    // 1. The identity and the controls are two zones, not one pile.
-    const collisions = view.headerItems
-      .map((item) => ({ item, area: overlap(view.identity, item) }))
-      .filter((entry) => entry.area > 0);
     assert.deepEqual(
-      collisions.map((entry) => entry.item.label + ' ' + entry.area + 'px²'),
-      [],
-      mount + ': a header control overlaps the identity',
+      view.headerItems.map((item) => item.label),
+      ['summary'],
+      mount + ': redundant header controls',
     );
 
     // 2. Nothing is cut off by the right edge, and the control row does not

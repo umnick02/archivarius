@@ -454,8 +454,8 @@ try {
   await focus(model.entry);
   assert(
     (
-      await b.evaluate(
-        () => document.querySelector('#first .brand').textContent,
+      await b.evaluate(() =>
+        document.querySelector('#first .map-app').getAttribute('aria-label'),
       )
     ).includes(model.title),
   );
@@ -1328,15 +1328,13 @@ try {
   await b.call('Fetch.disable');
   intercept();
   assert.equal(
-    await b.evaluate(
-      () => document.querySelector('#first .brand img') !== null,
-    ),
+    await b.evaluate(() => document.querySelector('#first img') !== null),
     false,
   );
   assert(
     (
-      await b.evaluate(
-        () => document.querySelector('#first .brand').textContent,
+      await b.evaluate(() =>
+        document.querySelector('#first .map-app').getAttribute('aria-label'),
       )
     ).includes(replacement.title),
   );
@@ -1536,6 +1534,172 @@ try {
   await b.evaluate(() => {
     window.Worker = Object.getPrototypeOf(window.Worker);
   });
+
+  // File transfer has the same validation and replacement boundary as host
+  // loads. Clipboard text and editing controls must not become import routes.
+  const transfer = (files, { text = '', target = '.map-pane' } = {}) =>
+    b.evaluate(
+      ({ files, text, target }) => {
+        const data = new DataTransfer();
+        for (const [name, contents] of files)
+          data.items.add(
+            new File([contents], name, { type: 'application/json' }),
+          );
+        if (text) data.setData('text/plain', text);
+        const event = new ClipboardEvent('paste', {
+          clipboardData: data,
+          bubbles: true,
+          cancelable: true,
+        });
+        document.querySelector('#first ' + target).dispatchEvent(event);
+        return event.defaultPrevented;
+      },
+      { files, text, target },
+    );
+  const fileModel = { ...model, title: 'Copied project file' };
+  const firstFile = JSON.stringify(fileModel);
+  const otherMap = await state('second');
+  assert.equal(await transfer([], { text: firstFile }), false);
+  assert.equal(
+    await transfer([['project.json', firstFile]], {
+      target: '[data-control=node-search]',
+    }),
+    false,
+  );
+  assert.equal(await transfer([['project.json', firstFile]]), true);
+  await until(
+    () =>
+      document.querySelector('#first .map-app')?.getAttribute('aria-label') ===
+      'Copied project file',
+  );
+  await until(
+    () =>
+      document
+        .querySelector('#first .archivarius')
+        .getAttribute('aria-busy') === 'false',
+  );
+  await settled(camera);
+  assert.deepEqual((await state()).expanded, []);
+  assert.equal(
+    await b.evaluate(() => document.activeElement.className),
+    'map-pane',
+  );
+  assert.deepEqual(await state('second'), otherMap);
+  await focus('engine');
+  const held = await state();
+  for (const files of [
+    [['broken.json', '{']],
+    [['invalid.json', '{}']],
+    [['readme.txt', firstFile]],
+    [
+      ['one.json', firstFile],
+      ['two.json', firstFile],
+    ],
+  ]) {
+    assert.equal(await transfer(files), true);
+    await until(
+      () => !!document.querySelector('#first [data-control=file-open-error]'),
+    );
+    assert.deepEqual(
+      await state(),
+      held,
+      'a rejected file replaced the current map',
+    );
+    await b.evaluate(() => document.querySelector('#first .map-pane').focus());
+    await press('Escape');
+    assert.equal(
+      await b.evaluate(
+        () => !!document.querySelector('#first [data-control=file-open-error]'),
+      ),
+      false,
+    );
+    assert.deepEqual(
+      await state(),
+      held,
+      'dismissing a file error also navigated',
+    );
+  }
+  // The latest valid transfer wins, even if both begin in the same frame.
+  await b.evaluate((model) => {
+    for (const title of ['Superseded transfer', 'Winning transfer']) {
+      const data = new DataTransfer();
+      data.items.add(
+        new File([JSON.stringify({ ...model, title })], 'project.json'),
+      );
+      document.querySelector('#first .map-pane').dispatchEvent(
+        new ClipboardEvent('paste', {
+          clipboardData: data,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    }
+  }, model);
+  await until(
+    () =>
+      document.querySelector('#first .map-app')?.getAttribute('aria-label') ===
+      'Winning transfer',
+  );
+  await until(
+    () =>
+      document
+        .querySelector('#first .archivarius')
+        .getAttribute('aria-busy') === 'false',
+  );
+  await settled(camera);
+  // Chromium creates File objects from an actual file drag, without a picker,
+  // JavaScript clipboard shim or HTTP upload.
+  const dropPoint = await b.evaluate(() => {
+    const rect = document
+      .querySelector('#first .map-pane')
+      .getBoundingClientRect();
+    return { x: rect.left + 12, y: rect.top + 12 };
+  });
+  const dragData = {
+    items: [],
+    files: [
+      new URL('../.runtime/consumer/dist/architecture.json', import.meta.url)
+        .pathname,
+    ],
+    dragOperationsMask: 1,
+  };
+  await b.call('Input.dispatchDragEvent', {
+    type: 'dragEnter',
+    ...dropPoint,
+    data: dragData,
+  });
+  await until(
+    () =>
+      document.querySelector('#first .archivarius').dataset.fileDrag === 'true',
+  );
+  for (const type of ['dragOver', 'drop'])
+    await b.call('Input.dispatchDragEvent', {
+      type,
+      ...dropPoint,
+      data: dragData,
+    });
+  await until(
+    (title) =>
+      document.querySelector('#first .map-app')?.getAttribute('aria-label') ===
+      title,
+    model.title,
+  );
+  await until(
+    () => !document.querySelector('#first .archivarius').dataset.fileDrag,
+  );
+  await until(
+    () =>
+      document
+        .querySelector('#first .archivarius')
+        .getAttribute('aria-busy') === 'false',
+  );
+  await settled(camera);
+  await focus('engine');
+  assert(
+    (await state()).visible.includes('ranking'),
+    'file replacement left a stale host controller',
+  );
+  await load(model);
 
   await b.call('Emulation.setDeviceMetricsOverride', {
     width: 390,

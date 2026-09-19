@@ -708,9 +708,12 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
           '[data-control="inspector"]',
         );
         if (workspace) {
-          (inspector?.contains(document.activeElement)
-            ? root.current.querySelector('[data-control=record-search]')
-            : inspector
+          const search = root.current.querySelector(
+            '[data-control=record-search]',
+          );
+          (document.activeElement === search
+            ? inspector
+            : search || inspector
           )?.focus();
         } else if (root.current.clientWidth <= 780 && panel)
           setMobileMap((value) => !value);
@@ -985,8 +988,12 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
       data-workspace={String(workspace)}
       data-mobile-reading={String(!!panel && !mobileMap)}
       onPointerDownCapture={(e) => {
+        if (!e.target.closest('[data-control=map-options]'))
+          toggleSurface('options', false);
         if (!e.target.closest('button,input,select,textarea,summary,a'))
-          root.current.focus({ preventScroll: true });
+          (e.target.closest('.map-pane') || root.current).focus({
+            preventScroll: true,
+          });
       }}
     >
       <MapHeader
@@ -997,7 +1004,6 @@ export const App = forwardRef(function App({ onReady, announce }, ref) {
         panel={panel}
         navigation={navigation}
         workspace={workspace}
-        replacePanel={navigation.replace}
         optionsOpen={surfaces.includes('options')}
         toggleOptions={(open) => toggleSurface('options', open)}
         mobileMap={mobileMap}

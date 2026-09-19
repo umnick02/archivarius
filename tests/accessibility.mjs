@@ -260,14 +260,14 @@ try {
       };
       return {
         inspector: of('[data-control="inspector"]'),
-        brand: of('.brand'),
+        menu: of('[data-control=map-options] > summary'),
         control: of('[data-control="contracts"]'),
         header: box('header'),
         pane: box('.map-pane'),
         overflow: document.documentElement.scrollWidth > innerWidth + 1,
         clipped: [
           ...document.querySelectorAll(
-            '#first .brand, #first [data-control="contracts"], #first [data-control="inspector"] h2',
+            '#first [data-control=map-options] > summary, #first [data-control="contracts"], #first [data-control="inspector"] h2',
           ),
         ]
           .filter((element) => element.scrollWidth > element.clientWidth + 1)
@@ -285,14 +285,14 @@ try {
   });
   console.log(
     '  text zoom 200%: ' +
-      ['inspector', 'brand', 'control']
+      ['inspector', 'menu', 'control']
         .map(
           (name) =>
             name + ' ' + zoomed.before[name] + '→' + zoomed.after[name] + 'px',
         )
         .join(', '),
   );
-  for (const name of ['inspector', 'brand', 'control'])
+  for (const name of ['inspector', 'menu', 'control'])
     assert(
       zoomed.after[name] >= zoomed.before[name] * 1.8,
       'text zoom: ' +

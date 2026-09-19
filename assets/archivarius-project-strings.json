@@ -30,7 +30,7 @@
       "Realization files, checks and results are bound by hashes. Missing or changed artifacts cannot confirm implementation."
     ]
   ],
-  "search": "Search project",
+  "search": "Search records",
   "title": "Title",
   "navigationBack": "Back",
   "returnToMap": "Map",
@@ -269,15 +269,6 @@
     "failure": "A rejected model throws with a code: {code}.",
     "codes": "Every code is in the {table} table the {command} command writes."
   },
-  "options": "Map options",
-  "navigation": {
-    "map": "Map",
-    "overview": "Overview",
-    "rules": "Requirements",
-    "work": "Plan",
-    "confirmation": "Checks",
-    "documents": "Documents"
-  },
   "before": "Previous definition",
   "after": "Current definition",
   "revision": "Revision {number}",
@@ -295,7 +286,7 @@
   "connections": "Connections",
   "absent": "Not present in this revision",
   "diagram": {
-    "browse": "Browse records",
+    "browse": "Project records",
     "criteria": "Criteria confirmed",
     "progress": "{confirmed} of {total} criteria confirmed",
     "tasksNote": "Tasks whose outcomes are not yet confirmed; this is not an implementation status.",

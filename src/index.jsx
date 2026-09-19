@@ -24,8 +24,8 @@ export function mountArchitectureMap(container, options) {
   const root = createRoot(container);
   let destroyed = false,
     sequence = 0,
-    rejectPending,
-    api;
+    rejectPending;
+  const api = { current: null };
   const { source: initialSource, onReady, onError, ...props } = options || {};
   const handle = {
     ready: null,
@@ -33,25 +33,26 @@ export function mountArchitectureMap(container, options) {
       if (destroyed)
         return Promise.reject(new ArchitectureError('MAP_DESTROYED'));
       rejectPending?.(new DOMException('LOAD_SUPERSEDED', 'AbortError'));
-      api = null;
+      api.current = null;
       const request = ++sequence;
       const promise = new Promise((resolve, reject) => {
         rejectPending = reject;
         root.render(
           <ArchitectureMap
+            ref={api}
             key={request}
             {...props}
             source={source}
             onReady={(next) => {
               if (request !== sequence || destroyed) return;
-              api = next;
+              api.current = next;
               rejectPending = null;
               resolve();
               onReady?.(next);
             }}
             onError={(error) => {
               if (request !== sequence || destroyed) return;
-              api = null;
+              api.current = null;
               rejectPending = null;
               reject(error);
               onError?.(error);
@@ -62,25 +63,25 @@ export function mountArchitectureMap(container, options) {
       return promise;
     },
     home() {
-      if (!api) throw new ArchitectureError('MAP_NOT_READY');
-      return api.home();
+      if (!api.current) throw new ArchitectureError('MAP_NOT_READY');
+      return api.current.home();
     },
     focus(key) {
-      if (!api) throw new ArchitectureError('MAP_NOT_READY');
-      return api.focus(key);
+      if (!api.current) throw new ArchitectureError('MAP_NOT_READY');
+      return api.current.focus(key);
     },
     inspect(key) {
-      if (!api) throw new ArchitectureError('MAP_NOT_READY');
-      api.inspect(key);
+      if (!api.current) throw new ArchitectureError('MAP_NOT_READY');
+      api.current.inspect(key);
     },
     snapshot() {
-      if (!api) throw new ArchitectureError('MAP_NOT_READY');
-      return api.snapshot();
+      if (!api.current) throw new ArchitectureError('MAP_NOT_READY');
+      return api.current.snapshot();
     },
     destroy() {
       if (destroyed) return;
       destroyed = true;
-      api = null;
+      api.current = null;
       rejectPending?.(new DOMException('MAP_DESTROYED', 'AbortError'));
       rejectPending = null;
       root.unmount();

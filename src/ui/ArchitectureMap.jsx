@@ -44,20 +44,39 @@ export const ArchitectureMap = forwardRef(function ArchitectureMap(
   const [announcement, setAnnouncement] = useState('');
   const callbacks = useRef({ onReady, onError });
   callbacks.current = { onReady, onError };
+  const openFile = useRef(null),
+    revision = useRef(0),
+    surface = useRef(null);
+  const [dragging, setDragging] = useState(false);
   const instanceId = 'archivarius-' + useId().replace(/[^a-zA-Z0-9-]/g, '');
   useEffect(() => {
-    const controller = new AbortController();
     const identity = { source, assetsBaseUrl };
-    setState(identity);
-    let resources;
-    readResources({ assetsBaseUrl, signal: controller.signal })
-      .then(async (value) => {
-        resources = value;
-        const prepared = await prepareArchitecture(source, {
+    let active, shown;
+    // Host sources and transferred files use one cancellable preparation path.
+    // A file replaces the drawing only after validation and layout both succeed.
+    const load = async (input, local = false) => {
+      active?.abort();
+      const controller = new AbortController();
+      active = controller;
+      const nextRevision = ++revision.current;
+      setState({ ...(local && shown ? shown : identity), pending: true });
+      let resources;
+      try {
+        resources = await readResources({
+          assetsBaseUrl,
+          signal: controller.signal,
+        });
+        const prepared = await prepareArchitecture(input, {
           signal: controller.signal,
         });
         if (controller.signal.aborted) return;
-        setState({ ...identity, value: { ...resources, ...prepared } });
+        shown = {
+          ...identity,
+          value: { ...resources, ...prepared },
+          revision: nextRevision,
+          local,
+        };
+        setState({ ...shown, pending: true });
         setAnnouncement(
           plural(
             resources.copy,
@@ -66,24 +85,59 @@ export const ArchitectureMap = forwardRef(function ArchitectureMap(
             { title: prepared.model.title || resources.copy.title },
           ),
         );
-      })
-      .catch((error) => {
+      } catch (error) {
         if (controller.signal.aborted) return;
         controller.abort();
-        setState({ ...identity, error, copy: resources?.copy });
+        if (local && shown) setState({ ...shown, fileError: error });
+        else setState({ ...identity, error, copy: resources?.copy });
         if (resources?.copy)
           setAnnouncement(
             format(resources.copy.announcements.failure, {
               code: resources.copy.errors[error.code] || error.message,
             }),
           );
-        callbacks.current.onError?.(error);
-      });
-    return () => controller.abort();
+        // A rejected file leaves the existing controller usable. Fatal host
+        // loading failures retain the public onError/ready contract.
+        if (!local || !shown) callbacks.current.onError?.(error);
+      }
+    };
+    openFile.current = {
+      load: (file) => load(file, true),
+      reject: (error) => {
+        active?.abort();
+        setState((held) => ({ ...held, pending: false, fileError: error }));
+      },
+    };
+    load(source);
+    return () => {
+      active?.abort();
+      openFile.current = null;
+    };
   }, [source, assetsBaseUrl]);
   const current =
     state.source === source && state.assetsBaseUrl === assetsBaseUrl;
   const value = current && state.value;
+  const copy = value?.copy || state.copy;
+  const accepts = (event) =>
+    !event.target.closest(
+      'input, textarea, select, [contenteditable]:not([contenteditable="false"])',
+    );
+  const hasFiles = (data) => [...(data?.types || [])].includes('Files');
+  const receiveFiles = (event, data) => {
+    if (!accepts(event)) return;
+    const files = [...(data?.files || [])];
+    if (!files.length && !hasFiles(data)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (files.length !== 1 || !/\.json$/i.test(files[0].name)) {
+      if (copy)
+        openFile.current?.reject(
+          files.length ? copy.fileOpen.oneJSON : copy.fileOpen.unreadable,
+        );
+      return;
+    }
+    openFile.current?.load(files[0]);
+  };
   const mapSummaries = useMemo(
     () =>
       value?.project
@@ -98,7 +152,7 @@ export const ArchitectureMap = forwardRef(function ArchitectureMap(
         : null,
     [value],
   );
-  const error = current && state.error;
+  const error = current && (state.error || state.fileError);
   const rootColors =
     value &&
     Object.fromEntries(
@@ -106,22 +160,58 @@ export const ArchitectureMap = forwardRef(function ArchitectureMap(
     );
   const errorText =
     error &&
-    (state.copy
-      ? format(state.copy.modelError, {
-          error: [error.code || error.message, ...(error.issues || [])]
-            .map((issue) => {
-              const [code, key] = issue.split(':');
-              return format(state.copy.errors[code] || code, { key });
-            })
-            .join('\n'),
-        })
-      : error.message);
+    (typeof error === 'string'
+      ? error
+      : copy
+        ? format(copy.modelError, {
+            error: [error.code || error.message, ...(error.issues || [])]
+              .map((issue) => {
+                const [code, key] = issue.split(':');
+                return format(copy.errors[code] || code, { key });
+              })
+              .join('\n'),
+          })
+        : error.message);
   return (
     <div
+      ref={surface}
       className={'archivarius ' + className}
       style={style}
       data-instance={instanceId}
-      aria-busy={!value && !error}
+      data-file-drag={dragging || undefined}
+      tabIndex={value ? undefined : -1}
+      aria-busy={!!state.pending || (!value && !error)}
+      onPaste={(event) => {
+        if (!value || event.target.closest('.map-pane'))
+          receiveFiles(event, event.clipboardData);
+      }}
+      onDragEnter={(event) => {
+        if (accepts(event) && hasFiles(event.dataTransfer)) {
+          event.preventDefault();
+          setDragging(true);
+        }
+      }}
+      onDragOver={(event) => {
+        if (accepts(event) && hasFiles(event.dataTransfer)) {
+          event.preventDefault();
+          event.dataTransfer.dropEffect = 'copy';
+        }
+      }}
+      onDragLeave={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget))
+          setDragging(false);
+      }}
+      onDrop={(event) => {
+        setDragging(false);
+        receiveFiles(event, event.dataTransfer);
+      }}
+      onKeyDownCapture={(event) => {
+        if (event.key === 'Escape' && state.fileError) {
+          event.preventDefault();
+          event.stopPropagation();
+          setState((held) => ({ ...held, fileError: null }));
+        }
+      }}
     >
       <p
         className="map-announcement"
@@ -131,12 +221,36 @@ export const ArchitectureMap = forwardRef(function ArchitectureMap(
       >
         {announcement}
       </p>
-      {error ? (
+      {state.fileError && value && (
+        <div
+          className="file-open-error"
+          data-control="file-open-error"
+          role="alert"
+        >
+          <span>{errorText}</span>
+          <button
+            className="quiet"
+            data-control="dismiss-file-error"
+            onClick={() => {
+              setState((held) => ({ ...held, fileError: null }));
+              surface.current
+                ?.querySelector('.map-pane')
+                ?.focus({ preventScroll: true });
+            }}
+          >
+            {copy.fileOpen.dismiss}
+          </button>
+        </div>
+      )}
+      {error && !value ? (
         <div className="model-error" role="alert">
           {errorText}
         </div>
       ) : value ? (
-        <MapBoundary onError={(error) => callbacks.current.onError?.(error)}>
+        <MapBoundary
+          key={state.revision}
+          onError={(error) => callbacks.current.onError?.(error)}
+        >
           <ArchitectureContext.Provider
             value={{ ...value, rootColors, instanceId, mapSummaries }}
           >
@@ -144,7 +258,20 @@ export const ArchitectureMap = forwardRef(function ArchitectureMap(
               <App
                 ref={ref}
                 announce={setAnnouncement}
-                onReady={(api) => callbacks.current.onReady?.(api)}
+                onReady={(api) => {
+                  callbacks.current.onReady?.(api);
+                  setState((held) => ({ ...held, pending: false }));
+                  const document = surface.current?.ownerDocument;
+                  if (
+                    state.local &&
+                    document &&
+                    (document.activeElement === document.body ||
+                      surface.current.contains(document.activeElement))
+                  )
+                    surface.current
+                      .querySelector('.map-pane')
+                      ?.focus({ preventScroll: true });
+                }}
               />
             </ReactFlowProvider>
           </ArchitectureContext.Provider>
